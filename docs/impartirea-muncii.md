@@ -116,6 +116,32 @@ P5 (deploy) ◄── toți (orice merge în producție trece prin P5)
 
 **Ordinea recomandată de start:** P2 începe imediat colectarea (blochează totul), P1 pregătește pipeline-ul de evaluare, P3 lucrează în paralel la streak/onboarding (fără dependențe), P4 pornește Supabase de la zero, P5 pune deploy-ul și testele de la început.
 
+## Flux de lucru Git
+
+Repozitoriu: https://github.com/margi-tech/signa
+
+1. **`main` rămâne mereu funcțional** — nimeni nu face push direct pe el (protejat pe GitHub, orice schimbare trece printr-un Pull Request).
+2. **Ramuri per funcționalitate, nu per persoană** — o ramură trăiește câteva zile, nu săptămâni. Numele începe cu rolul tău:
+   ```bash
+   git checkout main && git pull
+   git checkout -b p3/streak-zilnic
+   ```
+   Exemple: `p1/model-gru`, `p2/colectare-cuvinte`, `p4/supabase-auth`, `p5/deploy-vercel`
+3. **Când e gata, deschide un Pull Request** spre `main`:
+   ```bash
+   git push -u origin p3/streak-zilnic
+   gh pr create        # sau din interfața GitHub
+   ```
+4. **Altcineva se uită pe cod înainte de merge** — minim o aprobare.
+5. **După merge, toți se actualizează:** `git checkout main && git pull`.
+
+### Reguli speciale pentru PR-uri
+
+- Un PR care atinge `normalize.js`, formatul dataset-ului sau `public/models/` se anunță întregii echipe și așteaptă acordul lui P1 (Lead AI).
+- PR-uri mici și dese > PR-uri uriașe. Dacă ai depășit ~400 de linii modificate, probabil trebuia împărțit.
+- Descrierea PR-ului spune **ce** și **de ce**, plus cum s-a testat (ideal cu un screenshot pentru schimbări de UI).
+- Conflictele se rezolvă pe ramura ta (`git merge main`), nu pe `main`.
+
 ## Ritm de lucru sugerat
 
 - **Sync scurt săptămânal:** fiecare spune ce a terminat, ce urmează, ce îl blochează
