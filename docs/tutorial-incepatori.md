@@ -1,8 +1,9 @@
 # Tutorial pentru începători — cum lucrezi la Signa fără să fi scris cod vreodată
 
 Bun venit în echipă! 🎉 Acest ghid te duce de la zero până la prima ta contribuție.
-Vestea bună: **nu trebuie să știi să programezi** — vei lucra cu Claude Code, un asistent AI
-care scrie codul pentru tine. Tu îi explici în română ce vrei, el face.
+Vestea bună: **nu trebuie să știi să programezi** — vei lucra cu Claude Code din **aplicația
+Claude pentru desktop**, un asistent AI care scrie codul pentru tine. Tu îi explici în română
+ce vrei, el face.
 
 ---
 
@@ -16,8 +17,8 @@ care scrie codul pentru tine. Tu îi explici în română ce vrei, el face.
 | **Ramură (branch)** | O „copie de lucru" a proiectului în care modifici fără să strici versiunea principală |
 | **`main`** | Ramura principală — versiunea „bună" a aplicației. Nu se lucrează direct pe ea |
 | **Pull Request (PR)** | Cererea ta: „am terminat, uitați-vă peste schimbările mele și băgați-le în main" |
-| **Terminal** | Fereastra în care scrii comenzi text (pe Mac: aplicația **Terminal**) |
-| **Claude Code** | Asistentul AI din terminal care scrie și modifică codul la cererea ta |
+| **Terminal** | Fereastra în care scrii comenzi text (pe Mac: aplicația **Terminal**) — o folosești doar la instalare |
+| **Aplicația Claude** | Aplicația de desktop de la Anthropic, cu **Claude Code** integrat — asistentul AI care scrie și modifică codul la cererea ta, ca un chat |
 
 ---
 
@@ -28,7 +29,11 @@ care scrie codul pentru tine. Tu îi explici în română ce vrei, el face.
 2. Trimite username-ul tău lui David ca să te adauge la proiect
 3. Vei primi un email de invitație — apasă **Accept invitation**
 
-### 1.2 Instalează uneltele
+### 1.2 Instalează aplicația Claude
+1. Descarcă aplicația Claude pentru desktop de pe [claude.ai/download](https://claude.ai/download)
+2. Instaleaz-o și conectează-te cu contul tău Claude (dacă nu ai, îți faci unul gratuit acolo)
+
+### 1.3 Instalează uneltele de bază
 Deschide **Terminal** (pe Mac: Cmd+Spațiu, scrie „Terminal", Enter) și rulează pe rând:
 
 ```bash
@@ -37,18 +42,17 @@ Deschide **Terminal** (pe Mac: Cmd+Spațiu, scrie „Terminal", Enter) și rulea
 
 # 2. Git + Node.js (motorul care rulează aplicația) + GitHub CLI
 brew install git node gh
-
-# 3. Claude Code — asistentul tău AI
-npm install -g @anthropic-ai/claude-code
 ```
 
-### 1.3 Conectează-te la GitHub din terminal
+Asta e singura dată când ai nevoie de Terminal — după instalare, totul se întâmplă în aplicația Claude.
+
+### 1.4 Conectează-te la GitHub din terminal
 ```bash
 gh auth login
 ```
 Alege: **GitHub.com** → **HTTPS** → **Login with a web browser** și urmează pașii din browser.
 
-### 1.4 Spune-i lui Git cine ești
+### 1.5 Spune-i lui Git cine ești
 ```bash
 git config --global user.name "numele-tau-de-github"
 git config --global user.email "emailul-tau@exemplu.com"
@@ -58,6 +62,8 @@ git config --global user.email "emailul-tau@exemplu.com"
 
 ## Pasul 2 — Descarcă proiectul (o singură dată)
 
+Tot în Terminal (ultima dată, promitem):
+
 ```bash
 cd ~/Documents
 git clone https://github.com/margi-tech/signa.git
@@ -66,30 +72,27 @@ npm install
 ```
 
 `npm install` durează un minut — descarcă bibliotecile de care are nevoie aplicația.
-
-### Verifică dacă merge
-```bash
-npm run dev
-```
-Deschide în browser adresa afișată (de obicei `http://localhost:5173`). Ar trebui să vezi aplicația Signa! 🎉
-Când vrei să oprești aplicația, apasă `Ctrl+C` în terminal.
+Poți închide Terminalul — de aici încolo lucrezi doar din aplicația Claude.
 
 ---
 
-## Pasul 3 — Pornește Claude Code
+## Pasul 3 — Deschide proiectul în aplicația Claude
 
-Din folderul proiectului:
-```bash
-cd ~/Documents/signa
-claude
-```
+1. Deschide **aplicația Claude** de pe Mac
+2. Intră în secțiunea **Code** (Claude Code)
+3. Apasă pentru a deschide un proiect nou și alege folderul **`Documents/signa`**
+4. Se deschide o conversație — de aici, pur și simplu **scrii ce vrei, în română**, ca un chat
 
-Prima dată îți va cere să te conectezi cu un cont — urmează instrucțiunile.
-După asta, pur și simplu **scrii ce vrei, în română**, ca un chat:
+Încearcă asta ca prim mesaj:
 
 > „Explică-mi ce face această aplicație și cum e organizat codul"
 
+Apoi:
+
 > „Pornește serverul local ca să văd aplicația"
+
+Claude pornește aplicația și îți dă un link (de obicei `http://localhost:5173`) — deschide-l
+în browser și ar trebui să vezi Signa! 🎉
 
 Claude citește singur fișierul `CLAUDE.md` din proiect, deci știe deja regulile echipei.
 
@@ -101,7 +104,7 @@ Regula de aur a echipei: **nu modifici niciodată direct `main`**. Lucrezi pe o 
 apoi ceri integrarea printr-un Pull Request. Sună complicat, dar Claude face totul pentru tine.
 
 ### 4.1 Începe o sarcină nouă
-Deschide Claude Code în folderul proiectului și spune-i:
+Deschide proiectul în aplicația Claude (o conversație nouă pentru fiecare sarcină e cel mai curat) și spune-i:
 
 > „Vreau să încep o sarcină nouă: [descrie sarcina din to-do list-ul tău].
 > Adu-mi te rog ultima versiune de pe main și creează o ramură nouă pentru asta.
@@ -154,11 +157,11 @@ Apoi anunță pe grupul echipei că ai un PR — altcineva trebuie să se uite p
 
 ## Probleme frecvente
 
-**„command not found: claude / git / npm"**
+**„command not found: git / npm" la instalare**
 → Instalarea de la Pasul 1 nu s-a terminat cu succes. Rulează din nou comanda `brew install...` sau cere-i ajutorul lui Claude pe telefon/web: [claude.ai](https://claude.ai).
 
-**Aplicația nu pornește / erori roșii în terminal**
-→ Copiază eroarea și dă-i-o lui Claude: „îmi dă eroarea asta, repar-o: [lipește eroarea]".
+**Aplicația Signa nu pornește / erori roșii**
+→ Copiază eroarea și dă-i-o lui Claude în conversație: „îmi dă eroarea asta, repar-o: [lipește eroarea]".
 
 **„Am stricat ceva și nu știu ce"**
 → Spune-i lui Claude: „Anulează toate schimbările nesalvate și adu-mă la ultima versiune care funcționa." Nimic nu e pierdut definitiv — Git ține minte tot.
