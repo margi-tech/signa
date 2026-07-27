@@ -1,30 +1,36 @@
 import { useRef, useEffect, useState } from 'react';
-import { useHandLandmarker } from '../../hooks/useHandLandmarker';
+import { useHolisticLandmarker } from '../../hooks/useHolisticLandmarker';
 import HandCanvas from './HandCanvas';
 
+// 3 modele (mâini + față + trunchi) pe cadru sunt costisitoare — limităm
+// detecția reală la ~15fps; desenarea rămâne fluidă prin rAF.
+const DETECT_INTERVAL_MS = 66;
+
 /**
- * HandTracker — componentă principală de urmărire a mâinii.
+ * HandTracker — componentă principală de urmărire holistică (mâini + față + trunchi).
  *
  * Arhitectură:
  *  • Un div oglindă (scaleX -1) conține video + canvas → ambele mirate consistent
  *  • UI-ul (loading, erori) e poziționat DEASUPRA div-ului oglindă, deci nu e răsturnat
- *  • Bucla de detecție rulează cu requestAnimationFrame, pornind doar când MediaPipe e gata
+ *  • Bucla de detecție rulează cu requestAnimationFrame, gated la DETECT_INTERVAL_MS
  *
- * @param {Function} [onLandmarks]  callback opțional, apelat la fiecare cadru cu
- *                                  landmarks-urile curente (sau null dacă nu e mână)
+ * @param {Function} [onLandmarks]  callback opțional, apelat la fiecare detecție cu
+ *   subiectul complet { hands, handedness, faceBlendshapes, headMatrix, pose }
+ *   (sau null dacă nu e nicio mână în cadru)
  */
 export default function HandTracker({ onLandmarks }) {
   const videoRef       = useRef(null);
   const loopRef        = useRef(null);
+  const lastTickRef    = useRef(0);
   const onLandmarksRef = useRef(onLandmarks); // ref stabil — evită re-render la schimbare
 
-  const [landmarks,    setLandmarks]    = useState(null);
+  const [subject,      setSubject]      = useState(null);
   const [cameraError,  setCameraError]  = useState(null);
 
   // Sincronizează ref-ul cu prop-ul fără a reporni bucla
   useEffect(() => { onLandmarksRef.current = onLandmarks; }, [onLandmarks]);
 
-  const { isReady, error: landmarkerError, detect } = useHandLandmarker();
+  const { isReady, error: landmarkerError, detect } = useHolisticLandmarker();
 
   // — Pornire cameră —
   useEffect(() => {
@@ -56,15 +62,16 @@ export default function HandTracker({ onLandmarks }) {
   useEffect(() => {
     if (!isReady) return;
 
-    function loop() {
+    function loop(now) {
       const video = videoRef.current;
 
-      // HAVE_CURRENT_DATA (readyState >= 2) = avem cel puțin un cadru valid
-      if (video && video.readyState >= 2) {
-        const result     = detect(video, performance.now());
-        const newLandmarks = result?.landmarks?.length ? result.landmarks : null;
-        setLandmarks(newLandmarks);
-        onLandmarksRef.current?.(newLandmarks);
+      if (video && video.readyState >= 2 && now - lastTickRef.current >= DETECT_INTERVAL_MS) {
+        lastTickRef.current = now;
+        const result = detect(video, performance.now());
+        const hasHand = result?.hands?.length > 0;
+        const next = hasHand ? result : null;
+        setSubject(next);
+        onLandmarksRef.current?.(next);
       }
 
       loopRef.current = requestAnimationFrame(loop);
@@ -109,30 +116,44 @@ export default function HandTracker({ onLandmarks }) {
           muted
           className="w-full h-full object-cover"
         />
-        <HandCanvas landmarks={landmarks} videoRef={videoRef} />
+        <HandCanvas landmarks={subject?.hands ?? null} videoRef={videoRef} />
       </div>
 
       {/* Loading overlay — poziționat DEASUPRA div-ului oglindă, deci text e drept */}
       {!isReady && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/70">
           <div className="h-10 w-10 animate-spin rounded-full border-2 border-signa-400 border-t-transparent" />
-          <p className="text-white/70 text-sm">Se încarcă detectorul de mâini…</p>
+          <p className="text-white/70 text-sm">Se încarcă detectoarele…</p>
         </div>
       )}
 
       {/* Indicator discret: mână detectată / nu */}
       {isReady && (
-        <div className="absolute bottom-20 left-0 right-0 flex justify-center">
+        <div className="absolute bottom-20 left-0 right-0 flex flex-col items-center gap-1.5">
           <span
             className={`
               text-xs font-medium px-3 py-1 rounded-full transition-all duration-300
-              ${landmarks
+              ${subject
                 ? 'bg-signa-500/80 text-white'
                 : 'bg-slate-800/60 text-slate-400'}
             `}
           >
-            {landmarks ? '✓ Mână detectată' : 'Ridică mâna în față camerei'}
+            {subject ? '✓ Mână detectată' : 'Ridică mâna în față camerei'}
           </span>
+
+          {/* Temporar — verificare vizuală că fața și trunchiul se detectează */}
+          {subject && (
+            <div className="flex gap-1.5">
+              <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full
+                ${subject.faceBlendshapes ? 'bg-indigo-500/70 text-white' : 'bg-slate-800/50 text-slate-500'}`}>
+                {subject.faceBlendshapes ? '✓ Față' : 'Fără față'}
+              </span>
+              <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full
+                ${subject.pose ? 'bg-amber-500/70 text-white' : 'bg-slate-800/50 text-slate-500'}`}>
+                {subject.pose ? '✓ Trunchi' : 'Fără trunchi'}
+              </span>
+            </div>
+          )}
         </div>
       )}
     </div>

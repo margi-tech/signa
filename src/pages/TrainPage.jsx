@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { SEQ_FRAMES } from '../data/lsr-alphabet';
+import { VECTOR_SIZE } from '../utils/normalize';
 
 /* ── Preset-uri antrenare ──────────────────────────────────────── */
 const PRESETS = [
@@ -10,14 +11,14 @@ const PRESETS = [
 
 const PHASE = { IDLE: 'idle', TRAIN: 'train', DONE: 'done' };
 
-// Validatori — un vector static are 63 de numere; o secvență are SEQ_FRAMES vectori
-const isVec = (v) => Array.isArray(v) && v.length === 63 && typeof v[0] === 'number';
+// Validatori — un vector static are VECTOR_SIZE numere; o secvență are SEQ_FRAMES vectori
+const isVec = (v) => Array.isArray(v) && v.length === VECTOR_SIZE && typeof v[0] === 'number';
 const isSeq = (v) => Array.isArray(v) && v.length === SEQ_FRAMES && v.every(isVec);
 
 /* ── Arhitecturi ───────────────────────────────────────────────── */
 function buildStaticModel(tf, nClasses) {
   const m = tf.sequential();
-  m.add(tf.layers.dense({ inputShape: [63], units: 256, activation: 'relu' }));
+  m.add(tf.layers.dense({ inputShape: [VECTOR_SIZE], units: 256, activation: 'relu' }));
   m.add(tf.layers.dropout({ rate: 0.3 }));
   m.add(tf.layers.dense({ units: 128, activation: 'relu' }));
   m.add(tf.layers.dropout({ rate: 0.2 }));
@@ -28,7 +29,7 @@ function buildStaticModel(tf, nClasses) {
 
 function buildDynamicModel(tf, nClasses) {
   const m = tf.sequential();
-  m.add(tf.layers.gru({ inputShape: [SEQ_FRAMES, 63], units: 64 }));
+  m.add(tf.layers.gru({ inputShape: [SEQ_FRAMES, VECTOR_SIZE], units: 64 }));
   m.add(tf.layers.dropout({ rate: 0.3 }));
   m.add(tf.layers.dense({ units: nClasses, activation: 'softmax' }));
   m.compile({ optimizer: 'adam', loss: 'categoricalCrossentropy', metrics: ['accuracy'] });

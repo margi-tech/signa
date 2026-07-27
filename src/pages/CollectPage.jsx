@@ -6,6 +6,17 @@ import { DYNAMIC_LETTERS, SEQ_FRAMES, SEQ_INTERVAL_MS, minFor } from '../data/ls
 
 const MODE = { FOTO: 'foto', VIDEO: 'video' };
 
+/** Clonează un instantaneu holistic — MediaPipe poate refolosi structurile intern */
+function cloneSubject(subject) {
+  return {
+    hands: subject.hands?.map((h) => h.map(({ x, y, z }) => ({ x, y, z }))) ?? [],
+    handedness: subject.handedness ? [...subject.handedness] : [],
+    faceBlendshapes: subject.faceBlendshapes ? [...subject.faceBlendshapes] : null,
+    headMatrix: subject.headMatrix ? [...subject.headMatrix] : null,
+    pose: subject.pose ? subject.pose.map(({ x, y, z, visibility }) => ({ x, y, z, visibility })) : null,
+  };
+}
+
 /* ── Câmp text + comutator Foto/Video, într-un singur rând compact ── */
 function WordInput({ value, onChange, mode, onModeChange }) {
   return (
@@ -210,21 +221,20 @@ export default function CollectPage({ onBack }) {
 
   /** Înregistrează SEQ_FRAMES cadre la interval fix (~1.5s de mișcare) */
   const startRecording = useCallback(() => {
-    if (recTimerRef.current || !latestLandmarksRef.current?.[0]) return;
+    if (recTimerRef.current || !latestLandmarksRef.current?.hands?.length) return;
 
     const frames = [];
     setRecording(true);
     setRecProgress(0);
 
     recTimerRef.current = setInterval(() => {
-      const lm = latestLandmarksRef.current?.[0];
-      if (!lm) {
+      const subject = latestLandmarksRef.current;
+      if (!subject?.hands?.length) {
         // Mâna a ieșit din cadru — înregistrarea se anulează
         stopRecording();
         return;
       }
-      // Clonăm punctele — MediaPipe poate refolosi structurile intern
-      frames.push(lm.map(({ x, y, z }) => ({ x, y, z })));
+      frames.push(cloneSubject(subject));
       setRecProgress(frames.length / SEQ_FRAMES);
 
       if (frames.length >= SEQ_FRAMES) {

@@ -47,10 +47,13 @@ function smoothClosedPath(pts) {
  *  • degetele sunt desenate în ordinea adâncimii (z), cu halo de separare
  *
  * @param {number[]} pose  63 valori [x,y,z, ...] din reference-poses.json
+ *   (format vechi, o singură mână — normalize() a trecut la vectorul holistic
+ *   de 199 valori în Faza 4.5; reference-poses.json trebuie regenerat din noul
+ *   dataset ca acest component să afișeze din nou ceva)
  */
 export default function ReferenceHand({ pose, className = '' }) {
   const points = useMemo(() => {
-    if (!pose || pose.length !== 63) return null;
+    if (!pose || pose.length !== 63) return null; // format vechi/lipsă — degradare grațioasă
 
     // Extrage (x, y), oglindit pe X (aplicația afișează camera în oglindă)
     const pts = [];

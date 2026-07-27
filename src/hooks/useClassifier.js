@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { normalize } from '../utils/normalize';
+import { normalize, VECTOR_SIZE } from '../utils/normalize';
 import { SEQ_FRAMES } from '../data/lsr-alphabet';
 
 const MODEL_PATH      = '/models/signa-model.json';
@@ -59,7 +59,7 @@ export function useClassifier() {
 
     (async () => {
       try {
-        const st = await loadOne(LABELS_PATH, MODEL_PATH, [1, 63]);
+        const st = await loadOne(LABELS_PATH, MODEL_PATH, [1, VECTOR_SIZE]);
         if (st && !cancelled) {
           modelRef.current  = st.model;
           labelsRef.current = st.labels;
@@ -68,7 +68,7 @@ export function useClassifier() {
       } catch { /* model static lipsă sau corupt */ }
 
       try {
-        const dy = await loadOne(DYN_LABELS_PATH, DYN_MODEL_PATH, [1, SEQ_FRAMES, 63]);
+        const dy = await loadOne(DYN_LABELS_PATH, DYN_MODEL_PATH, [1, SEQ_FRAMES, VECTOR_SIZE]);
         if (dy && !cancelled) {
           dynModelRef.current  = dy.model;
           dynLabelsRef.current = dy.labels;

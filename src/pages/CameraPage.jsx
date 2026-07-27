@@ -41,7 +41,7 @@ export default function CameraPage({ onBack }) {
     if (now - lastTickRef.current < SEQ_INTERVAL_MS) return;
     lastTickRef.current = now;
 
-    if (!lm?.[0] || !isReadyRef.current) {
+    if (!lm?.hands?.length || !isReadyRef.current) {
       seqBufRef.current = [];
       motionBufRef.current = [];
       prevRawRef.current = null;
@@ -50,9 +50,10 @@ export default function CameraPage({ onBack }) {
       return;
     }
 
-    const hand = lm[0];
+    const subject = lm;
+    const hand = subject.hands[0]; // mâna principală, folosită pentru detectorul de mișcare
 
-    // — Mișcarea: deplasarea medie a punctelor față de cadrul anterior —
+    // — Mișcarea: deplasarea medie a punctelor mâinii față de cadrul anterior —
     const prev = prevRawRef.current;
     if (prev) {
       let disp = 0;
@@ -69,8 +70,8 @@ export default function CameraPage({ onBack }) {
       : 0;
     const isMoving = motion > MOTION_THRESHOLD;
 
-    // — Bufferul de secvență (cadre normalizate, ritm fix) —
-    const vector = normalize(hand);
+    // — Bufferul de secvență (vectori deja normalizați, ritm fix) —
+    const vector = normalize(subject);
     if (vector) {
       seqBufRef.current.push(vector);
       if (seqBufRef.current.length > SEQ_FRAMES) seqBufRef.current.shift();
@@ -85,7 +86,7 @@ export default function CameraPage({ onBack }) {
       }
     }
 
-    const staticP = predictRef.current(hand);
+    const staticP = predictRef.current(subject);
 
     let shown = null;
     if (lastDynRef.current.p && now - lastDynRef.current.t < DYN_HOLD_MS) {

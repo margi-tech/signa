@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { normalize } from '../utils/normalize';
+import { normalize, VECTOR_SIZE } from '../utils/normalize';
 import { LSR_ALPHABET, MIN_SAMPLES_PER_LETTER, MIN_SEQ_PER_LETTER } from '../data/lsr-alphabet';
 
 // Validatori pentru cele două tipuri de mostre
-const isVec = (v) => Array.isArray(v) && v.length === 63 && typeof v[0] === 'number';
+const isVec = (v) => Array.isArray(v) && v.length === VECTOR_SIZE && typeof v[0] === 'number';
 const isSeq = (v) => Array.isArray(v) && v.length > 0 && v.every(isVec);
 
 // Rotunjire la 4 zecimale — reduce mult spațiul ocupat în localStorage,
@@ -49,13 +49,11 @@ export function useDatasetCollector() {
 
   /**
    * Capturează un vector normalizat (poză statică) pentru eticheta activă.
-   * @param {Array|null} landmarks  rezultatul detectat curent (array de mâini)
+   * @param {object|null} subject  rezultatul holistic curent { hands, faceBlendshapes, pose, ... }
    * @returns {boolean}  true dacă captura a reușit
    */
-  const capture = useCallback((landmarks) => {
-    if (!landmarks?.[0]) return false;
-
-    const vector = normalize(landmarks[0]);
+  const capture = useCallback((subject) => {
+    const vector = normalize(subject);
     if (!vector) return false;
 
     setDataset((prev) => ({
@@ -68,15 +66,15 @@ export function useDatasetCollector() {
 
   /**
    * Capturează o SECVENȚĂ de cadre (film) pentru eticheta activă.
-   * @param {Array<Array<{x,y,z}>>} rawFrames  cadre consecutive de landmarks (21 pct fiecare)
+   * @param {Array<object>} rawFrames  instantanee holistice consecutive (subject brut, neprelucrat)
    * @returns {boolean}  true dacă înregistrarea a fost salvată
    */
   const captureSequence = useCallback((rawFrames) => {
     if (!rawFrames?.length) return false;
 
     const seq = [];
-    for (const lm of rawFrames) {
-      const vector = normalize(lm);
+    for (const subject of rawFrames) {
+      const vector = normalize(subject);
       if (!vector) return false; // cadru invalid — înregistrarea se aruncă întreagă
       seq.push(vector.map(round4));
     }

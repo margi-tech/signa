@@ -19,7 +19,7 @@ function LetterDots({ letters, idx, skipped }) {
             ? 'bg-white'
             : i < idx
               ? skipped.includes(l) ? 'bg-amber-400' : 'bg-signa-400'
-              : 'bg-slate-700'}`}
+              : 'bg-white/25'}`}
         />
       ))}
     </div>
@@ -29,23 +29,23 @@ function LetterDots({ letters, idx, skipped }) {
 /* ── Ecranul de rezultate ───────────────────────────────────────── */
 function ResultsScreen({ lesson, skipped, xpGained, stars, onExit, onRetry }) {
   return (
-    <div className="h-full bg-[#070b10] flex flex-col items-center justify-center px-8 animate-fade-up">
+    <div className="h-full bg-cream flex flex-col items-center justify-center px-8 animate-fade-up">
       {/* Stele */}
       <div className="flex gap-2 mb-6">
         {[0, 1, 2].map((i) => (
-          <svg key={i} width="44" height="44" viewBox="0 0 24 24"
+          <svg key={i} width="48" height="48" viewBox="0 0 24 24"
             className={i < stars ? 'animate-scale-in' : ''}
             style={{ animationDelay: `${i * 150}ms` }}
-            fill={i < stars ? '#fbbf24' : 'rgba(255,255,255,0.07)'}>
+            fill={i < stars ? '#f59e0b' : '#EFEAE0'}>
             <path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.2 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8L12 2z"/>
           </svg>
         ))}
       </div>
 
-      <h1 className="text-white text-2xl font-black mb-1">
+      <h1 className="text-ink-900 text-2xl font-black mb-1">
         {stars === 3 ? 'Perfect!' : stars === 2 ? 'Foarte bine!' : 'Lecție completată'}
       </h1>
-      <p className="text-signa-400 font-bold text-lg mb-6">+{xpGained} XP</p>
+      <p className="text-signa-600 font-bold text-lg mb-6">+{xpGained} XP</p>
 
       {/* Recap litere */}
       <div className="flex gap-2 mb-10">
@@ -53,14 +53,14 @@ function ResultsScreen({ lesson, skipped, xpGained, stars, onExit, onRetry }) {
           const wasSkipped = skipped.includes(l);
           return (
             <div key={l} className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold
-              ${wasSkipped ? 'bg-amber-500/15 text-amber-400' : 'bg-signa-500/15 text-signa-400'}`}>
+              ${wasSkipped ? 'bg-amber-100 text-amber-600' : 'bg-signa-50 text-signa-600'}`}>
               {l}
             </div>
           );
         })}
       </div>
       {skipped.length > 0 && (
-        <p className="text-slate-600 text-xs -mt-7 mb-8">
+        <p className="text-ink-500 text-xs -mt-7 mb-8">
           {skipped.join(', ')} — de repetat
         </p>
       )}
@@ -69,13 +69,13 @@ function ResultsScreen({ lesson, skipped, xpGained, stars, onExit, onRetry }) {
         <button
           onClick={onExit}
           className="w-full py-4 bg-signa-500 text-white font-bold rounded-2xl
-            shadow-[0_6px_24px_rgba(16,185,129,0.25)] active:scale-[0.97] transition-transform"
+            shadow-button active:scale-[0.97] transition-transform"
         >
           Continuă
         </button>
         <button
           onClick={onRetry}
-          className="w-full py-3 text-slate-500 hover:text-slate-300 font-medium text-sm transition-colors"
+          className="w-full py-3 text-ink-500 hover:text-ink-700 font-medium text-sm transition-colors"
         >
           Repetă lecția
         </button>
@@ -136,12 +136,12 @@ export default function LessonPage({ lesson, onExit }) {
     if (elapsed < 80) return;
     lastTickRef.current = now;
 
-    if (!lm?.[0] || !isReadyRef.current) {
+    if (!lm?.hands?.length || !isReadyRef.current) {
       setDetected(null);
       return; // fără mână — progresul îngheață, nu se pierde
     }
 
-    const p = predictRef.current(lm[0]);
+    const p = predictRef.current(lm);
     if (!p) return;
     setDetected(p.label);
 
@@ -197,15 +197,15 @@ export default function LessonPage({ lesson, onExit }) {
   const isSuccess = phase === 'success';
 
   return (
-    <div className="h-full bg-slate-950 flex flex-col overflow-hidden">
+    <div className="h-full bg-cream flex flex-col overflow-hidden">
 
-      {/* ── Camera ── */}
+      {/* ── Camera (rămâne naturală/video, nu se "luminează") ── */}
       <div className="relative flex-1 overflow-hidden">
         <HandTracker onLandmarks={handleLandmarks} />
 
         {/* Gradienți */}
         <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-black/65 to-transparent pointer-events-none z-10" />
-        <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-slate-950 to-transparent pointer-events-none z-10" />
+        <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-cream to-transparent pointer-events-none z-10" />
 
         {/* Glow verde pe măsură ce progresezi */}
         {holdPct > 0 && !isSuccess && (
