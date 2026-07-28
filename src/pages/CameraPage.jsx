@@ -9,6 +9,8 @@ import { SEQ_FRAMES, SEQ_INTERVAL_MS } from '../data/lsr-alphabet';
 const MOTION_WINDOW    = 8;      // câte cadre intră în media mișcării
 const MOTION_THRESHOLD = 0.008;  // peste = mâna se mișcă (semn dinamic)
 const DYN_MIN_CONF     = 0.6;    // confidence minim pentru un semn dinamic
+const DYN_MIN_MARGIN   = 0.1;    // diferența față de locul 2 (evită ambiguități)
+const STATIC_MIN_CONF  = 0.45;   // sub asta, nu afișăm predicție statică
 const DYN_HOLD_MS      = 1500;   // cât rămâne afișat semnul dinamic după mișcare
 
 export default function CameraPage({ onBack }) {
@@ -81,12 +83,20 @@ export default function CameraPage({ onBack }) {
     let dynP = null;
     if (isMoving && isDynRef.current && seqBufRef.current.length === SEQ_FRAMES) {
       dynP = predictSeqRef.current(seqBufRef.current);
-      if (dynP && dynP.confidence >= DYN_MIN_CONF) {
+      if (
+        dynP
+        && dynP.confidence >= DYN_MIN_CONF
+        && dynP.margin >= DYN_MIN_MARGIN
+      ) {
         lastDynRef.current = { p: { ...dynP, dynamic: true }, t: now };
       }
     }
 
-    const staticP = predictRef.current(subject);
+    const staticRaw = predictRef.current(subject);
+    const staticP = staticRaw
+      && staticRaw.confidence >= STATIC_MIN_CONF
+      ? staticRaw
+      : null;
 
     let shown = null;
     if (lastDynRef.current.p && now - lastDynRef.current.t < DYN_HOLD_MS) {

@@ -1,7 +1,6 @@
 import { LESSONS } from '../data/lessons';
 import { useProgress } from '../hooks/useProgress';
 
-/* ── Stele (0-3) ────────────────────────────────────────────────── */
 function Stars({ count }) {
   return (
     <div className="flex gap-0.5">
@@ -15,8 +14,8 @@ function Stars({ count }) {
   );
 }
 
-/* ── Card lecție ────────────────────────────────────────────────── */
 function LessonCard({ lesson, stars, unlocked, onOpen }) {
+  const isDyn = lesson.type === 'dynamic';
   return (
     <button
       onClick={() => unlocked && onOpen(lesson.id)}
@@ -27,12 +26,13 @@ function LessonCard({ lesson, stars, unlocked, onOpen }) {
           ? 'bg-white shadow-card hover:shadow-soft active:scale-[0.98]'
           : 'bg-ink-900/[0.03] opacity-70'}`}
     >
-      {/* Număr / lacăt */}
       <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0
         font-black text-lg
         ${stars > 0
           ? 'bg-signa-50 text-signa-600'
-          : unlocked ? 'bg-cream-200 text-ink-900' : 'bg-ink-900/[0.05] text-ink-400'}`}>
+          : unlocked
+            ? isDyn ? 'bg-indigo-50 text-indigo-500' : 'bg-cream-200 text-ink-900'
+            : 'bg-ink-900/[0.05] text-ink-400'}`}>
         {unlocked ? lesson.id : (
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <rect x="3" y="7" width="10" height="7" rx="2" stroke="currentColor" strokeWidth="1.5"/>
@@ -41,15 +41,21 @@ function LessonCard({ lesson, stars, unlocked, onOpen }) {
         )}
       </div>
 
-      {/* Titlu + litere */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-1.5">
-          <span className={`font-bold text-sm ${unlocked ? 'text-ink-900' : 'text-ink-400'}`}>
-            {lesson.title}
-          </span>
+          <div className="flex items-center gap-2 min-w-0">
+            <span className={`font-bold text-sm ${unlocked ? 'text-ink-900' : 'text-ink-400'}`}>
+              {lesson.title}
+            </span>
+            {isDyn && (
+              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded-md">
+                mișcare
+              </span>
+            )}
+          </div>
           <Stars count={stars} />
         </div>
-        <div className="flex gap-1">
+        <div className="flex gap-1 flex-wrap">
           {lesson.letters.map((l) => (
             <span key={l} className={`w-6 h-6 rounded-md text-[11px] font-bold
               flex items-center justify-center
@@ -63,16 +69,14 @@ function LessonCard({ lesson, stars, unlocked, onOpen }) {
   );
 }
 
-/* ── Pagina ─────────────────────────────────────────────────────── */
 export default function LessonsPage({ onBack, onOpenLesson }) {
-  const { xp, starsFor, isUnlocked } = useProgress();
+  const { xp, streak, starsFor, isUnlocked, level } = useProgress();
   const totalStars = LESSONS.reduce((s, l) => s + starsFor(l.id), 0);
 
   return (
     <div className="h-full bg-cream flex flex-col overflow-hidden">
       <div className="h-[3px] bg-gradient-to-r from-signa-400 via-signa-500/40 to-transparent flex-shrink-0" />
 
-      {/* Header */}
       <header className="flex items-center justify-between px-5 py-4 flex-shrink-0">
         <button
           onClick={onBack}
@@ -89,18 +93,19 @@ export default function LessonsPage({ onBack, onOpenLesson }) {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
             <path d="M13 2L4.5 13.5h6L11 22l8.5-11.5h-6L13 2z"/>
           </svg>
-          {xp} XP
+          {xp}
         </div>
       </header>
 
-      {/* Sumar */}
-      <div className="px-5 pb-4 flex-shrink-0">
+      <div className="px-5 pb-4 flex-shrink-0 flex items-center justify-between">
         <p className="text-ink-500 text-xs">
-          {totalStars} / {LESSONS.length * 3} stele · alfabetul static LSR
+          {totalStars} / {LESSONS.length * 3} stele · nivel {level}
         </p>
+        {streak > 0 && (
+          <p className="text-amber-600 text-xs font-bold">🔥 {streak} zile</p>
+        )}
       </div>
 
-      {/* Lista lecțiilor */}
       <div className="flex-1 overflow-y-auto scrollbar-hide px-5 pb-8 space-y-3">
         {LESSONS.map((lesson) => (
           <LessonCard
@@ -112,11 +117,10 @@ export default function LessonsPage({ onBack, onOpenLesson }) {
           />
         ))}
 
-        {/* Teaser litere dinamice */}
-        <div className="rounded-2xl p-4 border-2 border-dashed border-ink-900/10 text-center">
+        <div className="rounded-2xl p-4 bg-white/60 border border-ink-900/[0.06] text-center">
           <p className="text-ink-500 text-xs leading-relaxed">
-            J · Z · X · Î · Ș · Ț — literele cu mișcare<br />
-            vin într-o actualizare viitoare
+            După alfabet: cuvinte LSR (Bună, Mulțumesc…) prin „Scrie cuvântul”.
+            Semnele-gest vin după recolectarea datasetului.
           </p>
         </div>
       </div>

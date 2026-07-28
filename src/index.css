@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,6 +11,9 @@ body {
   overflow: hidden;
   overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
+  font-family: 'Nunito', ui-rounded, system-ui, sans-serif;
+  background-color: #FFFBF3;
+  color: #2E2A24;
 }
 
 #root {
@@ -36,12 +41,17 @@ body {
   0%, 100% { filter: blur(40px); opacity: 0.35; }
   50%       { filter: blur(60px); opacity: 0.55; }
 }
+@keyframes confetti-fall {
+  0%   { transform: translate3d(0, -10vh, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate3d(var(--drift, 20px), 110vh, 0) rotate(var(--spin, 720deg)); opacity: 0.85; }
+}
 
 .animate-float     { animation: float     3.5s ease-in-out infinite; }
 .animate-fade-up   { animation: fade-up   0.55s ease-out both; }
 .animate-fade-in   { animation: fade-in   0.55s ease-out both; }
 .animate-scale-in  { animation: scale-in  0.55s ease-out both; }
 .animate-glow      { animation: glow-pulse 4s ease-in-out infinite; }
+.animate-confetti  { animation: confetti-fall linear forwards; }
 
 .delay-100 { animation-delay: 100ms; }
 .delay-200 { animation-delay: 200ms; }

@@ -2,9 +2,11 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import HandTracker from '../components/hand-tracker';
 import LetterSelector from '../components/collect/LetterSelector';
 import { useDatasetCollector } from '../hooks/useDatasetCollector';
-import { DYNAMIC_LETTERS, SEQ_FRAMES, SEQ_INTERVAL_MS, minFor } from '../data/lsr-alphabet';
+import { DYNAMIC_LETTERS, SEQ_FRAMES, SEQ_INTERVAL_MS, minFor, LSR_ALPHABET } from '../data/lsr-alphabet';
 
 const MODE = { FOTO: 'foto', VIDEO: 'video' };
+/** Secunde de pregătire înainte de Video — apeși, ridici ambele mâini, apoi începe captura */
+const COUNTDOWN_SEC = 3;
 
 /** Clonează un instantaneu holistic — MediaPipe poate refolosi structurile intern */
 function cloneSubject(subject) {
@@ -15,6 +17,45 @@ function cloneSubject(subject) {
     headMatrix: subject.headMatrix ? [...subject.headMatrix] : null,
     pose: subject.pose ? subject.pose.map(({ x, y, z, visibility }) => ({ x, y, z, visibility })) : null,
   };
+}
+
+/* ── Acoperire dataset: litere complete / lipsă ──────────────────── */
+function DatasetOverview({ samplesFor, labels }) {
+  const [open, setOpen] = useState(false);
+  const done = LSR_ALPHABET.filter((l) => samplesFor(l) >= minFor(DYNAMIC_LETTERS.has(l)));
+  const missing = LSR_ALPHABET.filter((l) => samplesFor(l) < minFor(DYNAMIC_LETTERS.has(l)));
+  const custom = labels.filter((l) => !LSR_ALPHABET.includes(l));
+
+  return (
+    <div className="px-4 pb-1">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between text-left py-2 text-xs font-semibold text-ink-500"
+      >
+        <span>Dataset · {done.length}/{LSR_ALPHABET.length} litere complete · {labels.length} etichete</span>
+        <span className="text-ink-400">{open ? '▴' : '▾'}</span>
+      </button>
+      {open && (
+        <div className="bg-cream-50 rounded-xl p-3 mb-2 space-y-2 text-xs">
+          {missing.length > 0 && (
+            <p className="text-ink-600">
+              <span className="font-bold text-amber-600">Lipsă/sub prag:</span>{' '}
+              {missing.join(' · ')}
+            </p>
+          )}
+          {custom.length > 0 && (
+            <p className="text-ink-600">
+              <span className="font-bold text-signa-600">Cuvinte/custom:</span>{' '}
+              {custom.map((l) => `${l}(${samplesFor(l)})`).join(', ')}
+            </p>
+          )}
+          {missing.length === 0 && (
+            <p className="text-signa-600 font-semibold">Alfabetul e complet la pragurile minime ✓</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 /* ── Câmp text + comutator Foto/Video, într-un singur rând compact ── */
@@ -29,9 +70,9 @@ function WordInput({ value, onChange, mode, onModeChange }) {
         spellCheck={false}
         autoCorrect="off"
         autoCapitalize="off"
-        className="flex-1 min-w-0 bg-slate-900 border border-white/[0.08] rounded-xl px-3.5 py-2
-          text-white text-sm font-semibold placeholder:text-slate-600 placeholder:font-normal
-          focus:outline-none focus:border-signa-500/50 transition-colors"
+        className="flex-1 min-w-0 bg-white border border-ink-900/10 rounded-xl px-3.5 py-2
+          text-ink-900 text-sm font-semibold placeholder:text-ink-400 placeholder:font-normal
+          focus:outline-none focus:border-signa-500/50 shadow-card transition-colors"
       />
       {[
         { id: MODE.FOTO,  label: 'Foto' },
@@ -43,9 +84,9 @@ function WordInput({ value, onChange, mode, onModeChange }) {
           className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition-all
             ${mode === m.id
               ? m.id === MODE.VIDEO
-                ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40'
-                : 'bg-signa-500/20 text-signa-400 border border-signa-500/40'
-              : 'bg-slate-900 text-slate-500 border border-transparent hover:text-slate-400'}`}
+                ? 'bg-indigo-50 text-indigo-600 border border-indigo-200'
+                : 'bg-signa-50 text-signa-600 border border-signa-200'
+              : 'bg-cream-100 text-ink-500 border border-transparent hover:text-ink-700'}`}
         >
           {m.id === MODE.VIDEO ? '●' : '◐'} {m.label}
         </button>
@@ -76,12 +117,12 @@ function ActiveCard({ letter, count, isDone, isDynamic, onClear }) {
   const progress = Math.min(count / min, 1);
 
   return (
-    <div className="flex items-center gap-4 px-5 py-2.5 border-b border-white/[0.06]">
+    <div className="flex items-center gap-4 px-5 py-2.5 border-b border-ink-900/[0.06]">
       {/* Badge litera */}
       <div className={`relative w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0
         font-black text-3xl transition-colors duration-300
-        ${isDone ? 'bg-signa-500/20 text-signa-400'
-                 : isDynamic ? 'bg-indigo-500/15 text-indigo-300' : 'bg-slate-800 text-white'}`}>
+        ${isDone ? 'bg-signa-50 text-signa-600'
+                 : isDynamic ? 'bg-indigo-50 text-indigo-600' : 'bg-cream-100 text-ink-900'}`}>
         {letter}
         {isDynamic && (
           <svg className="absolute top-1.5 right-1.5" width="10" height="10" viewBox="0 0 8 8" fill="none">
@@ -93,19 +134,19 @@ function ActiveCard({ letter, count, isDone, isDynamic, onClear }) {
       {/* Progress */}
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline justify-between mb-2">
-          <span className="text-white font-semibold text-sm tabular-nums">
+          <span className="text-ink-900 font-semibold text-sm tabular-nums">
             {count}
-            <span className="text-slate-600 font-normal"> / {min}</span>
+            <span className="text-ink-400 font-normal"> / {min}</span>
             {isDynamic && (
-              <span className="text-indigo-400/70 font-normal text-xs ml-2">înregistrări</span>
+              <span className="text-indigo-500/80 font-normal text-xs ml-2">înregistrări</span>
             )}
           </span>
           <span className={`text-xs font-medium transition-colors duration-300
-            ${isDone ? 'text-signa-400' : 'text-slate-600'}`}>
+            ${isDone ? 'text-signa-600' : 'text-ink-400'}`}>
             {isDone ? '✓ Complet' : `${min - count} rămase`}
           </span>
         </div>
-        <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
+        <div className="h-1 bg-cream-200 rounded-full overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-500
               ${isDone ? 'bg-signa-400' : isDynamic ? 'bg-indigo-400' : 'bg-amber-400'}`}
@@ -118,7 +159,7 @@ function ActiveCard({ letter, count, isDone, isDynamic, onClear }) {
       {count > 0 && (
         <button
           onClick={onClear}
-          className="text-slate-700 hover:text-red-400 transition-colors p-1 flex-shrink-0"
+          className="text-ink-400 hover:text-red-500 transition-colors p-1 flex-shrink-0"
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
@@ -130,40 +171,60 @@ function ActiveCard({ letter, count, isDone, isDynamic, onClear }) {
 }
 
 /* ── Buton captură / înregistrare ──────────────────────────────── */
-function CaptureBtn({ onCapture, isHandDetected, letter, isDone, isDynamic, recording, recProgress }) {
-  const label = !isHandDetected
-    ? 'Ridică mâna în față camerei'
+function CaptureBtn({
+  onCapture, isHandDetected, letter, isDone, isDynamic,
+  recording, recProgress, countdown, onCancelCountdown,
+}) {
+  const busy = recording || countdown > 0;
+  const label = countdown > 0
+    ? `Pregătește-te… ${countdown}`
     : recording
       ? 'Se înregistrează mișcarea…'
       : isDynamic
-        ? isDone ? `✓ ${letter} complet — mai înregistrează` : `● Înregistrează  ${letter}`
-        : isDone ? `✓ ${letter} complet — mai adaugă` : `Capturează  ${letter}`;
+        ? !isHandDetected
+          ? `Apasă — ai ${COUNTDOWN_SEC}s să ridici ambele mâini`
+          : isDone ? `✓ ${letter} complet — mai înregistrează` : `● Înregistrează  ${letter}`
+        : !isHandDetected
+          ? 'Ridică mâna în față camerei'
+          : isDone ? `✓ ${letter} complet — mai adaugă` : `Capturează  ${letter}`;
 
   return (
-    <button
-      onPointerDown={onCapture}
-      disabled={recording}
-      className={`relative w-full py-[17px] rounded-2xl font-bold text-[15px] overflow-hidden
-        transition-all duration-200 active:scale-[0.97] select-none
-        ${!isHandDetected
-          ? 'bg-slate-800 text-slate-600'
-          : recording
-            ? 'bg-indigo-600 text-white'
-            : isDynamic
-              ? 'bg-indigo-500 text-white shadow-[0_6px_24px_rgba(99,102,241,0.3)]'
-              : isDone
-                ? 'bg-signa-600 text-white shadow-[0_6px_24px_rgba(5,150,105,0.3)]'
-                : 'bg-signa-500 text-white shadow-[0_6px_24px_rgba(16,185,129,0.28)]'}`}
-    >
-      {/* Umplere progres în timpul înregistrării */}
-      {recording && (
-        <span
-          className="absolute inset-y-0 left-0 bg-white/20 transition-all duration-75"
-          style={{ width: `${recProgress * 100}%` }}
-        />
+    <div className="space-y-2">
+      <button
+        onPointerDown={busy ? undefined : onCapture}
+        disabled={busy || (!isDynamic && !isHandDetected)}
+        className={`relative w-full py-[17px] rounded-2xl font-bold text-[15px] overflow-hidden
+          transition-all duration-200 active:scale-[0.97] select-none
+          ${countdown > 0
+            ? 'bg-amber-500 text-white'
+            : recording
+              ? 'bg-indigo-600 text-white'
+              : !isHandDetected && !isDynamic
+                ? 'bg-cream-200 text-ink-400'
+                : isDynamic
+                  ? 'bg-indigo-500 text-white shadow-[0_6px_24px_rgba(99,102,241,0.3)]'
+                  : isDone
+                    ? 'bg-signa-600 text-white shadow-[0_6px_24px_rgba(5,150,105,0.3)]'
+                    : 'bg-signa-500 text-white shadow-button'}`}
+      >
+        {recording && (
+          <span
+            className="absolute inset-y-0 left-0 bg-white/20 transition-all duration-75"
+            style={{ width: `${recProgress * 100}%` }}
+          />
+        )}
+        <span className="relative">{label}</span>
+      </button>
+      {countdown > 0 && (
+        <button
+          type="button"
+          onClick={onCancelCountdown}
+          className="w-full py-1.5 text-ink-400 hover:text-ink-600 text-xs font-medium"
+        >
+          Anulează countdown
+        </button>
       )}
-      <span className="relative">{label}</span>
-    </button>
+    </div>
   );
 }
 
@@ -171,10 +232,12 @@ function CaptureBtn({ onCapture, isHandDetected, letter, isDone, isDynamic, reco
 export default function CollectPage({ onBack }) {
   const latestLandmarksRef = useRef(null);
   const recTimerRef        = useRef(null);
+  const countdownRef       = useRef(null);
   const [flash,          setFlash]          = useState(false);
   const [isHandDetected, setIsHandDetected] = useState(false);
   const [recording,      setRecording]      = useState(false);
   const [recProgress,    setRecProgress]    = useState(0);
+  const [countdown,      setCountdown]      = useState(0);
 
   const [mode, setMode] = useState(MODE.FOTO);
 
@@ -182,7 +245,7 @@ export default function CollectPage({ onBack }) {
     activeLabel, setActiveLabel,
     capture, captureSequence, clearActiveLabel,
     importDataset, exportDataset,
-    samplesFor, totalSamples, hasData, storageFull,
+    samplesFor, totalSamples, hasData, storageFull, labels,
   } = useDatasetCollector();
 
   const isDynamic = mode === MODE.VIDEO;
@@ -209,19 +272,30 @@ export default function CollectPage({ onBack }) {
     setIsHandDetected(!!lm);
   }, []);
 
-  /** Oprește orice înregistrare în curs (anulare sau cleanup) */
+  /** Oprește countdown + înregistrare (anulare sau cleanup) */
   const stopRecording = useCallback(() => {
     if (recTimerRef.current) {
       clearInterval(recTimerRef.current);
       recTimerRef.current = null;
     }
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
+      countdownRef.current = null;
+    }
+    setCountdown(0);
     setRecording(false);
     setRecProgress(0);
   }, []);
 
   /** Înregistrează SEQ_FRAMES cadre la interval fix (~1.5s de mișcare) */
   const startRecording = useCallback(() => {
-    if (recTimerRef.current || !latestLandmarksRef.current?.hands?.length) return;
+    if (recTimerRef.current) return;
+    // Fără mână la pornire: așteaptă scurt (user tocmai a ridicat ambele mâini)
+    if (!latestLandmarksRef.current?.hands?.length) {
+      setFlash(true);
+      setTimeout(() => setFlash(false), 200);
+      return;
+    }
 
     const frames = [];
     setRecording(true);
@@ -247,15 +321,34 @@ export default function CollectPage({ onBack }) {
     }, SEQ_INTERVAL_MS);
   }, [captureSequence, stopRecording]);
 
+  /** Video: countdown 3-2-1, apoi captură — timp să ridici ambele mâini */
+  const startCountdown = useCallback(() => {
+    if (countdownRef.current || recTimerRef.current) return;
+
+    setCountdown(COUNTDOWN_SEC);
+    let left = COUNTDOWN_SEC;
+    countdownRef.current = setInterval(() => {
+      left -= 1;
+      if (left <= 0) {
+        clearInterval(countdownRef.current);
+        countdownRef.current = null;
+        setCountdown(0);
+        startRecording();
+        return;
+      }
+      setCountdown(left);
+    }, 1000);
+  }, [startRecording]);
+
   const handleCapture = useCallback(() => {
     if (isDynamic) {
-      startRecording();
+      startCountdown();
       return;
     }
     if (!capture(latestLandmarksRef.current)) return;
     setFlash(true);
     setTimeout(() => setFlash(false), 110);
-  }, [isDynamic, capture, startRecording]);
+  }, [isDynamic, capture, startCountdown]);
 
   // Schimbarea etichetei/modului sau părăsirea paginii anulează înregistrarea
   useEffect(() => stopRecording, [activeLabel, mode, stopRecording]);
@@ -264,18 +357,20 @@ export default function CollectPage({ onBack }) {
     const onKey = (e) => {
       if (e.code === 'Space' && e.target === document.body) {
         e.preventDefault();
+        if (countdown > 0 || recording) return;
         handleCapture();
       }
+      if (e.code === 'Escape') stopRecording();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [handleCapture]);
+  }, [handleCapture, countdown, recording, stopRecording]);
 
   const count  = samplesFor(activeLabel);
   const isDone = count >= minFor(isDynamic);
 
   return (
-    <div className="h-full bg-slate-950 flex flex-col overflow-hidden">
+    <div className="h-full bg-cream flex flex-col overflow-hidden">
 
       {/* ── Camera ── */}
       <div className="relative flex-1 overflow-hidden">
@@ -294,6 +389,20 @@ export default function CollectPage({ onBack }) {
               : 'shadow-[inset_0_0_0_2px_rgba(52,211,153,0.45)]'}`} />
         )}
 
+        {/* Countdown — timp să ridici ambele mâini înainte de captură */}
+        {countdown > 0 && (
+          <div className="absolute inset-0 z-30 flex flex-col items-center justify-center pointer-events-none
+            bg-black/35 animate-fade-in">
+            <span className="text-white font-black tabular-nums leading-none"
+              style={{ fontSize: 'clamp(72px, 22vw, 120px)', textShadow: '0 4px 24px rgba(0,0,0,0.5)' }}>
+              {countdown}
+            </span>
+            <p className="mt-3 text-white/90 text-sm font-semibold px-6 text-center">
+              Ridică ambele mâini — captura începe la 0
+            </p>
+          </div>
+        )}
+
         {/* Indicator REC */}
         {recording && (
           <div className="absolute top-16 left-0 right-0 z-20 flex justify-center pointer-events-none">
@@ -307,7 +416,7 @@ export default function CollectPage({ onBack }) {
 
         {/* Gradienți sus/jos */}
         <div className="absolute top-0 inset-x-0 h-28 bg-gradient-to-b from-black/65 to-transparent pointer-events-none z-10" />
-        <div className="absolute bottom-0 inset-x-0 h-20 bg-gradient-to-t from-slate-950 to-transparent pointer-events-none z-10" />
+        <div className="absolute bottom-0 inset-x-0 h-20 bg-gradient-to-t from-cream to-transparent pointer-events-none z-10" />
 
         {/* Top bar */}
         <div className="absolute top-0 inset-x-0 z-20 flex items-center justify-between px-4 py-4">
@@ -360,7 +469,7 @@ export default function CollectPage({ onBack }) {
       </div>
 
       {/* ── Panou inferior ── */}
-      <div className="flex-shrink-0 bg-slate-950">
+      <div className="flex-shrink-0 bg-white border-t border-ink-900/[0.06] shadow-soft max-h-[48%] overflow-y-auto scrollbar-hide">
 
         {/* Cuvânt/literă introdus manual + mod captură */}
         <WordInput value={activeLabel} onChange={setActiveLabel} mode={mode} onModeChange={setMode} />
@@ -381,6 +490,8 @@ export default function CollectPage({ onBack }) {
           samplesFor={samplesFor}
         />
 
+        <DatasetOverview samplesFor={samplesFor} labels={labels} />
+
         {/* Captură */}
         <div className="px-4 pb-5 pt-1">
           <CaptureBtn
@@ -391,15 +502,17 @@ export default function CollectPage({ onBack }) {
             isDynamic={isDynamic}
             recording={recording}
             recProgress={recProgress}
+            countdown={countdown}
+            onCancelCountdown={stopRecording}
           />
-          <p className="text-center text-slate-700 text-xs mt-2.5">
+          <p className="text-center text-ink-400 text-xs mt-2.5">
             {isDynamic
-              ? <>apasă și fă mișcarea în ~1.5 secunde — sau folosește <kbd className="bg-slate-800 text-slate-500 px-1.5 py-0.5 rounded text-[10px]">Spațiu</kbd></>
-              : <>sau apasă <kbd className="bg-slate-800 text-slate-500 px-1.5 py-0.5 rounded text-[10px]">Spațiu</kbd></>}
+              ? <>Video: apeși → countdown {COUNTDOWN_SEC}s → mișcarea (~1.5s). <kbd className="bg-cream-100 text-ink-500 px-1.5 py-0.5 rounded text-[10px]">Spațiu</kbd> / <kbd className="bg-cream-100 text-ink-500 px-1.5 py-0.5 rounded text-[10px]">Esc</kbd></>
+              : <>sau apasă <kbd className="bg-cream-100 text-ink-500 px-1.5 py-0.5 rounded text-[10px]">Spațiu</kbd></>}
           </p>
           {storageFull && (
-            <p className="text-center text-amber-400/90 text-xs mt-2">
-              ⚠ Spațiul local e plin — datele noi rămân doar în memorie. Exportă acum!
+            <p className="text-center text-amber-600 text-xs mt-2 font-medium">
+              Spațiul local e plin — datele noi rămân doar în memorie. Exportă acum!
             </p>
           )}
         </div>

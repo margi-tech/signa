@@ -151,6 +151,7 @@ export function useDatasetCollector() {
 
   const samplesFor  = (label) => dataset[label]?.length ?? 0;
   const totalSamples = Object.values(dataset).reduce((s, arr) => s + arr.length, 0);
+  const labels = Object.keys(dataset).filter((l) => dataset[l]?.length);
 
   return {
     activeLabel,
@@ -162,6 +163,8 @@ export function useDatasetCollector() {
     exportDataset,
     samplesFor,
     totalSamples,
+    labels,
+    dataset,
     hasData: totalSamples > 0,
     storageFull,
   };

@@ -1,20 +1,26 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
 import HandTracker from '../components/hand-tracker';
 import ReferenceHand from '../components/lesson/ReferenceHand';
+import Confetti from '../components/ui/Confetti';
 import { useClassifier } from '../hooks/useClassifier';
 import { useProgress } from '../hooks/useProgress';
-import { XP_PER_LETTER, XP_PERFECT_BONUS, HOLD_DURATION_MS } from '../data/lessons';
+import {
+  XP_PER_LETTER, XP_PERFECT_BONUS, HOLD_DURATION_MS, HOLD_DURATION_DYNAMIC_MS,
+} from '../data/lessons';
+import { DYNAMIC_LETTERS, SEQ_FRAMES, SEQ_INTERVAL_MS } from '../data/lsr-alphabet';
+import { normalize } from '../utils/normalize';
 import REFERENCE_POSES from '../data/reference-poses.json';
+import { playSuccess, playSkip, playLevelUp } from '../utils/sounds';
 
-// Predicția trebuie să fie măcar atât de sigură ca să conteze la validare
 const MIN_CONFIDENCE = 0.7;
+const DYN_MIN_CONF = 0.55;
+const DYN_MIN_MARGIN = 0.08;
 
-/* ── Puncte de progres per literă ───────────────────────────────── */
 function LetterDots({ letters, idx, skipped }) {
   return (
     <div className="flex gap-1.5">
       {letters.map((l, i) => (
-        <div key={l} className={`w-2 h-2 rounded-full transition-colors duration-300
+        <div key={`${l}-${i}`} className={`w-2 h-2 rounded-full transition-colors duration-300
           ${i === idx
             ? 'bg-white'
             : i < idx
@@ -26,11 +32,10 @@ function LetterDots({ letters, idx, skipped }) {
   );
 }
 
-/* ── Ecranul de rezultate ───────────────────────────────────────── */
-function ResultsScreen({ lesson, skipped, xpGained, stars, onExit, onRetry }) {
+function ResultsScreen({ lesson, skipped, xpGained, stars, leveledUp, onExit, onRetry }) {
   return (
-    <div className="h-full bg-cream flex flex-col items-center justify-center px-8 animate-fade-up">
-      {/* Stele */}
+    <div className="h-full bg-cream flex flex-col items-center justify-center px-8 animate-fade-up relative">
+      <Confetti active />
       <div className="flex gap-2 mb-6">
         {[0, 1, 2].map((i) => (
           <svg key={i} width="48" height="48" viewBox="0 0 24 24"
@@ -43,16 +48,15 @@ function ResultsScreen({ lesson, skipped, xpGained, stars, onExit, onRetry }) {
       </div>
 
       <h1 className="text-ink-900 text-2xl font-black mb-1">
-        {stars === 3 ? 'Perfect!' : stars === 2 ? 'Foarte bine!' : 'Lecție completată'}
+        {leveledUp ? 'Nivel nou!' : stars === 3 ? 'Perfect!' : stars === 2 ? 'Foarte bine!' : 'Lecție completată'}
       </h1>
       <p className="text-signa-600 font-bold text-lg mb-6">+{xpGained} XP</p>
 
-      {/* Recap litere */}
-      <div className="flex gap-2 mb-10">
-        {lesson.letters.map((l) => {
+      <div className="flex gap-2 mb-10 flex-wrap justify-center">
+        {lesson.letters.map((l, i) => {
           const wasSkipped = skipped.includes(l);
           return (
-            <div key={l} className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold
+            <div key={`${l}-${i}`} className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold
               ${wasSkipped ? 'bg-amber-100 text-amber-600' : 'bg-signa-50 text-signa-600'}`}>
               {l}
             </div>
@@ -84,38 +88,57 @@ function ResultsScreen({ lesson, skipped, xpGained, stars, onExit, onRetry }) {
   );
 }
 
-/* ── Pagina ─────────────────────────────────────────────────────── */
 export default function LessonPage({ lesson, onExit }) {
-  const [idx,      setIdx]      = useState(0);
-  const [holdPct,  setHoldPct]  = useState(0);
-  const [phase,    setPhase]    = useState('active'); // active | success | results
-  const [skipped,  setSkipped]  = useState([]);
+  const isDynamicLesson = lesson?.type === 'dynamic';
+  const holdNeed = isDynamicLesson ? HOLD_DURATION_DYNAMIC_MS : HOLD_DURATION_MS;
+
+  const [idx, setIdx] = useState(0);
+  const [holdPct, setHoldPct] = useState(0);
+  const [phase, setPhase] = useState('active');
+  const [skipped, setSkipped] = useState([]);
   const [detected, setDetected] = useState(null);
+  const [leveledUp, setLeveledUp] = useState(false);
 
-  const lastTickRef  = useRef(0);
-  const holdMsRef    = useRef(0);
-  const targetRef    = useRef(lesson.letters[0]);
-  const phaseRef     = useRef('active');
-  const isReadyRef   = useRef(false);
-  const predictRef   = useRef(null);
-  const timeoutRef   = useRef(null);
-  const recordedRef  = useRef(false);
+  const lastTickRef = useRef(0);
+  const holdMsRef = useRef(0);
+  const targetRef = useRef(lesson.letters[0]);
+  const phaseRef = useRef('active');
+  const isReadyRef = useRef(false);
+  const isDynRef = useRef(false);
+  const predictRef = useRef(null);
+  const predictSeqRef = useRef(null);
+  const timeoutRef = useRef(null);
+  const recordedRef = useRef(false);
+  const seqBufRef = useRef([]);
+  const levelBeforeRef = useRef(null);
 
-  const { isReady, predict } = useClassifier();
-  const { completeLesson }   = useProgress();
+  const { isReady, isDynReady, predict, predictSequence } = useClassifier();
+  const {
+    completeLesson, recordLetter, soundEnabled, level,
+  } = useProgress();
+
   isReadyRef.current = isReady;
+  isDynRef.current = isDynReady;
   predictRef.current = predict;
+  predictSeqRef.current = predictSequence;
 
   const target = lesson.letters[idx];
   targetRef.current = target;
-  phaseRef.current  = phase;
+  phaseRef.current = phase;
 
-  /* Avansează la litera următoare sau la rezultate */
   const advance = useCallback((didSkip) => {
-    if (didSkip) setSkipped((prev) => [...prev, targetRef.current]);
+    if (didSkip) {
+      setSkipped((prev) => [...prev, targetRef.current]);
+      recordLetter(targetRef.current, false);
+      playSkip(soundEnabled);
+    } else {
+      recordLetter(targetRef.current, true);
+      playSuccess(soundEnabled);
+    }
     holdMsRef.current = 0;
     setHoldPct(0);
     setDetected(null);
+    seqBufRef.current = [];
 
     setIdx((prev) => {
       if (prev + 1 >= lesson.letters.length) {
@@ -125,69 +148,110 @@ export default function LessonPage({ lesson, onExit }) {
       setPhase('active');
       return prev + 1;
     });
-  }, [lesson.letters.length]);
+  }, [lesson.letters.length, recordLetter, soundEnabled]);
 
-  /* Bucla de validare — throttle 12fps, hold-to-confirm */
   const handleLandmarks = useCallback((lm) => {
     if (phaseRef.current !== 'active') return;
 
     const now = performance.now();
     const elapsed = now - lastTickRef.current;
-    if (elapsed < 80) return;
+    const tickMs = isDynamicLesson ? SEQ_INTERVAL_MS : 80;
+    if (elapsed < tickMs) return;
     lastTickRef.current = now;
 
     if (!lm?.hands?.length || !isReadyRef.current) {
       setDetected(null);
-      return; // fără mână — progresul îngheață, nu se pierde
+      return;
     }
 
-    const p = predictRef.current(lm);
-    if (!p) return;
-    setDetected(p.label);
+    let isMatch = false;
+    let label = null;
 
-    const isMatch = p.label === targetRef.current && p.confidence >= MIN_CONFIDENCE;
-    const step = Math.min(elapsed, 200); // protecție la tab-switch
+    if (isDynamicLesson && DYNAMIC_LETTERS.has(targetRef.current) && isDynRef.current) {
+      const vector = normalize(lm);
+      if (vector) {
+        seqBufRef.current.push(vector);
+        if (seqBufRef.current.length > SEQ_FRAMES) seqBufRef.current.shift();
+      }
+      if (seqBufRef.current.length === SEQ_FRAMES) {
+        const p = predictSeqRef.current(seqBufRef.current);
+        if (p) {
+          label = p.label;
+          isMatch = p.label === targetRef.current
+            && p.confidence >= DYN_MIN_CONF
+            && p.margin >= DYN_MIN_MARGIN;
+        }
+      }
+    } else {
+      const p = predictRef.current(lm);
+      if (p) {
+        label = p.label;
+        isMatch = p.label === targetRef.current && p.confidence >= MIN_CONFIDENCE;
+      }
+    }
+
+    if (label) setDetected(label);
+
+    const step = Math.min(elapsed, 200);
     holdMsRef.current = isMatch
       ? holdMsRef.current + step
       : Math.max(0, holdMsRef.current - step * 2);
 
-    setHoldPct(Math.min(holdMsRef.current / HOLD_DURATION_MS, 1));
+    setHoldPct(Math.min(holdMsRef.current / holdNeed, 1));
 
-    if (holdMsRef.current >= HOLD_DURATION_MS) {
+    if (holdMsRef.current >= holdNeed) {
       phaseRef.current = 'success';
       setPhase('success');
     }
-  }, []);
+  }, [isDynamicLesson, holdNeed]);
 
-  /* Succes → pauză scurtă cu feedback, apoi avans */
   useEffect(() => {
     if (phase !== 'success') return;
     timeoutRef.current = setTimeout(() => advance(false), 900);
     return () => clearTimeout(timeoutRef.current);
   }, [phase, advance]);
 
-  /* Rezultate → înregistrează progresul o singură dată */
   useEffect(() => {
     if (phase !== 'results' || recordedRef.current) return;
     recordedRef.current = true;
+    levelBeforeRef.current = level;
 
-    const done  = lesson.letters.length - skipped.length;
+    const done = lesson.letters.length - skipped.length;
     const stars = skipped.length === 0 ? 3 : skipped.length === 1 ? 2 : 1;
-    const xp    = done * XP_PER_LETTER + (skipped.length === 0 ? XP_PERFECT_BONUS : 0);
+    const xp = done * XP_PER_LETTER + (skipped.length === 0 ? XP_PERFECT_BONUS : 0);
     completeLesson(lesson.id, stars, xp);
-  }, [phase, skipped, lesson, completeLesson]);
+  }, [phase, skipped, lesson, completeLesson, level]);
+
+  // detect level-up after results render (progress updates async)
+  useEffect(() => {
+    if (phase !== 'results') return;
+    if (levelBeforeRef.current != null && level > levelBeforeRef.current) {
+      setLeveledUp(true);
+      playLevelUp(soundEnabled);
+    }
+  }, [phase, level, soundEnabled]);
+
+  if (!lesson) {
+    return (
+      <div className="h-full bg-cream flex items-center justify-center">
+        <button onClick={onExit} className="text-ink-600">Lecție invalidă — înapoi</button>
+      </div>
+    );
+  }
 
   if (phase === 'results') {
-    const done  = lesson.letters.length - skipped.length;
+    const done = lesson.letters.length - skipped.length;
     const stars = skipped.length === 0 ? 3 : skipped.length === 1 ? 2 : 1;
-    const xp    = done * XP_PER_LETTER + (skipped.length === 0 ? XP_PERFECT_BONUS : 0);
+    const xp = done * XP_PER_LETTER + (skipped.length === 0 ? XP_PERFECT_BONUS : 0);
     return (
       <ResultsScreen
         lesson={lesson} skipped={skipped} xpGained={xp} stars={stars}
+        leveledUp={leveledUp}
         onExit={onExit}
         onRetry={() => {
           recordedRef.current = false;
           holdMsRef.current = 0;
+          setLeveledUp(false);
           setSkipped([]); setIdx(0); setHoldPct(0); setPhase('active');
         }}
       />
@@ -198,16 +262,12 @@ export default function LessonPage({ lesson, onExit }) {
 
   return (
     <div className="h-full bg-cream flex flex-col overflow-hidden">
-
-      {/* ── Camera (rămâne naturală/video, nu se "luminează") ── */}
       <div className="relative flex-1 overflow-hidden">
         <HandTracker onLandmarks={handleLandmarks} />
 
-        {/* Gradienți */}
         <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-black/65 to-transparent pointer-events-none z-10" />
         <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-cream to-transparent pointer-events-none z-10" />
 
-        {/* Glow verde pe măsură ce progresezi */}
         {holdPct > 0 && !isSuccess && (
           <div
             className="absolute inset-0 pointer-events-none z-10 transition-opacity"
@@ -215,7 +275,6 @@ export default function LessonPage({ lesson, onExit }) {
           />
         )}
 
-        {/* Flash succes */}
         {isSuccess && (
           <div className="absolute inset-0 z-20 bg-signa-500/15 flex items-center justify-center animate-fade-in">
             <div className="w-20 h-20 rounded-full bg-signa-500 flex items-center justify-center animate-scale-in
@@ -227,7 +286,6 @@ export default function LessonPage({ lesson, onExit }) {
           </div>
         )}
 
-        {/* Top bar */}
         <div className="absolute top-0 inset-x-0 z-20 flex items-center justify-between px-4 py-4">
           <button
             onClick={onExit}
@@ -240,11 +298,9 @@ export default function LessonPage({ lesson, onExit }) {
           </button>
 
           <span className="text-white/60 text-xs font-semibold tracking-wider">{lesson.title}</span>
-
           <LetterDots letters={lesson.letters} idx={idx} skipped={skipped} />
         </div>
 
-        {/* Ce vede modelul (feedback discret) */}
         {detected && detected !== target && !isSuccess && (
           <div className="absolute bottom-4 left-0 right-0 z-10 flex justify-center">
             <span className="text-white/40 text-xs bg-black/40 px-3 py-1 rounded-full">
@@ -254,33 +310,31 @@ export default function LessonPage({ lesson, onExit }) {
         )}
       </div>
 
-      {/* ── Panoul cu ținta ── */}
-      <div className="flex-shrink-0 bg-slate-950 px-5 pt-4 pb-8">
+      <div className="flex-shrink-0 bg-white border-t border-ink-900/[0.06] px-5 pt-4 pb-8 shadow-soft">
         <div className="flex items-center gap-4 mb-4">
-          {/* Litera țintă */}
           <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0
             font-black text-4xl transition-colors duration-300
-            ${isSuccess ? 'bg-signa-500/25 text-signa-400' : 'bg-slate-800 text-white'}`}>
+            ${isSuccess ? 'bg-signa-50 text-signa-600' : 'bg-cream-100 text-ink-900'}`}>
             {target}
           </div>
 
-          {/* Referința — scheletul semnului */}
-          <div className="w-16 h-16 bg-slate-900 rounded-2xl p-1 flex-shrink-0">
-            <ReferenceHand pose={REFERENCE_POSES[target]} className="w-full h-full" />
+          <div className="w-16 h-16 bg-cream-100 rounded-2xl p-1 flex-shrink-0">
+            <ReferenceHand pose={REFERENCE_POSES[target]} className="w-full h-full" theme="light" />
           </div>
 
           <div className="flex-1 min-w-0">
-            <p className="text-white font-semibold text-sm mb-0.5">
+            <p className="text-ink-900 font-semibold text-sm mb-0.5">
               Fă semnul „{target}"
             </p>
-            <p className="text-slate-600 text-xs">
-              și ține-l până se umple bara
+            <p className="text-ink-500 text-xs">
+              {isDynamicLesson
+                ? 'fă mișcarea și ține până se umple bara'
+                : 'și ține-l până se umple bara'}
             </p>
           </div>
         </div>
 
-        {/* Bara de menținere */}
-        <div className="h-2 bg-slate-800 rounded-full overflow-hidden mb-3">
+        <div className="h-2 bg-cream-200 rounded-full overflow-hidden mb-3">
           <div
             className={`h-full rounded-full transition-all duration-100
               ${isSuccess ? 'bg-signa-400' : holdPct > 0 ? 'bg-signa-500' : 'bg-transparent'}`}
@@ -288,10 +342,9 @@ export default function LessonPage({ lesson, onExit }) {
           />
         </div>
 
-        {/* Sari peste */}
         <button
           onClick={() => advance(true)}
-          className="w-full py-2 text-slate-600 hover:text-slate-400 text-xs font-medium transition-colors"
+          className="w-full py-2 text-ink-400 hover:text-ink-600 text-xs font-medium transition-colors"
         >
           Sari peste litera asta →
         </button>

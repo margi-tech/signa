@@ -83,15 +83,30 @@ export default function HandTracker({ onLandmarks }) {
 
   // — Stare de eroare (cameră sau MediaPipe) —
   if (cameraError || landmarkerError) {
+    const isDenied = /NotAllowed|Permission|denied/i.test(cameraError || '');
+    const isOffline = /Failed to fetch|NetworkError|Load failed|CDN/i.test(landmarkerError || '');
     return (
-      <div className="flex h-full items-center justify-center bg-slate-900 px-8">
-        <div className="rounded-2xl bg-slate-800 p-6 text-center max-w-xs">
-          <p className="text-red-400 text-sm leading-relaxed">
+      <div className="flex h-full items-center justify-center bg-cream px-8">
+        <div className="rounded-2xl bg-white shadow-card p-6 text-center max-w-xs">
+          <p className="text-red-500 text-sm leading-relaxed font-semibold mb-2">
+            {isDenied ? 'Camera a fost refuzată' : isOffline ? 'Nu pot încărca MediaPipe' : 'Eroare'}
+          </p>
+          <p className="text-ink-600 text-sm leading-relaxed">
             {cameraError || landmarkerError}
           </p>
-          <p className="mt-2 text-slate-500 text-xs">
-            Verifică permisiunile camerei și reîncarcă pagina.
+          <p className="mt-3 text-ink-400 text-xs leading-relaxed">
+            {isDenied
+              ? 'Permite camera din setările browserului, apoi reîncarcă pagina.'
+              : isOffline
+                ? 'Prima încărcare are nevoie de internet (CDN MediaPipe). Apoi funcționează offline.'
+                : 'Reîncearcă după ce verifici conexiunea și permisiunile.'}
           </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 w-full py-3 bg-signa-500 text-white font-bold text-sm rounded-xl"
+          >
+            Reîncarcă
+          </button>
         </div>
       </div>
     );
@@ -141,8 +156,8 @@ export default function HandTracker({ onLandmarks }) {
             {subject ? '✓ Mână detectată' : 'Ridică mâna în față camerei'}
           </span>
 
-          {/* Temporar — verificare vizuală că fața și trunchiul se detectează */}
-          {subject && (
+          {/* Detalii față/trunchi — doar pe Diagnostic (query ?debug=1) */}
+          {subject && new URLSearchParams(window.location.search).has('debug') && (
             <div className="flex gap-1.5">
               <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full
                 ${subject.faceBlendshapes ? 'bg-indigo-500/70 text-white' : 'bg-slate-800/50 text-slate-500'}`}>

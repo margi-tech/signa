@@ -11,12 +11,15 @@ export default function PredictionOverlay({ prediction }) {
       className={`absolute inset-0 flex flex-col items-center justify-end
         pb-28 pointer-events-none z-10
         transition-opacity duration-200 ${show ? 'opacity-100' : 'opacity-0'}`}
+      aria-live="polite"
+      aria-atomic="true"
     >
       {show && (
         <div className="flex flex-col items-center gap-3">
           {/* Litera prezisă — glow verde (static) sau violet (mișcare) */}
           <span
             className="font-black text-white leading-none select-none"
+            role="status"
             style={{
               fontSize: 'clamp(80px, 28vw, 128px)',
               textShadow: prediction.dynamic

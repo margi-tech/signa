@@ -12,8 +12,8 @@ export default defineConfig({
         name: 'Signa — Limba Semnelor Române',
         short_name: 'Signa',
         description: 'Duolingo pentru Limba Semnelor Române',
-        theme_color: '#0f172a',
-        background_color: '#0f172a',
+        theme_color: '#FFFBF3',
+        background_color: '#FFFBF3',
         display: 'standalone',
         orientation: 'portrait',
         icons: [
@@ -23,7 +23,7 @@ export default defineConfig({
       },
       workbox: {
         // Cachează la prima încărcare fișierele MediaPipe WASM și model (offline PWA)
-        globPatterns: ['**/*.{js,css,html,svg,png,wasm}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,wasm,bin,json}'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/.*/i,
@@ -39,6 +39,15 @@ export default defineConfig({
             options: {
               cacheName: 'mediapipe-model-cache',
               expiration: { maxEntries: 5, maxAgeSeconds: 60 * 60 * 24 * 30 },
+            },
+          },
+          {
+            urlPattern: /\/models\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'signa-models-cache',
+              networkTimeoutSeconds: 3,
+              expiration: { maxEntries: 12, maxAgeSeconds: 60 * 60 * 24 * 7 },
             },
           },
         ],

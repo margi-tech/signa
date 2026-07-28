@@ -10,7 +10,6 @@ const DYN_LABELS_PATH = '/models/signa-labels-dynamic.json';
 /** Rulează softmax-ul unui model și împachetează rezultatul */
 function rank(tf, model, data, labels) {
   return tf.tidy(() => {
-    // tensorul se creează ÎN tidy ca să fie eliberat automat
     const probs = Array.from(model.predict(tf.tensor(data)).dataSync());
     const ranked = probs
       .map((p, i) => ({ label: labels[i], p }))
@@ -26,13 +25,13 @@ function rank(tf, model, data, labels) {
 
 /**
  * Încarcă modelele TensorFlow.js antrenate și expune predicția.
- *  • modelul STATIC (obligatoriu pentru predicții) — poze de mână
- *  • modelul DINAMIC (opțional) — secvențe de mișcare (GRU)
- * Fiecare lipsă e tolerată silențios: camera merge și fără modele.
+ *  • modelul STATIC — vectori de VECTOR_SIZE (199)
+ *  • modelul DINAMIC — secvențe [SEQ_FRAMES, VECTOR_SIZE] (GRU)
  */
 export function useClassifier() {
   const [isReady,    setIsReady]    = useState(false);
   const [isDynReady, setIsDynReady] = useState(false);
+  const [modelVersion, setModelVersion] = useState(null);
   const tfRef        = useRef(null);
   const modelRef     = useRef(null);
   const labelsRef    = useRef(null);
@@ -43,18 +42,23 @@ export function useClassifier() {
     let cancelled = false;
 
     async function loadOne(labelsPath, modelPath, warmShape) {
-      const res = await fetch(labelsPath);
-      if (!res.ok) return null; // model neantrenat — fail silențios
-      const { labels } = await res.json();
+      // Cache-bust pe labels (conține version) — forțează revalidarea după reantrenare
+      const res = await fetch(`${labelsPath}?t=${Date.now()}`);
+      if (!res.ok) return null;
+      const meta = await res.json();
+      const labels = meta.labels;
+      if (!labels?.length) return null;
 
-      // TF.js se importă lazy, o singură dată pentru ambele modele
       if (!tfRef.current) tfRef.current = await import('@tensorflow/tfjs');
       const tf = tfRef.current;
 
+      const bust = meta.version ? `?v=${encodeURIComponent(meta.version)}` : `?t=${Date.now()}`;
+      // Nu adăuga query pe modelPath — TF.js rezolvă weights relativ și se strică.
+      // Cache-ul e controlat de Workbox NetworkFirst pe /models/.
+      void bust;
       const model = await tf.loadLayersModel(modelPath);
-      // Warmup: prima inferență e lentă — o consumăm acum
       tf.tidy(() => model.predict(tf.zeros(warmShape)));
-      return { model, labels };
+      return { model, labels, version: meta.version ?? null };
     }
 
     (async () => {
@@ -63,6 +67,7 @@ export function useClassifier() {
         if (st && !cancelled) {
           modelRef.current  = st.model;
           labelsRef.current = st.labels;
+          setModelVersion(st.version);
           setIsReady(true);
         }
       } catch { /* model static lipsă sau corupt */ }
@@ -81,8 +86,7 @@ export function useClassifier() {
   }, []);
 
   /**
-   * Prezice semnul STATIC din landmarks-urile unei mâini.
-   * @param {Array<{x,y,z}>} landmarks  21 puncte MediaPipe
+   * Prezice semnul STATIC dintr-un subject holistic (sau landmarks legacy).
    * @returns {{ label, confidence, margin, top3 } | null}
    */
   const predict = useCallback((landmarks) => {
@@ -96,9 +100,8 @@ export function useClassifier() {
   }, []);
 
   /**
-   * Prezice semnul DINAMIC dintr-o secvență de cadre normalizate.
-   * @param {number[][]} frames  SEQ_FRAMES vectori de câte 63 valori
-   * @returns {{ label, confidence, margin, top3 } | null}
+   * Prezice semnul DINAMIC dintr-o secvență de cadre normalizate (VECTOR_SIZE fiecare).
+   * @param {number[][]} frames  SEQ_FRAMES vectori
    */
   const predictSequence = useCallback((frames) => {
     const tf = tfRef.current;
@@ -108,5 +111,5 @@ export function useClassifier() {
     return rank(tf, dynModelRef.current, [frames], dynLabelsRef.current);
   }, []);
 
-  return { isReady, isDynReady, predict, predictSequence };
+  return { isReady, isDynReady, predict, predictSequence, modelVersion };
 }
