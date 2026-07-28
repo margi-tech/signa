@@ -54,6 +54,7 @@ export default function DiagnosticPage({ onBack }) {
           {row('SEQ_FRAMES', String(SEQ_FRAMES), true)}
           {row('FPS detecție', String(fps), fps >= 10)}
           {row('Cadre procesate', String(frames), null)}
+          {row('Față (landmarks)', lastSubject?.faceLandmarks ? 'da' : 'nu', !!lastSubject?.faceLandmarks)}
           {row('Față (blendshapes)', lastSubject?.faceBlendshapes ? 'da' : 'nu', !!lastSubject?.faceBlendshapes)}
           {row('Trunchi (pose)', lastSubject?.pose ? 'da' : 'nu', !!lastSubject?.pose)}
           {row('Mâini', String(lastSubject?.hands?.length ?? 0), (lastSubject?.hands?.length ?? 0) > 0)}

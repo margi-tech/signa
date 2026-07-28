@@ -69,9 +69,13 @@ export default function HandTracker({ onLandmarks }) {
         lastTickRef.current = now;
         const result = detect(video, performance.now());
         const hasHand = result?.hands?.length > 0;
-        const next = hasHand ? result : null;
-        setSubject(next);
-        onLandmarksRef.current?.(next);
+        // Canvas: arată față/corp chiar și fără mână; callback-ul de colectare/predicție
+        // rămâne null fără mână (semnul LSR cere cel puțin o mână).
+        const forDraw = result && (
+          hasHand || result.faceLandmarks || result.pose
+        ) ? result : null;
+        setSubject(forDraw);
+        onLandmarksRef.current?.(hasHand ? result : null);
       }
 
       loopRef.current = requestAnimationFrame(loop);
@@ -131,7 +135,12 @@ export default function HandTracker({ onLandmarks }) {
           muted
           className="w-full h-full object-cover"
         />
-        <HandCanvas landmarks={subject?.hands ?? null} videoRef={videoRef} />
+        <HandCanvas
+          landmarks={subject?.hands ?? null}
+          face={subject?.faceLandmarks ?? null}
+          pose={subject?.pose ?? null}
+          videoRef={videoRef}
+        />
       </div>
 
       {/* Loading overlay — poziționat DEASUPRA div-ului oglindă, deci text e drept */}
@@ -142,30 +151,29 @@ export default function HandTracker({ onLandmarks }) {
         </div>
       )}
 
-      {/* Indicator discret: mână detectată / nu */}
+      {/* Indicator discret: ce e detectat */}
       {isReady && (
         <div className="absolute bottom-20 left-0 right-0 flex flex-col items-center gap-1.5">
           <span
             className={`
               text-xs font-medium px-3 py-1 rounded-full transition-all duration-300
-              ${subject
+              ${subject?.hands?.length
                 ? 'bg-signa-500/80 text-white'
                 : 'bg-slate-800/60 text-slate-400'}
             `}
           >
-            {subject ? '✓ Mână detectată' : 'Ridică mâna în față camerei'}
+            {subject?.hands?.length ? '✓ Mână detectată' : 'Ridică mâna în față camerei'}
           </span>
 
-          {/* Detalii față/trunchi — doar pe Diagnostic (query ?debug=1) */}
-          {subject && new URLSearchParams(window.location.search).has('debug') && (
+          {subject && (
             <div className="flex gap-1.5">
               <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full
-                ${subject.faceBlendshapes ? 'bg-indigo-500/70 text-white' : 'bg-slate-800/50 text-slate-500'}`}>
-                {subject.faceBlendshapes ? '✓ Față' : 'Fără față'}
+                ${subject.faceLandmarks ? 'bg-sky-500/80 text-white' : 'bg-slate-800/50 text-slate-500'}`}>
+                {subject.faceLandmarks ? '✓ Față' : 'Fără față'}
               </span>
               <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full
-                ${subject.pose ? 'bg-amber-500/70 text-white' : 'bg-slate-800/50 text-slate-500'}`}>
-                {subject.pose ? '✓ Trunchi' : 'Fără trunchi'}
+                ${subject.pose ? 'bg-amber-500/80 text-white' : 'bg-slate-800/50 text-slate-500'}`}>
+                {subject.pose ? '✓ Corp' : 'Fără corp'}
               </span>
             </div>
           )}

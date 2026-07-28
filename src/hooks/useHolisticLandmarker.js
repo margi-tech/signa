@@ -106,6 +106,7 @@ export function useHolisticLandmarker() {
     return {
       hands:      handRes?.landmarks ?? [],
       handedness: (handRes?.handednesses ?? []).map((h) => h?.[0]?.categoryName),
+      faceLandmarks: faceRes?.faceLandmarks?.[0] ?? null,
       faceBlendshapes: faceRes?.faceBlendshapes?.[0]?.categories
         ? faceRes.faceBlendshapes[0].categories.map((c) => c.score)
         : null,
