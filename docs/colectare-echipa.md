@@ -3,6 +3,9 @@
 Scopul: recolecta **tot alfabetul** în formatul holistic nou (`normalize()` v2, 199 valori).
 Modelele vechi din `public/models/_legacy-hand-only-63dim/` **nu** mai sunt compatibile.
 
+**Tutorial complet (colectare + unire + antrenare + `public/models/`):**  
+→ [`docs/tutorial-antrenare-echipa.md`](./tutorial-antrenare-echipa.md)
+
 ## Pornire locală
 
 ```bash

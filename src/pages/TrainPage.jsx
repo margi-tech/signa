@@ -288,7 +288,18 @@ export default function TrainPage({ onBack }) {
 
       const st = parse(isVec);
       const dy = parse(isSeq);
-      if (!st && !dy) throw new Error('Dataset gol sau format necunoscut (așteptat VECTOR_SIZE 199)');
+      if (!st && !dy) {
+        const diag = all.map(([k, arr]) => {
+          const n = (arr ?? []).length;
+          const ok = (arr ?? []).filter(isVec).length;
+          const seqOk = (arr ?? []).filter(isSeq).length;
+          const lens = [...new Set((arr ?? []).map((s) => (Array.isArray(s) ? s.length : typeof s)))];
+          return `${k}: ${ok}/${n} ok (dim ${lens.join(',')}${seqOk ? `, ${seqOk} seq` : ''})`;
+        });
+        throw new Error(
+          `Dataset incompatibil (așteptat VECTOR_SIZE ${VECTOR_SIZE}, min. 2 litere). ${diag.join(' · ') || 'gol'}`,
+        );
+      }
 
       setStaticData(st);
       setDynData(dy);

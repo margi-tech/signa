@@ -2,6 +2,9 @@
 
 După recolectarea datasetului holistic (199 valori).
 
+**Pentru echipă (flux end-to-end, fără greșeli):**  
+→ [`docs/tutorial-antrenare-echipa.md`](./tutorial-antrenare-echipa.md)
+
 ## Pași
 
 1. Exportă dataset-ul din **Colectare** (sau unește mai multe JSON-uri).
