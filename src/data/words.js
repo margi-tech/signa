@@ -21,14 +21,30 @@ export const WORD_CATEGORIES = [
     ],
   },
   {
+    id: 'pronume',
+    title: 'Pronume personale',
+    words: [
+      { id: 'eu',         label: 'Eu',        letters: ['E', 'U'] },
+      { id: 'tu',         label: 'Tu',        letters: ['T', 'U'] },
+      { id: 'el',         label: 'El',        letters: ['E', 'L'] },
+      { id: 'ea',         label: 'Ea',        letters: ['E', 'A'] },
+      { id: 'noi',        label: 'Noi',       letters: ['N', 'O', 'I'] },
+    ],
+  },
+  {
     id: 'familie',
     title: 'Familie',
     words: [
-      { id: 'mama',   label: 'Mama',   letters: ['M', 'A', 'M', 'A'] },
-      { id: 'tata',   label: 'Tata',   letters: ['T', 'A', 'T', 'A'] },
-      { id: 'frate',  label: 'Frate',  letters: ['F', 'R', 'A', 'T', 'E'] },
-      { id: 'sora',   label: 'Sora',   letters: ['S', 'O', 'R', 'A'] },
-      { id: 'copil',  label: 'Copil',  letters: ['C', 'O', 'P', 'I', 'L'] },
+      { id: 'mama',       label: 'Mamă',      letters: ['M', 'A', 'M', 'Ă'] },
+      { id: 'tata',       label: 'Tată',      letters: ['T', 'A', 'T', 'Ă'] },
+      { id: 'frate',      label: 'Frate',     letters: ['F', 'R', 'A', 'T', 'E'] },
+      { id: 'sora',       label: 'Soră',      letters: ['S', 'O', 'R', 'Ă'] },
+      { id: 'copil',      label: 'Copil',     letters: ['C', 'O', 'P', 'I', 'L'] },
+      { id: 'prieten',    label: 'Prieten',   letters: ['P', 'R', 'I', 'E', 'T', 'E', 'N'] },
+      { id: 'socru',      label: 'Socru',     letters: ['S', 'O', 'C', 'R', 'U'] },
+      { id: 'versor',     label: 'Verișor',   letters: ['V', 'E', 'R', 'I', 'Ș', 'O', 'R'] },
+      { id: 'bunichi',    label: 'Bunichi',   letters: ['B', 'U', 'N', 'I', 'C', 'H', 'I'] },
+      { id: 'unchi',      label: 'Unchi',     letters: ['U', 'N', 'C', 'H', 'I'] },
     ],
   },
   {
@@ -73,7 +89,6 @@ export const WORD_CATEGORIES = [
       { id: 'apa',     label: 'Apă',     letters: ['A', 'P', 'Ă'] },
       { id: 'casa',    label: 'Casă',    letters: ['C', 'A', 'S', 'Ă'] },
       { id: 'scoala',  label: 'Școală',  letters: ['Ș', 'C', 'O', 'A', 'L', 'Ă'] },
-      { id: 'prieten', label: 'Prieten', letters: ['P', 'R', 'I', 'E', 'T', 'E', 'N'] },
     ],
   },
   {

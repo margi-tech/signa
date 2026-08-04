@@ -38,6 +38,16 @@ export const LESSONS = [
     teaser: 'Cuvinte-semn- un gest per cuvant, modelul GRU' },
 
 
+  { id: 1, title: 'Lecția 1', type: 'static',  letters: ['A', 'B', 'C', 'D', 'E'] },
+  { id: 2, title: 'Lecția 2', type: 'static',  letters: ['F', 'G', 'H', 'I', 'K'] },
+  { id: 3, title: 'Lecția 3', type: 'static',  letters: ['L', 'M', 'N', 'O', 'P'] },
+  { id: 4, title: 'Lecția 4', type: 'static',  letters: ['Q', 'R', 'S', 'T', 'U'] },
+  { id: 5, title: 'Lecția 5', type: 'static',  letters: ['V', 'W', 'Y', 'Â', 'Ă'] },
+  { id: 6, title: 'Lecția 6', type: 'dynamic', letters: ['J', 'Z', 'X', 'Î', 'Ș', 'Ț'],
+    teaser: 'Litere cu mișcare — necesită modelul GRU' },
+  { id: 7, title: 'Lecția 7', type: 'vocabular',
+    title_full: 'Prieteni & Familie',
+    teaser: 'Pronume și cuvinte din viața de zi cu zi' },
 ];
 
 // XP primit pentru fiecare literă reușită (nu și sărită)
