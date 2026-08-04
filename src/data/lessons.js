@@ -13,6 +13,10 @@ export const LESSONS = [
   { id: 5, title: 'Lecția 5', type: 'static',  letters: ['V', 'W', 'Y', 'Â', 'Ă'] },
   { id: 6, title: 'Lecția 6', type: 'dynamic', letters: ['J', 'Z', 'X', 'Î', 'Ș', 'Ț'],
     teaser: 'Litere cu mișcare — necesită modelul GRU' },
+  { id: 7, title: 'Lecția 7 : mâncare - general', type: 'dynamic', letters: ['mâncare', 'apă', 'legumă', 'fruct', 'pâine'],
+    teaser: 'Litere cu mișcare — necesită modelul GRU'},
+  { id: 8, title: 'Lecția 8 - mâncare', type: 'dynamic', letters: ['carne', 'supă', 'măr', 'cafea', 'lapte'],
+    teaser: 'Litere cu mișcare — necesită modelul GRU'},
 ];
 
 // XP primit pentru fiecare literă reușită (nu și sărită)

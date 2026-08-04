@@ -8,6 +8,8 @@ export const LSR_ALPHABET = [
   'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
   'U', 'V', 'W', 'X', 'Y', 'Z',
   'Ă', 'Â', 'Î', 'Ș', 'Ț',
+  'mâncare', 'apă', 'legumă', 'fruct', 'pâine',
+  'carne', 'supă', 'măr', 'cafea', 'lapte'
 ];
 
 // Minim recomandat de exemple per literă pentru un model decent
@@ -15,7 +17,7 @@ export const MIN_SAMPLES_PER_LETTER = 50;
 
 // Litere care implică mișcarea mâinii — se colectează ca SECVENȚE de cadre,
 // nu ca poze statice (pipeline-ul de mișcare, Faza 4.5).
-export const DYNAMIC_LETTERS = new Set(['J', 'Z', 'X', 'Î', 'Ș', 'Ț']);
+export const DYNAMIC_LETTERS = new Set(['J', 'Z', 'X', 'Î', 'Ș', 'Ț', 'mâncare', 'apă', 'legumă', 'fruct', 'pâine', 'carne', 'supă', 'măr', 'cafea', 'lapte']);
 
 // O înregistrare = SEQ_FRAMES cadre la SEQ_INTERVAL_MS distanță (~1.5s)
 export const SEQ_FRAMES      = 30;
