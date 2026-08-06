@@ -48,6 +48,14 @@ export const LESSONS = [
   { id: 7, title: 'Lecția 7', type: 'vocabular',
     title_full: 'Prieteni & Familie',
     teaser: 'Pronume și cuvinte din viața de zi cu zi' },
+  { id: 7, title: 'Lecția 7 — Pronume', type: 'mixed',
+    title_full: 'Pronume personale',
+    teaser: 'Eu, Tu, El, Ea, Noi — pronume LSR',
+    letters: ['Eu', 'Tu', 'El', 'Ea', 'Noi'] },
+  { id: 8, title: 'Lecția 8 — Familie', type: 'mixed',
+    title_full: 'Cuvinte de familie',
+    teaser: 'Mamă, Tată, Frate, Soră, și mai mult',
+    letters: ['Mama', 'Tată', 'Frate', 'Soră', 'Bunic', 'Copil', 'Prieten', 'Socru', 'Unchi', 'Verișor'] },
 ];
 
 // XP primit pentru fiecare literă reușită (nu și sărită)
