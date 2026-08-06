@@ -11,7 +11,8 @@ export const LESSONS = [
   { id: 3, title: 'Lecția 3', type: 'static',  letters: ['L', 'M', 'N', 'O', 'P'] },
   { id: 4, title: 'Lecția 4', type: 'static',  letters: ['Q', 'R', 'S', 'T', 'U'] },
   { id: 5, title: 'Lecția 5', type: 'static',  letters: ['V', 'W', 'Y', 'Â', 'Ă'] },
-  { id: 6, title: 'Lecția 6', type: 'dynamic', letters: ['J', 'Z', 'X', 'Î', 'Ș', 'Ț'],
+  { id: 6, title: 'Lecția 6', type: 'dynamic', letters: ['J', 'Z', 'X', 'Î', 'Ș', 'Ț'] },
+  { id: 7, title: 'Lecția 7', type: 'dynamic', letters: ['Alb', 'Gri', 'Negru', 'Roșu', 'Galben', 'Portocaliu', 'Albastru', 'Verde', 'Mov', 'Roz', 'Maro'],
     teaser: 'Litere cu mișcare — necesită modelul GRU' },
 ];
 
