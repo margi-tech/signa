@@ -16,7 +16,7 @@ export const LSR_LETTERS = [
   'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
   'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
   'U', 'V', 'W', 'X', 'Y', 'Z',
-  'Ă', 'Â', 'Î', 'Ș', 'Ț',
+  'Ă', 'Â', 'Î', 'Ș', 'Ț', 'alb', 'negru', 'gri', 'roșu', 'galben', 'portocaliu', 'albastru', 'verde', 'mov', 'maro',
 ];
 
 export const LSR_WORDS = [
@@ -59,6 +59,9 @@ export const isWord = (target) => LSR_WORDS.includes(target) || LSR_NUMBERS.incl
 
 /** True dacă eticheta se prezice cu modelul dinamic (GRU). */
 export const isDynamicTarget = (target) => DYNAMIC_LETTERS.has(target);
+// Litere care implică mișcarea mâinii — se colectează ca SECVENȚE de cadre,
+// nu ca poze statice (pipeline-ul de mișcare, Faza 4.5).
+export const DYNAMIC_LETTERS = new Set(['J', 'Z', 'X', 'Î', 'Ș', 'Ț', 'alb', 'negru', 'gri', 'roșu', 'galben', 'portocaliu', 'albastru', 'verde', 'mov', 'maro',)];
 
 // O înregistrare = SEQ_FRAMES cadre la SEQ_INTERVAL_MS distanță (~1.5s)
 export const SEQ_FRAMES      = 30;

@@ -14,6 +14,7 @@ export const LESSONS = [
   { id: 1.4, title: 'Lecția 1.4', type: 'static',  letters: ['Q', 'R', 'S', 'T', 'U'] },
   { id: 1.5, title: 'Lecția 1.5', type: 'static',  letters: ['V', 'W', 'Y', 'Â', 'Ă'] },
   { id: 2.1, title: 'Lecția 2.1', type: 'dynamic', letters: ['J', 'Z', 'X', 'Î', 'Ș', 'Ț'],
+  { id: 7, title: 'Lecția 7', type: 'dynamic', letters: ['Alb', 'Gri', 'Negru', 'Roșu', 'Galben', 'Portocaliu', 'Albastru', 'Verde', 'Mov', 'Roz', 'Maro'],
     teaser: 'Litere cu mișcare — necesită modelul GRU' },
   { id: 3.1, title: 'Lecția 3.1 · Mâncare (bază)', type: 'dynamic',
     letters: ['mâncare', 'apă', 'legumă', 'fruct', 'pâine'],
