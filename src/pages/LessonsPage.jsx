@@ -56,13 +56,21 @@ function LessonCard({ lesson, stars, unlocked, onOpen }) {
           <Stars count={stars} />
         </div>
         <div className="flex gap-1 flex-wrap">
-          {lesson.letters.map((l) => (
-            <span key={l} className={`w-6 h-6 rounded-md text-[11px] font-bold
-              flex items-center justify-center
-              ${unlocked ? 'bg-cream-100 text-ink-600' : 'bg-ink-900/[0.03] text-ink-400'}`}>
-              {l}
-            </span>
-          ))}
+          {lesson.letters.map((l) => {
+            const isLong = l.length > 1;
+            return (
+              <span
+                key={l}
+                title={l}
+                className={`h-6 rounded-md text-[11px] font-bold
+                  flex items-center justify-center
+                  ${isLong ? 'px-1.5 max-w-[6.5rem] truncate' : 'w-6'}
+                  ${unlocked ? 'bg-cream-100 text-ink-600' : 'bg-ink-900/[0.03] text-ink-400'}`}
+              >
+                {l}
+              </span>
+            );
+          })}
         </div>
       </div>
     </button>
