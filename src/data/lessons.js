@@ -1,22 +1,24 @@
 /**
  * Lecțiile Signa — alfabetul împărțit în grupe.
  * Deblocare progresivă: o lecție se deschide când cea anterioară e completată.
+ * (Logica de deblocare/stele trăiește în useProgress — isUnlocked / starsFor.
+ *  Aici doar definim lecțiile și gruparea lor pe capitole.)
  *
  * type: 'static'  — litere fără mișcare (MLP)
  * type: 'dynamic' — litere cu mișcare (GRU), ținute mai lung
  */
 export const LESSONS = [
-  { id: 1, title: 'Lecția 1', type: 'static',  letters: ['A', 'B', 'C', 'D', 'E'] },
-  { id: 2, title: 'Lecția 2', type: 'static',  letters: ['F', 'G', 'H', 'I', 'K'] },
-  { id: 3, title: 'Lecția 3', type: 'static',  letters: ['L', 'M', 'N', 'O', 'P'] },
-  { id: 4, title: 'Lecția 4', type: 'static',  letters: ['Q', 'R', 'S', 'T', 'U'] },
-  { id: 5, title: 'Lecția 5', type: 'static',  letters: ['V', 'W', 'Y', 'Â', 'Ă'] },
-  { id: 6, title: 'Lecția 6', type: 'dynamic', letters: ['J', 'Z', 'X', 'Î', 'Ș', 'Ț'],
+  { id: 1.1, title: 'Lecția 1.1', type: 'static',  letters: ['A', 'B', 'C', 'D', 'E'] },
+  { id: 1.2, title: 'Lecția 1.2', type: 'static',  letters: ['F', 'G', 'H', 'I', 'K'] },
+  { id: 1.3, title: 'Lecția 1.3', type: 'static',  letters: ['L', 'M', 'N', 'O', 'P'] },
+  { id: 1.4, title: 'Lecția 1.4', type: 'static',  letters: ['Q', 'R', 'S', 'T', 'U'] },
+  { id: 1.5, title: 'Lecția 1.5', type: 'static',  letters: ['V', 'W', 'Y', 'Â', 'Ă'] },
+  { id: 2.1, title: 'Lecția 2.1', type: 'dynamic', letters: ['J', 'Z', 'X', 'Î', 'Ș', 'Ț'],
     teaser: 'Litere cu mișcare — necesită modelul GRU' },
-  { id: 7, title: 'Lecția 7 · Mâncare (bază)', type: 'dynamic',
+  { id: 3.1, title: 'Lecția 3.1 · Mâncare (bază)', type: 'dynamic',
     letters: ['mâncare', 'apă', 'legumă', 'fruct', 'pâine'],
     teaser: 'Cuvinte-semn — un gest per cuvânt, modelul GRU' },
-  { id: 8, title: 'Lecția 8 · Mâncare & băutură', type: 'dynamic',
+  { id: 3.2, title: 'Lecția 3.2 · Mâncare & băutură', type: 'dynamic',
     letters: ['carne', 'supă', 'măr', 'cafea', 'lapte'],
     teaser: 'Cuvinte-semn — un gest per cuvânt, modelul GRU' },
 ];
@@ -44,4 +46,44 @@ export function levelFromXp(xp) {
   let level = 1;
   while (xpForLevel(level + 1) <= xp) level += 1;
   return level;
+}
+
+/* ------------------------------------------------------------------ */
+/* Capitole — grupează LESSONS de mai sus, fără să le duplice.        */
+/* Deblocarea rămâne în useProgress (isUnlocked) — aici doar gruparea. */
+/* ------------------------------------------------------------------ */
+
+export const CHAPTERS = [
+  {
+    id: 'ch1',
+    title: '1. Alfabet static',
+    description: 'Litere fără mișcare',
+    lessonIds: [1.1, 1.2, 1.3, 1.4, 1.5],
+  },
+  {
+    id: 'ch2',
+    title: '2. Alfabet dinamic',
+    description: 'Litere cu mișcare',
+    lessonIds: [2.1],
+  },
+  {
+    id: 'ch3',
+    title: '3. Cuvinte · Mâncare',
+    description: 'Cuvinte-semn de bază',
+    lessonIds: [3.1, 3.2],
+  },
+];
+
+/** Atașează lecțiile complete (nu doar id-uri) la fiecare capitol. */
+export function buildChaptersWithLessons() {
+  const lessonsById = Object.fromEntries(LESSONS.map((l) => [l.id, l]));
+  return CHAPTERS.map((ch) => ({
+    ...ch,
+    lessons: ch.lessonIds.map((id) => lessonsById[id]).filter(Boolean),
+  }));
+}
+
+/** Găsește capitolul căruia îi aparține o lecție, după id. */
+export function chapterForLesson(lessonId) {
+  return CHAPTERS.find((ch) => ch.lessonIds.includes(lessonId));
 }

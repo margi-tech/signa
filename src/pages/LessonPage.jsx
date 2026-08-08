@@ -45,7 +45,7 @@ function LetterDots({ letters, idx, skipped }) {
 function ResultsScreen({ lesson, skipped, xpGained, stars, leveledUp, onExit, onRetry }) {
   return (
     <div className="h-full bg-cream flex flex-col items-center justify-center px-8 animate-fade-up relative">
-      <Confetti active />
+      <Confetti active={stars > 0} />
       <div className="flex gap-2 mb-6">
         {[0, 1, 2].map((i) => (
           <svg key={i} width="48" height="48" viewBox="0 0 24 24"
@@ -58,7 +58,7 @@ function ResultsScreen({ lesson, skipped, xpGained, stars, leveledUp, onExit, on
       </div>
 
       <h1 className="text-ink-900 text-2xl font-black mb-1">
-        {leveledUp ? 'Nivel nou!' : stars === 3 ? 'Perfect!' : stars === 2 ? 'Foarte bine!' : 'Lecție completată'}
+        {leveledUp ? 'Nivel nou!' : stars === 3 ? 'Perfect!' : stars === 2 ? 'Foarte bine!' : stars === 1 ? 'Lecție completată' : 'Reîncearcă lecția'}
       </h1>
       <p className="text-signa-600 font-bold text-lg mb-6">+{xpGained} XP</p>
 
@@ -229,7 +229,7 @@ export default function LessonPage({ lesson, onExit }) {
     levelBeforeRef.current = level;
 
     const done = lesson.letters.length - skipped.length;
-    const stars = skipped.length === 0 ? 3 : skipped.length === 1 ? 2 : 1;
+    const stars = skipped.length === 0 ? 3 : skipped.length === 1 ? 2 : done === 0 ? 0 : 1;
     const xp = done * XP_PER_LETTER + (skipped.length === 0 ? XP_PERFECT_BONUS : 0);
     completeLesson(lesson.id, stars, xp);
   }, [phase, skipped, lesson, completeLesson, level]);
@@ -253,7 +253,7 @@ export default function LessonPage({ lesson, onExit }) {
 
   if (phase === 'results') {
     const done = lesson.letters.length - skipped.length;
-    const stars = skipped.length === 0 ? 3 : skipped.length === 1 ? 2 : 1;
+    const stars = skipped.length === 0 ? 3 : skipped.length === 1 ? 2 : done === 0 ? 0 : 1;
     const xp = done * XP_PER_LETTER + (skipped.length === 0 ? XP_PERFECT_BONUS : 0);
     return (
       <ResultsScreen
