@@ -32,7 +32,7 @@ function DatasetOverview({ samplesFor, labels }) {
         onClick={() => setOpen((o) => !o)}
         className="w-full flex items-center justify-between text-left py-2 text-xs font-semibold text-ink-500"
       >
-        <span>Dataset · {done.length}/{LSR_ALPHABET.length} litere complete · {labels.length} etichete</span>
+        <span>Dataset · {done.length}/{LSR_ALPHABET.length} etichete complete · {labels.length} etichete totale</span>
         <span className="text-ink-400">{open ? '▴' : '▾'}</span>
       </button>
       {open && (
