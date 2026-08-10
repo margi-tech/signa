@@ -179,7 +179,7 @@ export default function LessonPage({ lesson, onExit }) {
     let isMatch = false;
     let label = null;
 
-    if (isDynamicLesson && DYNAMIC_LETTERS.has(targetRef.current) && isDynRef.current) {
+    if (isDynamicLesson && isDynRef.current) {
       const vector = normalize(lm);
       if (vector) {
         seqBufRef.current.push(vector);
