@@ -22,6 +22,7 @@ function emptyProgress() {
     onboardingDone: false,
     lessons: {},
     letterMastery: {}, // { [letter]: { correct, attempts, lastAt } }
+    favorites: [], // id-uri de lecții marcate ca favorite
     soundEnabled: true,
   };
 }
@@ -33,6 +34,7 @@ function migrate(raw) {
     ...raw,
     lessons: raw.lessons ?? {},
     letterMastery: raw.letterMastery ?? {},
+    favorites: raw.favorites ?? [],
   };
 }
 
@@ -76,18 +78,34 @@ export function useProgress() {
   }, []);
 
   const starsFor = useCallback(
-    (lessonId) => progress.lessons[lessonId]?.stars ?? 0,
-    [progress]
+      (lessonId) => progress.lessons[lessonId]?.stars ?? 0,
+      [progress]
   );
 
   const isUnlocked = useCallback(
-    (lessonId) => {
-      const idx = LESSONS.findIndex((l) => l.id === lessonId);
-      if (idx <= 0) return true;
-      return (progress.lessons[LESSONS[idx - 1].id]?.stars ?? 0) > 0;
-    },
-    [progress]
+      (lessonId) => {
+        const idx = LESSONS.findIndex((l) => l.id === lessonId);
+        if (idx <= 0) return true;
+        return (progress.lessons[LESSONS[idx - 1].id]?.stars ?? 0) > 0;
+      },
+      [progress]
   );
+
+  const isFavorite = useCallback(
+      (lessonId) => (progress.favorites ?? []).includes(lessonId),
+      [progress]
+  );
+
+  /** Adaugă/scoate o lecție din favorite. */
+  const toggleFavorite = useCallback((lessonId) => {
+    update((prev) => {
+      const current = prev.favorites ?? [];
+      const next = current.includes(lessonId)
+          ? current.filter((id) => id !== lessonId)
+          : [...current, lessonId];
+      return { ...prev, favorites: next };
+    });
+  }, [update]);
 
   /** Marchează practica de azi — actualizează streak-ul */
   const recordPractice = useCallback(() => {
@@ -164,16 +182,16 @@ export function useProgress() {
   /** Litere de recapitulat: învățate dar cu rate scăzută sau vechi */
   const reviewLetters = useMemo(() => {
     const mastered = Object.entries(progress.letterMastery)
-      .filter(([, m]) => m.attempts >= 2)
-      .map(([letter, m]) => {
-        const rate = m.correct / m.attempts;
-        const daysAgo = m.lastAt
-          ? (Date.now() - Date.parse(m.lastAt)) / 86_400_000
-          : 99;
-        const priority = (1 - rate) * 2 + Math.min(daysAgo / 3, 3);
-        return { letter, rate, daysAgo, priority };
-      })
-      .sort((a, b) => b.priority - a.priority);
+        .filter(([, m]) => m.attempts >= 2)
+        .map(([letter, m]) => {
+          const rate = m.correct / m.attempts;
+          const daysAgo = m.lastAt
+              ? (Date.now() - Date.parse(m.lastAt)) / 86_400_000
+              : 99;
+          const priority = (1 - rate) * 2 + Math.min(daysAgo / 3, 3);
+          return { letter, rate, daysAgo, priority };
+        })
+        .sort((a, b) => b.priority - a.priority);
     return mastered.slice(0, 8).map((x) => x.letter);
   }, [progress.letterMastery]);
 
@@ -194,6 +212,9 @@ export function useProgress() {
     reviewLetters,
     starsFor,
     isUnlocked,
+    favorites: progress.favorites ?? [],
+    isFavorite,
+    toggleFavorite,
     completeLesson,
     recordPractice,
     recordLetter,

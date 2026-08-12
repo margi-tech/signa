@@ -7,14 +7,24 @@ import { useProgress } from '../hooks/useProgress';
 import {
   XP_PER_LETTER, XP_PERFECT_BONUS, HOLD_DURATION_MS, HOLD_DURATION_DYNAMIC_MS,
 } from '../data/lessons';
-import { DYNAMIC_LETTERS, SEQ_FRAMES, SEQ_INTERVAL_MS } from '../data/lsr-alphabet';
+import { DYNAMIC_LETTERS, SEQ_FRAMES, SEQ_INTERVAL_MS, isWord } from '../data/lsr-alphabet';
 import { normalize } from '../utils/normalize';
 import REFERENCE_POSES from '../data/reference-poses.json';
 import { playSuccess, playSkip, playLevelUp } from '../utils/sounds';
 
 const MIN_CONFIDENCE = 0.7;
+// Litere dinamice: prag mai relaxat (6 clase, seturi mici).
 const DYN_MIN_CONF = 0.55;
 const DYN_MIN_MARGIN = 0.08;
+
+/** Text mare pentru target: shrink automat pentru cuvinte lungi. */
+function targetTextSize(label) {
+  const len = label?.length ?? 1;
+  if (len <= 1) return 'text-4xl';
+  if (len <= 3) return 'text-2xl';
+  if (len <= 6) return 'text-lg';
+  return 'text-base';
+}
 
 function LetterDots({ letters, idx, skipped }) {
   return (
@@ -35,7 +45,7 @@ function LetterDots({ letters, idx, skipped }) {
 function ResultsScreen({ lesson, skipped, xpGained, stars, leveledUp, onExit, onRetry }) {
   return (
     <div className="h-full bg-cream flex flex-col items-center justify-center px-8 animate-fade-up relative">
-      <Confetti active />
+      <Confetti active={stars > 0} />
       <div className="flex gap-2 mb-6">
         {[0, 1, 2].map((i) => (
           <svg key={i} width="48" height="48" viewBox="0 0 24 24"
@@ -48,15 +58,17 @@ function ResultsScreen({ lesson, skipped, xpGained, stars, leveledUp, onExit, on
       </div>
 
       <h1 className="text-ink-900 text-2xl font-black mb-1">
-        {leveledUp ? 'Nivel nou!' : stars === 3 ? 'Perfect!' : stars === 2 ? 'Foarte bine!' : 'Lecție completată'}
+        {leveledUp ? 'Nivel nou!' : stars === 3 ? 'Perfect!' : stars === 2 ? 'Foarte bine!' : stars === 1 ? 'Lecție completată' : 'Reîncearcă lecția'}
       </h1>
       <p className="text-signa-600 font-bold text-lg mb-6">+{xpGained} XP</p>
 
-      <div className="flex gap-2 mb-10 flex-wrap justify-center">
+      <div className="flex gap-2 mb-10 flex-wrap justify-center max-w-md">
         {lesson.letters.map((l, i) => {
           const wasSkipped = skipped.includes(l);
+          const isLong = l.length > 1;
           return (
-            <div key={`${l}-${i}`} className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold
+            <div key={`${l}-${i}`} className={`min-w-[2.5rem] h-10 px-2 rounded-xl flex items-center justify-center font-bold
+              ${isLong ? 'text-xs' : ''}
               ${wasSkipped ? 'bg-amber-100 text-amber-600' : 'bg-signa-50 text-signa-600'}`}>
               {l}
             </div>
@@ -217,7 +229,7 @@ export default function LessonPage({ lesson, onExit }) {
     levelBeforeRef.current = level;
 
     const done = lesson.letters.length - skipped.length;
-    const stars = skipped.length === 0 ? 3 : skipped.length === 1 ? 2 : 1;
+    const stars = skipped.length === 0 ? 3 : skipped.length === 1 ? 2 : done === 0 ? 0 : 1;
     const xp = done * XP_PER_LETTER + (skipped.length === 0 ? XP_PERFECT_BONUS : 0);
     completeLesson(lesson.id, stars, xp);
   }, [phase, skipped, lesson, completeLesson, level]);
@@ -241,7 +253,7 @@ export default function LessonPage({ lesson, onExit }) {
 
   if (phase === 'results') {
     const done = lesson.letters.length - skipped.length;
-    const stars = skipped.length === 0 ? 3 : skipped.length === 1 ? 2 : 1;
+    const stars = skipped.length === 0 ? 3 : skipped.length === 1 ? 2 : done === 0 ? 0 : 1;
     const xp = done * XP_PER_LETTER + (skipped.length === 0 ? XP_PERFECT_BONUS : 0);
     return (
       <ResultsScreen
@@ -313,18 +325,30 @@ export default function LessonPage({ lesson, onExit }) {
       <div className="flex-shrink-0 bg-white border-t border-ink-900/[0.06] px-5 pt-4 pb-8 shadow-soft">
         <div className="flex items-center gap-4 mb-4">
           <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0
-            font-black text-4xl transition-colors duration-300
+            font-black px-2 text-center leading-tight transition-colors duration-300
+            ${targetTextSize(target)}
             ${isSuccess ? 'bg-signa-50 text-signa-600' : 'bg-cream-100 text-ink-900'}`}>
             {target}
           </div>
 
-          <div className="w-16 h-16 bg-cream-100 rounded-2xl p-1 flex-shrink-0">
-            <ReferenceHand pose={REFERENCE_POSES[target]} className="w-full h-full" theme="light" />
-          </div>
+          {REFERENCE_POSES[target] ? (
+            <div className="w-16 h-16 bg-cream-100 rounded-2xl p-1 flex-shrink-0">
+              <ReferenceHand pose={REFERENCE_POSES[target]} className="w-full h-full" theme="light" />
+            </div>
+          ) : (
+            // Fără pose de referință (ex. cuvinte-semn) — placeholder discret
+            <div className="w-16 h-16 bg-cream-100 rounded-2xl flex items-center justify-center flex-shrink-0
+              text-ink-300" aria-hidden>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M8 11V7a2 2 0 114 0v4M12 11V6a2 2 0 114 0v6M16 11V8a2 2 0 114 0v6a6 6 0 01-12 0v-1"
+                  stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+          )}
 
           <div className="flex-1 min-w-0">
-            <p className="text-ink-900 font-semibold text-sm mb-0.5">
-              Fă semnul „{target}"
+            <p className="text-ink-900 font-semibold text-sm mb-0.5 truncate">
+              {isWord(target) ? `Semnul „${target}"` : `Fă semnul „${target}"`}
             </p>
             <p className="text-ink-500 text-xs">
               {isDynamicLesson
@@ -346,7 +370,7 @@ export default function LessonPage({ lesson, onExit }) {
           onClick={() => advance(true)}
           className="w-full py-2 text-ink-400 hover:text-ink-600 text-xs font-medium transition-colors"
         >
-          Sari peste litera asta →
+          {isWord(target) ? 'Sari peste cuvântul ăsta →' : 'Sari peste litera asta →'}
         </button>
       </div>
     </div>
