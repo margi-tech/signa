@@ -24,7 +24,18 @@ export const LSR_WORDS = [
   'carne', 'supă', 'măr', 'cafea', 'lapte',
 ];
 
-export const LSR_ALPHABET = [...LSR_LETTERS, ...LSR_WORDS];
+//cifre statice
+export const LSR_DIGITS = [
+  '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
+];
+
+//numere dinamice
+export const LSR_NUMBERS = [
+  '11', '12', '13', '14', '15', '16', '17', '18', '19', '20',
+  '100', '1000', '112'
+];
+
+export const LSR_ALPHABET = [...LSR_LETTERS, ...LSR_WORDS, ...LSR_DIGITS, ...LSR_NUMBERS];
 
 // Minim recomandat de exemple per literă pentru un model decent
 export const MIN_SAMPLES_PER_LETTER = 50;
@@ -37,14 +48,14 @@ export const MIN_SAMPLES_PER_LETTER = 50;
  */
 export const DYNAMIC_LETTERS = new Set([
   'J', 'Z', 'X', 'Î', 'Ș', 'Ț',
-  ...LSR_WORDS,
+  ...LSR_WORDS, ...LSR_NUMBERS
 ]);
 
 /** Alias semantic — orice etichetă care merge prin GRU. */
 export const DYNAMIC_TARGETS = DYNAMIC_LETTERS;
 
 /** True dacă eticheta e cuvânt-semn (nu o literă a alfabetului). */
-export const isWord = (target) => LSR_WORDS.includes(target);
+export const isWord = (target) => LSR_WORDS.includes(target) || LSR_NUMBERS.includes(target);
 
 /** True dacă eticheta se prezice cu modelul dinamic (GRU). */
 export const isDynamicTarget = (target) => DYNAMIC_LETTERS.has(target);
