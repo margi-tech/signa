@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { LSR_LETTERS, LSR_WORDS, DYNAMIC_LETTERS, minFor } from '../../data/lsr-alphabet';
+import { LSR_LETTERS, LSR_WORDS, DYNAMIC_LETTERS, LSR_DIGITS, LSR_NUMBERS, minFor } from '../../data/lsr-alphabet';
 
 function status(letter, count) {
   if (count === 0) return 'empty';
@@ -10,6 +10,8 @@ function status(letter, count) {
 /** Categorii afișate — poți adăuga aici viitoarele grupuri (culori, familie…). */
 const GROUPS = [
   { id: 'letters', title: 'Litere',              items: LSR_LETTERS },
+    {id: 'digits', title: 'Cifre',               items: LSR_DIGITS  },
+    {id: 'numbers', title: 'Numere',             items: LSR_NUMBERS },
   { id: 'food',    title: 'Cuvinte · Mâncare',   items: LSR_WORDS   },
 ];
 
