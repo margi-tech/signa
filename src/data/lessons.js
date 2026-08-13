@@ -23,11 +23,11 @@ export const LESSONS = [
     teaser: 'Cuvinte-semn — un gest per cuvânt, modelul GRU' },
 
   // Numere — folosesc etichetele deja antrenate în public/models/ (signa-labels.json / -dynamic.json)
-  { id: 7, title: 'Lecția 7', type: 'static',  letters: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
+  { id: 4.1, title: 'Lecția 4.1', type: 'static',  letters: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
     teaser: 'Numere 1–10' },
-  { id: 8, title: 'Lecția 8', type: 'dynamic', letters: ['11', '12', '13', '14', '15', '16', '17', '18', '19', '20'],
+  { id: 4.2, title: 'Lecția 4.2', type: 'dynamic', letters: ['11', '12', '13', '14', '15', '16', '17', '18', '19', '20'],
     teaser: 'Numere 11–20 — necesită modelul GRU' },
-  { id: 9, title: 'Lecția 9', type: 'dynamic', letters: ['100', '1000', '112'],
+  { id: 4.3, title: 'Lecția 4.3', type: 'dynamic', letters: ['100', '1000', '112'],
     teaser: 'Numere speciale — necesită modelul GRU' },
 ];
 
@@ -79,6 +79,12 @@ export const CHAPTERS = [
     title: '3. Cuvinte · Mâncare',
     description: 'Cuvinte-semn de bază',
     lessonIds: [3.1, 3.2],
+  },
+  {
+    id: 'ch4',
+    title: '4. Numere',
+    description: 'Cifre și numere',
+    lessonIds: [4.1, 4.2, 4.3],
   },
 ];
 

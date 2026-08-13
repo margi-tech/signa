@@ -17,11 +17,14 @@ export const LSR_LETTERS = [
   'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
   'U', 'V', 'W', 'X', 'Y', 'Z',
   'Ă', 'Â', 'Î', 'Ș', 'Ț',
+  '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
 ];
 
 export const LSR_WORDS = [
   'mâncare', 'apă', 'legumă', 'fruct', 'pâine',
   'carne', 'supă', 'măr', 'cafea', 'lapte',
+  '11', '12', '13', '14', '15', '16', '17', '18', '19', '20',
+  '100', '1000', '112'
 ];
 
 export const LSR_ALPHABET = [...LSR_LETTERS, ...LSR_WORDS];
