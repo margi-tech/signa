@@ -46,8 +46,6 @@ export const LSR_SALUTATION = [
   'buna','buna dimineata','ce faci','la revedere','buna seara'
 ];
 
-
-
 export const LSR_ALPHABET = [...LSR_LETTERS, ...LSR_FOOD_WORDS, ...LSR_DIGITS, ...LSR_NUMBERS, ...LSR_COLORS, ...LSR_SALUTATION, ...LSR_FAMILY, ...LSR_PRONOUNS];
 
 // Minim recomandat de exemple per literă pentru un model decent
