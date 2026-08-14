@@ -22,6 +22,9 @@ export const LSR_LETTERS = [
 export const LSR_FOOD_WORDS = [
   'mâncare', 'apă', 'legumă', 'fruct', 'pâine',
   'carne', 'supă', 'măr', 'cafea', 'lapte',
+  'alb', 'negru', 'gri', 'roșu', 'galben', 'portocaliu', 'albastru', 'verde', 'mov', 'maro', 'roz',
+  'eu', 'tu', 'el', 'ea', 'noi', 'voi', 'ei', 'ele',
+  'mamă', 'tată', 'frate', 'soră', 'bunicul', 'bunica', 'prieten', 'prietenă',
 ];
 
 export const LSR_COLORS = [
