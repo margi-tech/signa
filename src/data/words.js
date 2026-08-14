@@ -49,14 +49,20 @@ export const WORD_CATEGORIES = [
     ],
   },
   {
-    id: 'cifre',
-    title: 'Cifre (dactil)',
+    id: 'numere',
+    title: 'Numere',
     words: [
+      { id: 'zero',    label: 'Zero',    letters: ['Z', 'E', 'R', 'O'] },
       { id: 'unu',     label: 'Unu',     letters: ['U', 'N', 'U'] },
       { id: 'doi',     label: 'Doi',     letters: ['D', 'O', 'I'] },
       { id: 'trei',    label: 'Trei',    letters: ['T', 'R', 'E', 'I'] },
       { id: 'patru',   label: 'Patru',   letters: ['P', 'A', 'T', 'R', 'U'] },
       { id: 'cinci',   label: 'Cinci',   letters: ['C', 'I', 'N', 'C', 'I'] },
+      { id: 'sase',    label: 'Șase',    letters: ['Ș', 'A', 'S', 'E'] },
+      { id: 'sapte',   label: 'Șapte',   letters: ['Ș', 'A', 'P', 'T', 'E'] },
+      { id: 'opt',     label: 'Opt',     letters: ['O', 'P', 'T'] },
+      { id: 'noua',    label: 'Nouă',    letters: ['N', 'O', 'U', 'Ă'] },
+      { id: 'zece',    label: 'Zece',    letters: ['Z', 'E', 'C', 'E'] },
     ],
   },
   {

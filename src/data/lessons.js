@@ -14,14 +14,27 @@ export const LESSONS = [
   { id: 1.4, title: 'Lecția 1.4', type: 'static',  letters: ['Q', 'R', 'S', 'T', 'U'] },
   { id: 1.5, title: 'Lecția 1.5', type: 'static',  letters: ['V', 'W', 'Y', 'Â', 'Ă'] },
   { id: 2.1, title: 'Lecția 2.1', type: 'dynamic', letters: ['J', 'Z', 'X', 'Î', 'Ș', 'Ț'] },
-  { id: 7, title: 'Lecția 7', type: 'dynamic', letters: ['Alb', 'Gri', 'Negru', 'Roșu', 'Galben', 'Portocaliu', 'Albastru', 'Verde', 'Mov', 'Roz', 'Maro'],
-    teaser: 'Litere cu mișcare — necesită modelul GRU' },
-  { id: 3.1, title: 'Lecția 3.1 · Mâncare (bază)', type: 'dynamic',
+
+  // Numere — folosesc etichetele deja antrenate în public/models/ (signa-labels.json / -dynamic.json)
+  { id: 3.1, title: 'Lecția 3.1', type: 'static',  letters: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
+    teaser: 'Numere 1–10' },
+  { id: 3.2, title: 'Lecția 3.2', type: 'dynamic', letters: ['11', '12', '13', '14', '15', '16', '17', '18', '19', '20'],
+    teaser: 'Numere 11–20 — necesită modelul GRU' },
+  { id: 3.3, title: 'Lecția 3.3', type: 'dynamic', letters: ['100', '1000', '112'],
+    teaser: 'Numere speciale — necesită modelul GRU' },
+
+  { id: 4.1, title: 'Lecția 4.1', type: 'dynamic',
     letters: ['mâncare', 'apă', 'legumă', 'fruct', 'pâine'],
     teaser: 'Cuvinte-semn — un gest per cuvânt, modelul GRU' },
-  { id: 3.2, title: 'Lecția 3.2 · Mâncare & băutură', type: 'dynamic',
+  { id: 4.2, title: 'Lecția 4.2', type: 'dynamic',
     letters: ['carne', 'supă', 'măr', 'cafea', 'lapte'],
     teaser: 'Cuvinte-semn — un gest per cuvânt, modelul GRU' },
+
+  { id: 5.1, title: 'Lectia 5.1', type: 'dynamic', letters:['Alb', 'Gri', 'Negru', 'Roz', 'Maro'],
+    teaser: 'Cuvinte-semn- un gest per cuvant, modelul GRU' },
+  { id: 5.2, title: 'Lectia 5.2', type: 'dynamic', letters:['Roșu', 'Galben', 'Portocaliu', 'Albastru', 'Verde', 'Mov'],
+    teaser: 'Cuvinte-semn- un gest per cuvant, modelul GRU' },
+
 ];
 
 // XP primit pentru fiecare literă reușită (nu și sărită)
@@ -67,11 +80,26 @@ export const CHAPTERS = [
     description: 'Litere cu mișcare',
     lessonIds: [2.1],
   },
+
   {
     id: 'ch3',
-    title: '3. Cuvinte · Mâncare',
+    title: '3. Numere',
+    description: 'Cifre și numere',
+    lessonIds: [3.1, 3.2, 3.3],
+  },
+
+  {
+    id: 'ch4',
+    title: '4. Mâncare',
     description: 'Cuvinte-semn de bază',
-    lessonIds: [3.1, 3.2],
+    lessonIds: [4.1, 4.2],
+  },
+
+  {
+    id: 'ch5',
+    title: '5. Culori',
+    description: 'Toate culorile',
+    lessonIds: [5.1, 5.2],
   },
 ];
 

@@ -3,7 +3,7 @@
  *
  * Structura:
  *   • LSR_LETTERS  — literele propriu-zise (statice + dinamice)
- *   • LSR_WORDS    — cuvinte-semn (toate dinamice, un semn = o secvență)
+ *   • LSR_FOOD_WORDS    — cuvinte-semn (toate dinamice, un semn = o secvență)
  *   • LSR_ALPHABET — literele + cuvintele, în ordinea de colectare
  *                    (păstrat ca export pentru compatibilitate cu tot ce
  *                    consumă „lista tuturor etichetelor").
@@ -12,22 +12,36 @@
  * antrenat pentru literele cu mișcare. Când vor fi >20 cuvinte sau apar
  * semne cu două mâini / față esențială, extragem model separat.
  */
-export const LSR_LETTERS= [
+export const LSR_LETTERS = [
   'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
   'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
   'U', 'V', 'W', 'X', 'Y', 'Z',
   'Ă', 'Â', 'Î', 'Ș', 'Ț',
 ];
 
-export const LSR_WORDS = [
+export const LSR_FOOD_WORDS = [
   'mâncare', 'apă', 'legumă', 'fruct', 'pâine',
-  'carne', 'supă', 'măr', 'cafea', 'lapte','alb',
-  'negru', 'gri', 'roșu', 'galben', 'portocaliu', 'albastru',
-  'verde', 'mov', 'maro', 'roz'
+  'carne', 'supă', 'măr', 'cafea', 'lapte',
 ];
 
-export const LSR_ALPHABET = [...LSR_LETTERS, ...LSR_WORDS];
-export const DYNAMIC_LETTERS = new Set(['J', 'Z', 'X', 'Î', 'Ș', 'Ț', 'alb', 'negru', 'gri', 'roșu', 'galben', 'portocaliu', 'albastru', 'verde', 'mov', 'maro', 'roz',]);
+export const LSR_COLORS = [
+  'alb', 'negru', 'gri', 'roșu', 'galben', 'portocaliu', 'albastru', 'verde', 'mov', 'maro', 'roz',
+]
+
+//cifre statice
+export const LSR_DIGITS = [
+  '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
+];
+
+//numere dinamice
+export const LSR_NUMBERS = [
+  '11', '12', '13', '14', '15', '16', '17', '18', '19', '20',
+  '100', '1000', '112'
+];
+
+
+
+export const LSR_ALPHABET = [...LSR_LETTERS, ...LSR_FOOD_WORDS, ...LSR_DIGITS, ...LSR_NUMBERS, ...LSR_COLORS];
 
 // Minim recomandat de exemple per literă pentru un model decent
 export const MIN_SAMPLES_PER_LETTER = 50;
@@ -38,13 +52,16 @@ export const MIN_SAMPLES_PER_LETTER = 50;
  * Numele „DYNAMIC_LETTERS" e păstrat pentru compatibilitate; în cod nou
  * folosește `isDynamicTarget()` sau aliasul `DYNAMIC_TARGETS`.
  */
-
+export const DYNAMIC_LETTERS = new Set([
+  'J', 'Z', 'X', 'Î', 'Ș', 'Ț',
+  ...LSR_FOOD_WORDS, ...LSR_NUMBERS, ...LSR_COLORS
+]);
 
 /** Alias semantic — orice etichetă care merge prin GRU. */
 export const DYNAMIC_TARGETS = DYNAMIC_LETTERS;
 
 /** True dacă eticheta e cuvânt-semn (nu o literă a alfabetului). */
-export const isWord = (target) => LSR_WORDS.includes(target);
+export const isWord = (target) => LSR_FOOD_WORDS.includes(target) || LSR_NUMBERS.includes(target) || LSR_COLORS.includes(target);
 
 /** True dacă eticheta se prezice cu modelul dinamic (GRU). */
 export const isDynamicTarget = (target) => DYNAMIC_LETTERS.has(target);

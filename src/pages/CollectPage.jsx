@@ -238,6 +238,7 @@ export default function CollectPage({ onBack }) {
   const [recording,      setRecording]      = useState(false);
   const [recProgress,    setRecProgress]    = useState(0);
   const [countdown,      setCountdown]      = useState(0);
+  const [importMsg,      setImportMsg]      = useState('');
 
   const [mode, setMode] = useState(MODE.FOTO);
 
@@ -261,10 +262,12 @@ export default function CollectPage({ onBack }) {
     e.target.value = ''; // permite reimportul aceluiași fișier
     if (!file) return;
     try {
-      await importDataset(file);
+      const n = await importDataset(file);
+      setImportMsg(n > 0 ? `✓ ${n} exemple importate` : 'Fișierul nu conținea exemple valide');
     } catch {
-      // JSON invalid — ignorăm silențios
+      setImportMsg('✗ Fișier JSON invalid');
     }
+    setTimeout(() => setImportMsg(''), 4000);
   }, [importDataset]);
 
   const handleLandmarks = useCallback((lm) => {
@@ -400,6 +403,16 @@ export default function CollectPage({ onBack }) {
             <p className="mt-3 text-white/90 text-sm font-semibold px-6 text-center">
               Ridică ambele mâini — captura începe la 0
             </p>
+          </div>
+        )}
+
+        {/* Confirmare import/export */}
+        {importMsg && !recording && (
+          <div className="absolute top-16 left-0 right-0 z-20 flex justify-center pointer-events-none animate-fade-in">
+            <span className={`bg-black/70 px-3.5 py-1.5 rounded-full text-xs font-semibold
+              ${importMsg.startsWith('✗') ? 'text-red-300' : 'text-white'}`}>
+              {importMsg}
+            </span>
           </div>
         )}
 
