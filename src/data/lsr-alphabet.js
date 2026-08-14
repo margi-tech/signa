@@ -35,6 +35,8 @@ export const LSR_NUMBERS = [
   '100', '1000', '112'
 ];
 
+export const LSR_ALPHABET = [...LSR_LETTERS, ...LSR_WORDS];
+export const DYNAMIC_LETTERS = new Set(['J', 'Z', 'X', 'Î', 'Ș', 'Ț', 'alb', 'negru', 'gri', 'roșu', 'galben', 'portocaliu', 'albastru', 'verde', 'mov', 'maro', 'roz',]);
 export const LSR_ALPHABET = [...LSR_LETTERS, ...LSR_WORDS, ...LSR_DIGITS, ...LSR_NUMBERS];
 
 // Minim recomandat de exemple per literă pentru un model decent
