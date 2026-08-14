@@ -3,7 +3,7 @@
  *
  * Structura:
  *   • LSR_LETTERS  — literele propriu-zise (statice + dinamice)
- *   • LSR_WORDS    — cuvinte-semn (toate dinamice, un semn = o secvență)
+ *   • LSR_FOOD_WORDS    — cuvinte-semn (toate dinamice, un semn = o secvență)
  *   • LSR_ALPHABET — literele + cuvintele, în ordinea de colectare
  *                    (păstrat ca export pentru compatibilitate cu tot ce
  *                    consumă „lista tuturor etichetelor").
@@ -16,13 +16,17 @@ export const LSR_LETTERS = [
   'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
   'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
   'U', 'V', 'W', 'X', 'Y', 'Z',
-  'Ă', 'Â', 'Î', 'Ș', 'Ț', 'alb', 'negru', 'gri', 'roșu', 'galben', 'portocaliu', 'albastru', 'verde', 'mov', 'maro', 'roz'
+  'Ă', 'Â', 'Î', 'Ș', 'Ț',
 ];
 
-export const LSR_WORDS = [
+export const LSR_FOOD_WORDS = [
   'mâncare', 'apă', 'legumă', 'fruct', 'pâine',
   'carne', 'supă', 'măr', 'cafea', 'lapte',
 ];
+
+export const LSR_COLORS = [
+  'alb', 'negru', 'gri', 'roșu', 'galben', 'portocaliu', 'albastru', 'verde', 'mov', 'maro', 'roz',
+]
 
 //cifre statice
 export const LSR_DIGITS = [
@@ -35,9 +39,9 @@ export const LSR_NUMBERS = [
   '100', '1000', '112'
 ];
 
-export const LSR_ALPHABET = [...LSR_LETTERS, ...LSR_WORDS];
-export const DYNAMIC_LETTERS = new Set(['J', 'Z', 'X', 'Î', 'Ș', 'Ț', 'alb', 'negru', 'gri', 'roșu', 'galben', 'portocaliu', 'albastru', 'verde', 'mov', 'maro', 'roz',]);
-export const LSR_ALPHABET = [...LSR_LETTERS, ...LSR_WORDS, ...LSR_DIGITS, ...LSR_NUMBERS];
+
+
+export const LSR_ALPHABET = [...LSR_LETTERS, ...LSR_FOOD_WORDS, ...LSR_DIGITS, ...LSR_NUMBERS, ...LSR_COLORS];
 
 // Minim recomandat de exemple per literă pentru un model decent
 export const MIN_SAMPLES_PER_LETTER = 50;
@@ -50,20 +54,20 @@ export const MIN_SAMPLES_PER_LETTER = 50;
  */
 export const DYNAMIC_LETTERS = new Set([
   'J', 'Z', 'X', 'Î', 'Ș', 'Ț',
-  ...LSR_WORDS, ...LSR_NUMBERS
+  ...LSR_FOOD_WORDS, ...LSR_NUMBERS, ...LSR_COLORS
 ]);
 
 /** Alias semantic — orice etichetă care merge prin GRU. */
 export const DYNAMIC_TARGETS = DYNAMIC_LETTERS;
 
 /** True dacă eticheta e cuvânt-semn (nu o literă a alfabetului). */
-export const isWord = (target) => LSR_WORDS.includes(target) || LSR_NUMBERS.includes(target);
+export const isWord = (target) => LSR_FOOD_WORDS.includes(target) || LSR_NUMBERS.includes(target) || LSR_COLORS.includes(target);
 
 /** True dacă eticheta se prezice cu modelul dinamic (GRU). */
 export const isDynamicTarget = (target) => DYNAMIC_LETTERS.has(target);
 // Litere care implică mișcarea mâinii — se colectează ca SECVENȚE de cadre,
 // nu ca poze statice (pipeline-ul de mișcare, Faza 4.5).
-export const DYNAMIC_LETTERS = new Set(['J', 'Z', 'X', 'Î', 'Ș', 'Ț', 'alb', 'negru', 'gri', 'roșu', 'galben', 'portocaliu', 'albastru', 'verde', 'mov', 'maro', 'roz',]);
+
 
 // O înregistrare = SEQ_FRAMES cadre la SEQ_INTERVAL_MS distanță (~1.5s)
 export const SEQ_FRAMES      = 30;
