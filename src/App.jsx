@@ -10,7 +10,6 @@ import ReviewPage from './pages/ReviewPage.jsx';
 import DiagnosticPage from './pages/DiagnosticPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 import LeaderboardPage from './pages/LeaderboardPage.jsx';
-import VocabularPage from './pages/VocabularPage.jsx';
 import Onboarding from './components/Onboarding.jsx';
 import { LESSONS } from './data/lessons.js';
 import { useProgress } from './hooks/useProgress.js';

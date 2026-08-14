@@ -37,25 +37,13 @@ export const LESSONS = [
   { id: 6.1, title: 'Lectia 6.1', type: 'dynamic', letters:['Buna','Buna ziua','Ce faci','Buna seara','La revedere'],
     teaser: 'Cuvinte-semn- un gest per cuvant, modelul GRU' },
 
+  { id: 7.1, title: 'Lecția 7.1', type: 'dynamic', letters: ['Eu', 'Tu', 'El', 'Ea', 'Noi'],
+    teaser: 'Cuvinte-semn- un gest per cuvant, modelul GRU' },
+  { id: 8.1, title: 'Lecția 8.1', type: 'dynamic', letters: ['Mama', 'Tată', 'Frate', 'Soră', 'Bunic', 'Copil'],
+    teaser: 'Cuvinte-semn- un gest per cuvant, modelul GRU'},
+  { id: 8.2, title: 'Lecția 8.2', type: 'dynamic', letters: ['Copil', 'Prieten', 'Socru', 'Unchi', 'Verișor'],
+    teaser: 'Cuvinte-semn- un gest per cuvant, modelul GRU'},
 
-  { id: 1, title: 'Lecția 1', type: 'static',  letters: ['A', 'B', 'C', 'D', 'E'] },
-  { id: 2, title: 'Lecția 2', type: 'static',  letters: ['F', 'G', 'H', 'I', 'K'] },
-  { id: 3, title: 'Lecția 3', type: 'static',  letters: ['L', 'M', 'N', 'O', 'P'] },
-  { id: 4, title: 'Lecția 4', type: 'static',  letters: ['Q', 'R', 'S', 'T', 'U'] },
-  { id: 5, title: 'Lecția 5', type: 'static',  letters: ['V', 'W', 'Y', 'Â', 'Ă'] },
-  { id: 6, title: 'Lecția 6', type: 'dynamic', letters: ['J', 'Z', 'X', 'Î', 'Ș', 'Ț'],
-    teaser: 'Litere cu mișcare — necesită modelul GRU' },
-  { id: 7, title: 'Lecția 7', type: 'vocabular',
-    title_full: 'Prieteni & Familie',
-    teaser: 'Pronume și cuvinte din viața de zi cu zi' },
-  { id: 7, title: 'Lecția 7 — Pronume', type: 'mixed',
-    title_full: 'Pronume personale',
-    teaser: 'Eu, Tu, El, Ea, Noi — pronume LSR',
-    letters: ['Eu', 'Tu', 'El', 'Ea', 'Noi'] },
-  { id: 8, title: 'Lecția 8 — Familie', type: 'mixed',
-    title_full: 'Cuvinte de familie',
-    teaser: 'Mamă, Tată, Frate, Soră, și mai mult',
-    letters: ['Mama', 'Tată', 'Frate', 'Soră', 'Bunic', 'Copil', 'Prieten', 'Socru', 'Unchi', 'Verișor'] },
 ];
 
 // XP primit pentru fiecare literă reușită (nu și sărită)
@@ -127,6 +115,18 @@ export const CHAPTERS = [
     title: '6. Saluturi',
     description: 'Saluturi eseniale',
     lessonIds: [6.1],
+  },
+  {
+    id: 'ch7',
+    title: '7. Pronume',
+    description: 'Pronume',
+    lessonIds: [7.1],
+  },
+  {
+    id: 'ch8',
+    title: '8. Familie',
+    description: 'Familie',
+    lessonIds: [8.1, 8.2],
   },
 ];
 
