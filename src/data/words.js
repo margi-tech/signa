@@ -80,11 +80,11 @@ export const WORD_CATEGORIES = [
     id: 'saluturi',
     title: 'saluturi',
     words: [
-      { id: 'buna',  label: 'Buna',  letters: ['b', 'u', 'n', 'a'] },
-      { id: 'buna ziua',     label: 'Buna ziua',     letters: ['b','u','n','a','z','i','u','a'] },
-      { id: 'ce faci',    label: 'Ce faci',    letters: ['C', 'A', 'S', 'Ă'] },
-      { id: 'la revedere',  label: 'La revedere',  letters: ['l','a','r','e','v',;'e','d','e','r','e'] },
-      { id: 'buna seara', label: 'Buna seara', letters: ['b', 'u', 'n', 'a', 's', 'e', 'a', 'r', 'a'] },
+      { id: 'buna',  label: 'Buna',  letters: ['B', 'U', 'N', 'A'] },
+      { id: 'buna ziua',     label: 'Buna ziua',     letters: ['B','U','N','A','Z','I','U','A'] },
+      { id: 'ce faci',    label: 'Ce faci',    letters: ['C', 'E', 'F', 'A','C','I'] },
+      { id: 'la revedere',  label: 'La revedere',  letters: ['L','A','R','E','V','E','D','E','R','E'] },
+      { id: 'buna seara', label: 'Buna seara', letters: ['B', 'U', 'N', 'A', 'S', 'E', 'A', 'R', 'A'] },
     ],
   },
 ];
