@@ -5,10 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b27d77ff-77f1-49b8-bfcb-a5cdfd4c0f14" name="Changes" comment="add idea to gitingnore files">
-      <change beforePath="$PROJECT_DIR$/src/App.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/App.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data/lessons.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/data/lessons.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data/words.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/data/words.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/pages/LessonsPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/pages/LessonsPage.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -23,6 +20,18 @@
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "SEFUL7101"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/margi-tech/signa.git",
+    "accountId": "37fbf84c-383f-4e59-840b-03ebbce775ba"
+  }
+}]]></component>
   <component name="McpProjectServerCommands">
     <commands />
     <urls />
@@ -103,7 +112,7 @@
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
     &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;Cata&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;#5 on Cata&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
     &quot;last_opened_file_path&quot;: &quot;C:/Users/andreea/signa&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
