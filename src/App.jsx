@@ -10,7 +10,10 @@ import ReviewPage from './pages/ReviewPage.jsx';
 import DiagnosticPage from './pages/DiagnosticPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 import LeaderboardPage from './pages/LeaderboardPage.jsx';
+import LoginPage from './pages/LoginPage.jsx';
+import SignupPage from './pages/SignupPage.jsx';
 import Onboarding from './components/Onboarding.jsx';
+import AuthGate from './components/AuthGate.jsx';
 import { LESSONS } from './data/lessons.js';
 import { useProgress } from './hooks/useProgress.js';
 
@@ -18,10 +21,34 @@ export default function App() {
   const [page, setPage] = useState('home');
   const [lessonId, setLessonId] = useState(null);
   const [reviewLesson, setReviewLesson] = useState(null);
+  const [authed, setAuthed] = useState(false);
+  const [authScreen, setAuthScreen] = useState('gate');
   const { onboardingDone, finishOnboarding } = useProgress();
 
   if (!onboardingDone) {
     return <Onboarding onDone={finishOnboarding} />;
+  }
+
+  if (!authed) {
+    if (authScreen === 'login') {
+      return (
+        <LoginPage
+          onBack={() => setAuthScreen('gate')}
+          onSwitchToSignup={() => setAuthScreen('signup')}
+          onSuccess={() => setAuthed(true)}
+        />
+      );
+    }
+    if (authScreen === 'signup') {
+      return (
+        <SignupPage
+          onBack={() => setAuthScreen('gate')}
+          onSwitchToLogin={() => setAuthScreen('login')}
+          onSuccess={() => setAuthed(true)}
+        />
+      );
+    }
+    return <AuthGate onLogin={() => setAuthScreen('login')} onSignup={() => setAuthScreen('signup')} />;
   }
 
   if (page === 'camera') return <CameraPage onBack={() => setPage('home')} />;
