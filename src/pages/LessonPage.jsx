@@ -102,10 +102,7 @@ function ResultsScreen({ lesson, skipped, xpGained, stars, leveledUp, onExit, on
 
 export default function LessonPage({ lesson, onExit }) {
   const isDynamicLesson = lesson?.type === 'dynamic';
-  const isMixedLesson = lesson?.type === 'mixed';
-  
-  // For mixed lessons, determine if current word is dynamic
-  const [wordIsDynamicMap, setWordIsDynamicMap] = useState({});
+
   const holdNeed = isDynamicLesson ? HOLD_DURATION_DYNAMIC_MS : HOLD_DURATION_MS;
 
   const [idx, setIdx] = useState(0);
@@ -127,9 +124,8 @@ export default function LessonPage({ lesson, onExit }) {
   const recordedRef = useRef(false);
   const seqBufRef = useRef([]);
   const levelBeforeRef = useRef(null);
-  const currentWordIsDynRef = useRef(false);
 
-  const { isReady, isDynReady, predict, predictSequence, modelVersion } = useClassifier();
+  const { isReady, isDynReady, predict, predictSequence} = useClassifier();
   const {
     completeLesson, recordLetter, soundEnabled, level,
   } = useProgress();
@@ -138,28 +134,10 @@ export default function LessonPage({ lesson, onExit }) {
   isDynRef.current = isDynReady;
   predictRef.current = predict;
   predictSeqRef.current = predictSequence;
-  
-  // For mixed lessons, detect which model each word belongs to
-  useEffect(() => {
-    if (!isMixedLesson || !modelVersion) return;
-    
-    // We need to check labels on the fly, but we can infer from what we know:
-    // Static labels: Eu, Tu, and alphabet
-    // Dynamic labels: All family words and pronouns El, Ea, Noi
-    const staticWords = new Set(['Eu', 'Tu']);
-    const dynamicWords = new Set(['El', 'Ea', 'Noi', 'Mama', 'Tată', 'Frate', 'Soră', 'Bunic', 'Copil', 'Prieten', 'Socru', 'Unchi', 'Verișor']);
-    
-    const map = {};
-    lesson.letters.forEach((word) => {
-      map[word] = dynamicWords.has(word);
-    });
-    setWordIsDynamicMap(map);
-  }, [isMixedLesson, lesson, modelVersion]);
 
   const target = lesson.letters[idx];
   targetRef.current = target;
   phaseRef.current = phase;
-  currentWordIsDynRef.current = isMixedLesson ? wordIsDynamicMap[target] : isDynamicLesson;
 
   const advance = useCallback((didSkip) => {
     if (didSkip) {
@@ -190,11 +168,11 @@ export default function LessonPage({ lesson, onExit }) {
 
     const now = performance.now();
     const elapsed = now - lastTickRef.current;
-    const tickMs = currentWordIsDynRef.current ? SEQ_INTERVAL_MS : 80;
+    const tickMs = isDynamicLesson ? SEQ_INTERVAL_MS : 80;
     if (elapsed < tickMs) return;
     lastTickRef.current = now;
 
-    if (!lm?.hands?.length || (!isReadyRef.current && !isDynRef.current)) {
+    if (!lm?.hands?.length || !isReadyRef.current) {
       setDetected(null);
       return;
     }
@@ -203,7 +181,7 @@ export default function LessonPage({ lesson, onExit }) {
     let label = null;
 
     // Use dynamic model for words that are dynamic
-    if (currentWordIsDynRef.current && isDynRef.current) {
+    if (isDynamicLesson && DYNAMIC_LETTERS.has(targetRef.current) && isDynRef.current) {
       const vector = normalize(lm);
       if (vector) {
         seqBufRef.current.push(vector);
@@ -218,7 +196,7 @@ export default function LessonPage({ lesson, onExit }) {
             && p.margin >= DYN_MIN_MARGIN;
         }
       }
-    } else if (!currentWordIsDynRef.current && isReadyRef.current) {
+    } else {
       // Use static model for non-dynamic words
       const p = predictRef.current(lm);
       if (p) {
@@ -229,19 +207,18 @@ export default function LessonPage({ lesson, onExit }) {
 
     if (label) setDetected(label);
 
-    const holdNeedForWord = currentWordIsDynRef.current ? HOLD_DURATION_DYNAMIC_MS : HOLD_DURATION_MS;
     const step = Math.min(elapsed, 200);
     holdMsRef.current = isMatch
       ? holdMsRef.current + step
       : Math.max(0, holdMsRef.current - step * 2);
 
-    setHoldPct(Math.min(holdMsRef.current / holdNeedForWord, 1));
+    setHoldPct(Math.min(holdMsRef.current / holdNeed, 1));
 
-    if (holdMsRef.current >= holdNeedForWord) {
+    if (holdMsRef.current >= holdNeed) {
       phaseRef.current = 'success';
       setPhase('success');
     }
-  }, [isMixedLesson]);
+  }, [isDynamicLesson, holdNeed]);
 
   useEffect(() => {
     if (phase !== 'success') return;
@@ -377,7 +354,7 @@ export default function LessonPage({ lesson, onExit }) {
               {isWord(target) ? `Semnul „${target}"` : `Fă semnul „${target}"`}
             </p>
             <p className="text-ink-500 text-xs">
-              {currentWordIsDynRef.current
+              {isDynamicLesson
                 ? 'fă mișcarea și ține până se umple bara'
                 : 'și ține-l până se umple bara'}
             </p>
