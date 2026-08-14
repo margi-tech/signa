@@ -24,6 +24,10 @@ export const LSR_FOOD_WORDS = [
   'carne', 'supă', 'măr', 'cafea', 'lapte',
 ];
 
+export const LSR_PRONOUNS = ['eu', 'tu', 'el', 'ea', 'noi', 'voi', 'ei', 'ele'];
+
+export const LSR_FAMILY = ['mamă', 'tată', 'frate', 'soră', 'bunicul', 'bunica', 'prieten', 'prietenă'];
+
 export const LSR_COLORS = [
   'alb', 'negru', 'gri', 'roșu', 'galben', 'portocaliu', 'albastru', 'verde', 'mov', 'maro', 'roz',
 ]
@@ -44,7 +48,7 @@ export const LSR_SALUTATION = [
 
 
 
-export const LSR_ALPHABET = [...LSR_LETTERS, ...LSR_FOOD_WORDS, ...LSR_DIGITS, ...LSR_NUMBERS, ...LSR_COLORS, ...LSR_SALUTATION];
+export const LSR_ALPHABET = [...LSR_LETTERS, ...LSR_FOOD_WORDS, ...LSR_DIGITS, ...LSR_NUMBERS, ...LSR_COLORS, ...LSR_SALUTATION, ...LSR_FAMILY, ...LSR_PRONOUNS];
 
 // Minim recomandat de exemple per literă pentru un model decent
 export const MIN_SAMPLES_PER_LETTER = 50;
@@ -57,14 +61,14 @@ export const MIN_SAMPLES_PER_LETTER = 50;
  */
 export const DYNAMIC_LETTERS = new Set([
   'J', 'Z', 'X', 'Î', 'Ș', 'Ț',
-  ...LSR_FOOD_WORDS, ...LSR_NUMBERS, ...LSR_COLORS, ...LSR_SALUTATION
+  ...LSR_FOOD_WORDS, ...LSR_NUMBERS, ...LSR_COLORS, ...LSR_SALUTATION, ...LSR_PRONOUNS, ...LSR_FAMILY
 ]);
 
 /** Alias semantic — orice etichetă care merge prin GRU. */
 export const DYNAMIC_TARGETS = DYNAMIC_LETTERS;
 
 /** True dacă eticheta e cuvânt-semn (nu o literă a alfabetului). */
-export const isWord = (target) => LSR_FOOD_WORDS.includes(target) || LSR_NUMBERS.includes(target) || LSR_COLORS.includes(target) || LSR_SALUTATION.includes(target);
+export const isWord = (target) => LSR_FOOD_WORDS.includes(target) || LSR_NUMBERS.includes(target) || LSR_COLORS.includes(target) || LSR_SALUTATION.includes(target) || LSR_PRONOUNS.includes(target) || LSR_FAMILY.includes(target);
 
 /** True dacă eticheta se prezice cu modelul dinamic (GRU). */
 export const isDynamicTarget = (target) => DYNAMIC_LETTERS.has(target);

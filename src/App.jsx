@@ -60,6 +60,7 @@ export default function App() {
 
   if (page === 'lesson') {
     const lesson = reviewLesson ?? LESSONS.find((l) => l.id === lessonId);
+
     return (
       <LessonPage
         key={reviewLesson ? `review-${reviewLesson.letters.join('')}` : lessonId}

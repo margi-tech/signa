@@ -102,6 +102,7 @@ function ResultsScreen({ lesson, skipped, xpGained, stars, leveledUp, onExit, on
 
 export default function LessonPage({ lesson, onExit }) {
   const isDynamicLesson = lesson?.type === 'dynamic';
+
   const holdNeed = isDynamicLesson ? HOLD_DURATION_DYNAMIC_MS : HOLD_DURATION_MS;
 
   const [idx, setIdx] = useState(0);
@@ -124,7 +125,7 @@ export default function LessonPage({ lesson, onExit }) {
   const seqBufRef = useRef([]);
   const levelBeforeRef = useRef(null);
 
-  const { isReady, isDynReady, predict, predictSequence } = useClassifier();
+  const { isReady, isDynReady, predict, predictSequence} = useClassifier();
   const {
     completeLesson, recordLetter, soundEnabled, level,
   } = useProgress();
@@ -179,6 +180,7 @@ export default function LessonPage({ lesson, onExit }) {
     let isMatch = false;
     let label = null;
 
+    // Use dynamic model for words that are dynamic
     if (isDynamicLesson && DYNAMIC_LETTERS.has(targetRef.current) && isDynRef.current) {
       const vector = normalize(lm);
       if (vector) {
@@ -195,6 +197,7 @@ export default function LessonPage({ lesson, onExit }) {
         }
       }
     } else {
+      // Use static model for non-dynamic words
       const p = predictRef.current(lm);
       if (p) {
         label = p.label;

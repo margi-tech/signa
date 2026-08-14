@@ -7,7 +7,9 @@ import {
     LSR_NUMBERS,
     LSR_COLORS,
     minFor,
-    LSR_SALUTATION
+    LSR_SALUTATION,
+    LSR_PRONOUNS,
+    LSR_FAMILY
 } from '../../data/lsr-alphabet';
 
 function status(letter, count) {
@@ -24,6 +26,7 @@ const GROUPS = [
   { id: 'food',    title: 'Mâncare',   items: LSR_FOOD_WORDS   },
     {id: 'colors', title: "Culori",              items: LSR_COLORS },
     {id: 'Salutation', title: "Saluturi",              items: LSR_SALUTATION },
+  { id: 'pronouns', title: 'Pronume & Familie',  items:[...LSR_PRONOUNS, ...LSR_FAMILY]},
 ];
 
 function Tile({ letter, active, s, isDynamic, isWord, refCb, onSelect }) {
