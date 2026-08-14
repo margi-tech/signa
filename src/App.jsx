@@ -37,10 +37,12 @@ export default function App() {
       <ReviewPage
         onBack={() => setPage('home')}
         onStartReview={(letters) => {
+          // Fără `type` la nivel de lecție: repetiția poate amesteca liber
+          // litere/cuvinte statice și dinamice — LessonPage decide modelul
+          // per literă, din DYNAMIC_LETTERS, nu din tipul sesiunii.
           setReviewLesson({
             id: 'review',
             title: 'Repetiție',
-            type: 'static',
             letters,
           });
           setPage('lesson');
@@ -60,7 +62,6 @@ export default function App() {
 
   if (page === 'lesson') {
     const lesson = reviewLesson ?? LESSONS.find((l) => l.id === lessonId);
-
     return (
       <LessonPage
         key={reviewLesson ? `review-${reviewLesson.letters.join('')}` : lessonId}
