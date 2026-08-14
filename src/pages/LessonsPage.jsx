@@ -127,12 +127,11 @@ function ChapterSection({ chapter, isOpen, onToggle, starsFor, isUnlocked, isFav
 
   return (
       <div className="space-y-3">
-        <button
-            onClick={() => chapterUnlocked && onToggle(chapter.id)}
-            disabled={!chapterUnlocked}
-            className={`w-full flex items-center justify-between px-1 py-1
-          ${!chapterUnlocked ? 'opacity-50' : ''}`}
-        >
+          <button
+              onClick={() => onToggle(chapter.id)}
+              className={`w-full flex items-center justify-between px-1 py-1
+          ${!chapterUnlocked ? 'opacity-60' : ''}`}
+          >
           <div className="flex items-center gap-2">
           <span className={`font-bold text-xs tracking-[0.14em] uppercase
             ${chapterDone ? 'text-signa-600' : 'text-ink-900'}`}>
@@ -149,16 +148,14 @@ function ChapterSection({ chapter, isOpen, onToggle, starsFor, isUnlocked, isFav
           <span className="text-ink-400 text-[11px]">
             {chapterStars} / {chapter.lessons.length * 3} ⭐
           </span>
-            {chapterUnlocked && (
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
                      className={`text-ink-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}>
                   <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-            )}
           </div>
         </button>
 
-        {isOpen && chapterUnlocked && (
+        {isOpen && (
             <div className="space-y-3">
               {chapter.lessons.map((lesson) => (
                   <LessonCard
