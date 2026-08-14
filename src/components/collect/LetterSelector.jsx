@@ -7,7 +7,9 @@ import {
     LSR_NUMBERS,
     LSR_COLORS,
     minFor,
-    LSR_SALUTATION
+    LSR_SALUTATION,
+    LSR_PRONOUNS,
+    LSR_FAMILY
 } from '../../data/lsr-alphabet';
 
 function status(letter, count) {
@@ -15,11 +17,6 @@ function status(letter, count) {
   if (count < minFor(DYNAMIC_LETTERS.has(letter))) return 'partial';
   return 'done';
 }
-
-// Separat categoriile din LSR_WORDS
-const LSR_MÂNCARE = ['mâncare', 'apă', 'legumă', 'fruct', 'pâine', 'carne', 'supă', 'măr', 'cafea', 'lapte'];
-const LSR_CULORI = ['alb', 'negru', 'gri', 'roșu', 'galben', 'portocaliu', 'albastru', 'verde', 'mov', 'maro', 'roz'];
-const LSR_PRONUME_FAMILIE = ['eu', 'tu', 'el', 'ea', 'noi', 'voi', 'ei', 'ele', 'mamă', 'tată', 'frate', 'soră', 'bunicul', 'bunica', 'prieten', 'prietenă'];
 
 /** Categorii afișate — poți adăuga aici viitoarele grupuri (culori, familie…). */
 const GROUPS = [
@@ -29,9 +26,7 @@ const GROUPS = [
   { id: 'food',    title: 'Mâncare',   items: LSR_FOOD_WORDS   },
     {id: 'colors', title: "Culori",              items: LSR_COLORS },
     {id: 'Salutation', title: "Saluturi",              items: LSR_SALUTATION },
-  { id: 'food',    title: 'Mâncare',             items: LSR_MÂNCARE   },
-  { id: 'colors',  title: 'Culori',              items: LSR_CULORI },
-  { id: 'pronouns', title: 'Pronume & Familie',  items: LSR_PRONUME_FAMILIE },
+  { id: 'pronouns', title: 'Pronume & Familie',  items:[...LSR_PRONOUNS, ...LSR_FAMILY]},
 ];
 
 function Tile({ letter, active, s, isDynamic, isWord, refCb, onSelect }) {

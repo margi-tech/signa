@@ -31,7 +31,6 @@ export default function App() {
   if (page === 'diagnostic') return <DiagnosticPage onBack={() => setPage('home')} />;
   if (page === 'profile') return <ProfilePage onBack={() => setPage('home')} />;
   if (page === 'leaderboard') return <LeaderboardPage onBack={() => setPage('home')} />;
-  if (page === 'vocabular') return <VocabularPage onBack={() => setPage('lessons')} />;
 
   if (page === 'review') {
     return (
@@ -61,10 +60,6 @@ export default function App() {
 
   if (page === 'lesson') {
     const lesson = reviewLesson ?? LESSONS.find((l) => l.id === lessonId);
-    
-    if (lesson?.type === 'vocabular') {
-      return <VocabularPage onBack={() => setPage('lessons')} />;
-    }
 
     return (
       <LessonPage
