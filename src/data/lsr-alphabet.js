@@ -12,11 +12,11 @@
  * antrenat pentru literele cu mișcare. Când vor fi >20 cuvinte sau apar
  * semne cu două mâini / față esențială, extragem model separat.
  */
-export const LSR_ALPHABET = [
+export const LSR_LETTERS= [
   'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
   'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
   'U', 'V', 'W', 'X', 'Y', 'Z',
-  'Ă', 'Â', 'Î', 'Ș', 'Ț', 'alb', 'negru', 'gri', 'roșu', 'galben', 'portocaliu', 'albastru', 'verde', 'mov', 'maro', 'roz'
+  'Ă', 'Â', 'Î', 'Ș', 'Ț',
 ];
 
 export const LSR_WORDS = [
@@ -27,6 +27,7 @@ export const LSR_WORDS = [
 ];
 
 export const LSR_ALPHABET = [...LSR_LETTERS, ...LSR_WORDS];
+export const DYNAMIC_LETTERS = new Set(['J', 'Z', 'X', 'Î', 'Ș', 'Ț', 'alb', 'negru', 'gri', 'roșu', 'galben', 'portocaliu', 'albastru', 'verde', 'mov', 'maro', 'roz',]);
 
 // Minim recomandat de exemple per literă pentru un model decent
 export const MIN_SAMPLES_PER_LETTER = 50;
@@ -37,10 +38,7 @@ export const MIN_SAMPLES_PER_LETTER = 50;
  * Numele „DYNAMIC_LETTERS" e păstrat pentru compatibilitate; în cod nou
  * folosește `isDynamicTarget()` sau aliasul `DYNAMIC_TARGETS`.
  */
-export const DYNAMIC_LETTERS = new Set([
-  'J', 'Z', 'X', 'Î', 'Ș', 'Ț',
-  ...LSR_WORDS,
-]);
+
 
 /** Alias semantic — orice etichetă care merge prin GRU. */
 export const DYNAMIC_TARGETS = DYNAMIC_LETTERS;
@@ -52,7 +50,7 @@ export const isWord = (target) => LSR_WORDS.includes(target);
 export const isDynamicTarget = (target) => DYNAMIC_LETTERS.has(target);
 // Litere care implică mișcarea mâinii — se colectează ca SECVENȚE de cadre,
 // nu ca poze statice (pipeline-ul de mișcare, Faza 4.5).
-export const DYNAMIC_LETTERS = new Set(['J', 'Z', 'X', 'Î', 'Ș', 'Ț', 'alb', 'negru', 'gri', 'roșu', 'galben', 'portocaliu', 'albastru', 'verde', 'mov', 'maro', 'roz',]);
+
 
 // O înregistrare = SEQ_FRAMES cadre la SEQ_INTERVAL_MS distanță (~1.5s)
 export const SEQ_FRAMES      = 30;
