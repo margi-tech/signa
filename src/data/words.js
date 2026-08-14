@@ -80,11 +80,11 @@ export const WORD_CATEGORIES = [
     id: 'saluturi',
     title: 'saluturi',
     words: [
-      { id: 'buna',  label: 'Ajutor',  letters: ['A', 'J', 'U', 'T', 'O', 'R'] },
-      { id: 'buna ziua',     label: 'Apă',     letters: ['A', 'P', 'Ă'] },
-      { id: 'ce faci',    label: 'Casă',    letters: ['C', 'A', 'S', 'Ă'] },
-      { id: 'la revedere',  label: 'Școală',  letters: ['Ș', 'C', 'O', 'A', 'L', 'Ă'] },
-      { id: 'buna seara', label: 'Prieten', letters: ['P', 'R', 'I', 'E', 'T', 'E', 'N'] },
+      { id: 'buna',  label: 'Buna',  letters: ['b', 'u', 'n', 'a'] },
+      { id: 'buna ziua',     label: 'Buna ziua',     letters: ['b','u','n','a','z','i','u','a'] },
+      { id: 'ce faci',    label: 'Ce faci',    letters: ['C', 'A', 'S', 'Ă'] },
+      { id: 'la revedere',  label: 'La revedere',  letters: ['l','a','r','e','v',;'e','d','e','r','e'] },
+      { id: 'buna seara', label: 'Buna seara', letters: ['b', 'u', 'n', 'a', 's', 'e', 'a', 'r', 'a'] },
     ],
   },
 ];
