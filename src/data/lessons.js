@@ -34,6 +34,9 @@ export const LESSONS = [
     teaser: 'Cuvinte-semn- un gest per cuvant, modelul GRU' },
   { id: 5.2, title: 'Lectia 5.2', type: 'dynamic', letters:['Roșu', 'Galben', 'Portocaliu', 'Albastru', 'Verde', 'Mov'],
     teaser: 'Cuvinte-semn- un gest per cuvant, modelul GRU' },
+  { id: 6.1, title: 'Lectia 6.1', type: 'dynamic', letters:['Buna','Buna ziua','Ce faci','Buna seara','La revedere'],
+    teaser: 'Cuvinte-semn- un gest per cuvant, modelul GRU' },
+
 
 ];
 
@@ -100,6 +103,12 @@ export const CHAPTERS = [
     title: '5. Culori',
     description: 'Toate culorile',
     lessonIds: [5.1, 5.2],
+  },
+  {
+    id: 'ch6',
+    title: '6. Saluturi',
+    description: 'Saluturi eseniale',
+    lessonIds: [6.1],
   },
 ];
 

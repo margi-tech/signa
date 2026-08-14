@@ -76,6 +76,17 @@ export const WORD_CATEGORIES = [
       { id: 'prieten', label: 'Prieten', letters: ['P', 'R', 'I', 'E', 'T', 'E', 'N'] },
     ],
   },
+  {
+    id: 'saluturi',
+    title: 'saluturi',
+    words: [
+      { id: 'buna',  label: 'Ajutor',  letters: ['A', 'J', 'U', 'T', 'O', 'R'] },
+      { id: 'buna ziua',     label: 'Apă',     letters: ['A', 'P', 'Ă'] },
+      { id: 'ce faci',    label: 'Casă',    letters: ['C', 'A', 'S', 'Ă'] },
+      { id: 'la revedere',  label: 'Școală',  letters: ['Ș', 'C', 'O', 'A', 'L', 'Ă'] },
+      { id: 'buna seara', label: 'Prieten', letters: ['P', 'R', 'I', 'E', 'T', 'E', 'N'] },
+    ],
+  },
 ];
 
 /** Listă plată — toate cuvintele MVP */

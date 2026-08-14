@@ -1,5 +1,14 @@
 import { useEffect, useRef } from 'react';
-import { LSR_LETTERS, LSR_FOOD_WORDS, DYNAMIC_LETTERS, LSR_DIGITS, LSR_NUMBERS, LSR_COLORS, minFor } from '../../data/lsr-alphabet';
+import {
+    LSR_LETTERS,
+    LSR_FOOD_WORDS,
+    DYNAMIC_LETTERS,
+    LSR_DIGITS,
+    LSR_NUMBERS,
+    LSR_COLORS,
+    minFor,
+    LSR_SALUTATION
+} from '../../data/lsr-alphabet';
 
 function status(letter, count) {
   if (count === 0) return 'empty';
@@ -13,7 +22,8 @@ const GROUPS = [
     {id: 'digits', title: 'Cifre',               items: LSR_DIGITS  },
     {id: 'numbers', title: 'Numere',             items: LSR_NUMBERS },
   { id: 'food',    title: 'Mâncare',   items: LSR_FOOD_WORDS   },
-    {id: 'colors', title: "culori",              items: LSR_COLORS },
+    {id: 'colors', title: "Culori",              items: LSR_COLORS },
+    {id: 'Salutation', title: "Saluturi",              items: LSR_SALUTATION },
 ];
 
 function Tile({ letter, active, s, isDynamic, isWord, refCb, onSelect }) {
