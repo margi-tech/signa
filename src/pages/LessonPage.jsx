@@ -101,10 +101,6 @@ function ResultsScreen({ lesson, skipped, xpGained, stars, leveledUp, onExit, on
 }
 
 export default function LessonPage({ lesson, onExit }) {
-  const isDynamicLesson = lesson?.type === 'dynamic';
-
-  const holdNeed = isDynamicLesson ? HOLD_DURATION_DYNAMIC_MS : HOLD_DURATION_MS;
-
   const [idx, setIdx] = useState(0);
   const [holdPct, setHoldPct] = useState(0);
   const [phase, setPhase] = useState('active');
@@ -118,6 +114,7 @@ export default function LessonPage({ lesson, onExit }) {
   const phaseRef = useRef('active');
   const isReadyRef = useRef(false);
   const isDynRef = useRef(false);
+  const isDynTargetRef = useRef(false);
   const predictRef = useRef(null);
   const predictSeqRef = useRef(null);
   const timeoutRef = useRef(null);
@@ -125,7 +122,7 @@ export default function LessonPage({ lesson, onExit }) {
   const seqBufRef = useRef([]);
   const levelBeforeRef = useRef(null);
 
-  const { isReady, isDynReady, predict, predictSequence} = useClassifier();
+  const { isReady, isDynReady, predict, predictSequence } = useClassifier();
   const {
     completeLesson, recordLetter, soundEnabled, level,
   } = useProgress();
@@ -138,6 +135,13 @@ export default function LessonPage({ lesson, onExit }) {
   const target = lesson.letters[idx];
   targetRef.current = target;
   phaseRef.current = phase;
+
+  // Tipul (static/dinamic) se decide PER LITERĂ/CUVÂNT, din DYNAMIC_LETTERS —
+  // nu mai depinde de lesson.type, care e la nivel de lecție întreagă și nu
+  // are sens pentru sesiuni mixte (ex. Repetiție spațiată).
+  const isDynamicTarget = DYNAMIC_LETTERS.has(target);
+  isDynTargetRef.current = isDynamicTarget;
+  const holdNeed = isDynamicTarget ? HOLD_DURATION_DYNAMIC_MS : HOLD_DURATION_MS;
 
   const advance = useCallback((didSkip) => {
     if (didSkip) {
@@ -168,7 +172,7 @@ export default function LessonPage({ lesson, onExit }) {
 
     const now = performance.now();
     const elapsed = now - lastTickRef.current;
-    const tickMs = isDynamicLesson ? SEQ_INTERVAL_MS : 80;
+    const tickMs = isDynTargetRef.current ? SEQ_INTERVAL_MS : 80;
     if (elapsed < tickMs) return;
     lastTickRef.current = now;
 
@@ -180,8 +184,7 @@ export default function LessonPage({ lesson, onExit }) {
     let isMatch = false;
     let label = null;
 
-    // Use dynamic model for words that are dynamic
-    if (isDynamicLesson && DYNAMIC_LETTERS.has(targetRef.current) && isDynRef.current) {
+    if (isDynTargetRef.current && isDynRef.current) {
       const vector = normalize(lm);
       if (vector) {
         seqBufRef.current.push(vector);
@@ -197,7 +200,6 @@ export default function LessonPage({ lesson, onExit }) {
         }
       }
     } else {
-      // Use static model for non-dynamic words
       const p = predictRef.current(lm);
       if (p) {
         label = p.label;
@@ -218,7 +220,7 @@ export default function LessonPage({ lesson, onExit }) {
       phaseRef.current = 'success';
       setPhase('success');
     }
-  }, [isDynamicLesson, holdNeed]);
+  }, [holdNeed]);
 
   useEffect(() => {
     if (phase !== 'success') return;
@@ -354,7 +356,7 @@ export default function LessonPage({ lesson, onExit }) {
               {isWord(target) ? `Semnul „${target}"` : `Fă semnul „${target}"`}
             </p>
             <p className="text-ink-500 text-xs">
-              {isDynamicLesson
+              {isDynamicTarget
                 ? 'fă mișcarea și ține până se umple bara'
                 : 'și ține-l până se umple bara'}
             </p>
