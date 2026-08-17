@@ -39,7 +39,7 @@ export const LESSONS = [
 
   { id: 7.1, title: 'Lecția 7.1', type: 'dynamic', letters: ['Eu', 'Tu', 'El', 'Ea', 'Noi'],
     teaser: 'Cuvinte-semn- un gest per cuvant, modelul GRU' },
-  { id: 8.1, title: 'Lecția 8.1', type: 'dynamic', letters: ['Mama', 'Tată', 'Frate', 'Soră', 'Bunic', 'Copil'],
+  { id: 8.1, title: 'Lecția 8.1', type: 'dynamic', letters: ['Mama', 'Tată', 'Frate', 'Soră', 'Bunic'],
     teaser: 'Cuvinte-semn- un gest per cuvant, modelul GRU'},
   { id: 8.2, title: 'Lecția 8.2', type: 'dynamic', letters: ['Copil', 'Prieten', 'Socru', 'Unchi', 'Verișor'],
     teaser: 'Cuvinte-semn- un gest per cuvant, modelul GRU'},
