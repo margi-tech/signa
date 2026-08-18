@@ -77,6 +77,8 @@
 
 **Fișiere noi:** `src/lib/supabase.js`, hooks de sincronizare, pagini de profil/clasament
 
+**Plan MVP (US #22):** [`docs/mvp-baza-de-date.md`](./mvp-baza-de-date.md) · setup: [`docs/supabase-setup.md`](./supabase-setup.md)
+
 ### To do
 - [ ] Configurează proiectul Supabase (auth cu email + Google, tabele: profiles, progress, leaderboard)
 - [ ] Autentificare în aplicație (login/register/logout, sesiune persistentă offline-first)

@@ -97,6 +97,8 @@ docs/               # ghiduri echipă
 | [`docs/tutorial-antrenare-echipa.md`](docs/tutorial-antrenare-echipa.md) | Tutorial detaliat |
 | [`docs/colectare-echipa.md`](docs/colectare-echipa.md) | Colectare pe teren |
 | [`docs/retrain.md`](docs/retrain.md) | Checklist reantrenare |
+| [`docs/mvp-baza-de-date.md`](docs/mvp-baza-de-date.md) | Plan MVP Supabase + Vercel (US #22) |
+| [`docs/supabase-setup.md`](docs/supabase-setup.md) | Setup proiect Supabase + chei + Vercel |
 | [`ROADMAP.md`](ROADMAP.md) | Stare proiect & priorități |
 | [`docs/tutorial-incepatori.md`](docs/tutorial-incepatori.md) | Onboarding fără experiență de cod |
 

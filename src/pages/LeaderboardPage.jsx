@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { isSupabaseConfigured, supabase } from '../lib/supabase';
+import { getOwnProfile, isSupabaseConfigured, supabase } from '../lib/supabase';
 import { useProgress } from '../hooks/useProgress';
 
 /**
@@ -10,14 +10,29 @@ export default function LeaderboardPage({ onBack }) {
   const { xp, streak, level } = useProgress();
   const [rows, setRows] = useState([]);
   const [err, setErr] = useState('');
+  const [privateProfile, setPrivateProfile] = useState(false);
 
   useEffect(() => {
-    if (!isSupabaseConfigured || !supabase) return;
+    if (!isSupabaseConfigured || !supabase) return undefined;
+    let cancelled = false;
     (async () => {
-      const { data, error } = await supabase.from('leaderboard').select('*').limit(50);
+      const { data, error } = await supabase
+        .from('leaderboard')
+        .select('*')
+        .order('xp', { ascending: false })
+        .limit(50);
+      if (cancelled) return;
       if (error) setErr(error.message);
       else setRows(data ?? []);
+
+      try {
+        const profile = await getOwnProfile();
+        if (!cancelled) setPrivateProfile(profile?.visibility === 'private');
+      } catch {
+        /* fără sesiune */
+      }
     })();
+    return () => { cancelled = true; };
   }, []);
 
   return (
@@ -34,6 +49,12 @@ export default function LeaderboardPage({ onBack }) {
           <p className="text-signa-700 text-xs font-bold uppercase tracking-wider mb-1">Tu (local)</p>
           <p className="text-ink-900 font-black text-lg">Nivel {level} · {xp} XP · 🔥 {streak}</p>
         </div>
+
+        {privateProfile && (
+          <p className="text-ink-500 text-sm leading-relaxed px-1">
+            Profilul tău e privat — nu apari în clasament. Îl poți face public din Profil.
+          </p>
+        )}
 
         {!isSupabaseConfigured && (
           <p className="text-ink-500 text-sm leading-relaxed px-1">

@@ -2,6 +2,7 @@
  * Sincronizare progres local ↔ Supabase.
  * Strategie merge: max(xp), max(streak), max(stars) per lecție, union mastery.
  * Local rămâne sursa offline; sync e best-effort când ești autentificat.
+ * favorites / soundEnabled / onboardingDone rămân doar pe dispozitiv.
  */
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 
@@ -23,15 +24,18 @@ function saveLocal(data) {
 
 function mergeProgress(local, remote) {
   if (!remote) return local;
-  if (!local) return {
-    xp: remote.xp ?? 0,
-    streak: remote.streak ?? 0,
-    lastPracticeDate: remote.last_practice_date,
-    lessons: remote.lessons ?? {},
-    letterMastery: remote.letter_mastery ?? {},
-    onboardingDone: true,
-    soundEnabled: true,
-  };
+  if (!local) {
+    return {
+      xp: remote.xp ?? 0,
+      streak: remote.streak ?? 0,
+      lastPracticeDate: remote.last_practice_date,
+      lessons: remote.lessons ?? {},
+      letterMastery: remote.letter_mastery ?? {},
+      onboardingDone: true,
+      soundEnabled: true,
+      favorites: [],
+    };
+  }
 
   const lessons = { ...remote.lessons, ...local.lessons };
   for (const id of Object.keys(lessons)) {
@@ -86,7 +90,7 @@ export async function pushProgress(progress = loadLocal()) {
     user_id: user.id,
     xp: progress.xp ?? 0,
     streak: progress.streak ?? 0,
-    last_practice_date: progress.lastPracticeDate,
+    last_practice_date: progress.lastPracticeDate ?? null,
     lessons: progress.lessons ?? {},
     letter_mastery: progress.letterMastery ?? {},
     updated_at: new Date().toISOString(),
@@ -94,6 +98,14 @@ export async function pushProgress(progress = loadLocal()) {
 
   const { error } = await supabase.from('progress').upsert(payload);
   if (error) throw error;
+}
+
+export async function pushProgressBestEffort(progress) {
+  try {
+    await pushProgress(progress);
+  } catch {
+    /* offline / fără sesiune — local rămâne sursa */
+  }
 }
 
 export { mergeProgress };

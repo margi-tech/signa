@@ -9,6 +9,8 @@ describe('mergeProgress', () => {
       lastPracticeDate: '2026-07-20',
       lessons: { 1: { stars: 2, completedAt: '2026-07-20' } },
       letterMastery: { A: { correct: 1, attempts: 2 } },
+      favorites: ['1'],
+      soundEnabled: false,
     };
     const remote = {
       xp: 80,
@@ -25,5 +27,20 @@ describe('mergeProgress', () => {
     expect(m.lastPracticeDate).toBe('2026-07-27');
     expect(m.letterMastery.A).toBeTruthy();
     expect(m.letterMastery.B).toBeTruthy();
+    expect(m.favorites).toEqual(['1']);
+    expect(m.soundEnabled).toBe(false);
+  });
+
+  it('păstrează câmpurile locale când remote e gol ca obiect de progress', () => {
+    const remote = {
+      xp: 10,
+      streak: 1,
+      last_practice_date: '2026-08-18',
+      lessons: {},
+      letter_mastery: {},
+    };
+    const m = mergeProgress(null, remote);
+    expect(m.favorites).toEqual([]);
+    expect(m.onboardingDone).toBe(true);
   });
 });

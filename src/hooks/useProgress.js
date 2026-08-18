@@ -1,8 +1,12 @@
-import { useState, useCallback, useMemo } from 'react';
+import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { LESSONS, levelFromXp, xpForLevel } from '../data/lessons';
+import { isSupabaseConfigured, supabase } from '../lib/supabase';
+import { pullAndMergeProgress, pushProgress, pushProgressBestEffort } from './useProgressSync';
 
 const STORAGE_KEY = 'signa-progress-v2';
 const LEGACY_KEY  = 'signa-progress-v1';
+
+const ProgressContext = createContext(null);
 
 function todayKey() {
   const d = new Date();
@@ -42,7 +46,6 @@ function loadStored() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return migrate(JSON.parse(raw));
-    // migrare din v1
     const legacy = localStorage.getItem(LEGACY_KEY);
     if (legacy) {
       const migrated = migrate(JSON.parse(legacy));
@@ -53,11 +56,7 @@ function loadStored() {
   return emptyProgress();
 }
 
-/**
- * Progresul utilizatorului: XP, stele, streak, nivel, mastery.
- * Persistat în localStorage — sync cu Supabase când e configurat (Faza 5).
- */
-export function useProgress() {
+function useProgressState() {
   const [progress, setProgress] = useState(loadStored);
 
   const persist = useCallback((next) => {
@@ -96,7 +95,6 @@ export function useProgress() {
       [progress]
   );
 
-  /** Adaugă/scoate o lecție din favorite. */
   const toggleFavorite = useCallback((lessonId) => {
     update((prev) => {
       const current = prev.favorites ?? [];
@@ -107,7 +105,6 @@ export function useProgress() {
     });
   }, [update]);
 
-  /** Marchează practica de azi — actualizează streak-ul */
   const recordPractice = useCallback(() => {
     update((prev) => {
       const today = todayKey();
@@ -152,6 +149,12 @@ export function useProgress() {
         },
       };
     });
+    queueMicrotask(() => {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) pushProgressBestEffort(JSON.parse(raw));
+      } catch { /* ignore */ }
+    });
   }, [update]);
 
   const recordLetter = useCallback((letter, correct) => {
@@ -179,7 +182,28 @@ export function useProgress() {
     update((prev) => ({ ...prev, soundEnabled: !!enabled }));
   }, [update]);
 
-  /** Litere de recapitulat: învățate dar cu rate scăzută sau vechi */
+  const syncNow = useCallback(async () => {
+    const merged = await pullAndMergeProgress();
+    if (merged) persist(merged);
+    await pushProgress(merged ?? undefined);
+    return merged;
+  }, [persist]);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured || !supabase) return undefined;
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+        pullAndMergeProgress()
+          .then((merged) => {
+            if (merged) persist(merged);
+            return pushProgressBestEffort(merged);
+          })
+          .catch(() => {});
+      }
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [persist]);
+
   const reviewLetters = useMemo(() => {
     const mastered = Object.entries(progress.letterMastery)
         .filter(([, m]) => m.attempts >= 2)
@@ -221,5 +245,24 @@ export function useProgress() {
     finishOnboarding,
     setSoundEnabled,
     persist,
+    syncNow,
   };
+}
+
+/** O singură sursă de progres pentru toată aplicația. */
+export function ProgressProvider({ children }) {
+  const value = useProgressState();
+  return createElement(ProgressContext.Provider, { value }, children);
+}
+
+/**
+ * Progresul utilizatorului: XP, stele, streak, nivel, mastery.
+ * Persistat în localStorage — sync cu Supabase când e configurat (Faza 5).
+ */
+export function useProgress() {
+  const ctx = useContext(ProgressContext);
+  if (!ctx) {
+    throw new Error('useProgress trebuie folosit în <ProgressProvider>.');
+  }
+  return ctx;
 }
