@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { useProgress } from '../hooks/useProgress';
 import { pullAndMergeProgress, pushProgress } from '../hooks/useProgressSync';
+import FriendsList from '../components/FriendsList';
 
 /**
  * Profil / autentificare — funcțional doar cu VITE_SUPABASE_* setate.
@@ -125,6 +126,13 @@ export default function ProfilePage({ onBack }) {
         )}
 
         {msg && <p className="text-center text-sm text-ink-600">{msg}</p>}
+
+        {user && isSupabaseConfigured && (
+          <div className="bg-white rounded-2xl shadow-card p-5">
+            <p className="text-ink-900 font-semibold text-sm mb-4">Prietenii mei</p>
+            <FriendsList userId={user.id} compact={true} />
+          </div>
+        )}
       </div>
     </div>
   );

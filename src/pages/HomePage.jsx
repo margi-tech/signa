@@ -40,7 +40,7 @@ function HandHero() {
 }
 
 export default function HomePage({
-  onLessons, onStart, onCollect, onTrain, onSpell, onReview, onDiagnostic, onProfile, onLeaderboard,
+  onLessons, onStart, onCollect, onTrain, onSpell, onReview, onDiagnostic, onProfile, onLeaderboard, onFriends,
 }) {
   const { xp, streak, level, xpIntoLevel, xpNeeded, soundEnabled, setSoundEnabled } = useProgress();
   const pct = xpNeeded > 0 ? Math.min(xpIntoLevel / xpNeeded, 1) : 0;
@@ -144,6 +144,9 @@ export default function HomePage({
             </button>
             <button onClick={onLeaderboard} className="py-1 text-ink-400 hover:text-ink-600 text-xs font-medium">
               Clasament
+            </button>
+            <button onClick={onFriends} className="py-1 text-ink-400 hover:text-ink-600 text-xs font-medium">
+              Prieteni
             </button>
           </div>
         </div>

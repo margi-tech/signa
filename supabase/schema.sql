@@ -54,6 +54,42 @@ create or replace view public.leaderboard as
   left join public.progress pr on pr.user_id = p.id
   order by xp desc;
 
+-- Relații sociale: follow/friendship
+create table if not exists public.follows (
+  id bigserial primary key,
+  follower_id uuid not null references auth.users(id) on delete cascade,
+  following_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  unique(follower_id, following_id),
+  constraint no_self_follow check (follower_id != following_id)
+);
+
+create index idx_follows_follower on public.follows(follower_id);
+create index idx_follows_following on public.follows(following_id);
+
+alter table public.follows enable row level security;
+
+create policy "Toți pot vedea urmăriri"
+  on public.follows for select using (true);
+
+create policy "Utilizatorul poate urma/nu urmări"
+  on public.follows for insert with check (auth.uid() = follower_id);
+
+create policy "Utilizatorul poate anula urmare"
+  on public.follows for delete using (auth.uid() = follower_id);
+
+-- Compute friendships: reciprocal follows
+create or replace view public.friendships as
+  select
+    least(f1.follower_id, f1.following_id) as user_id_1,
+    greatest(f1.follower_id, f1.following_id) as user_id_2,
+    min(f1.created_at) as since
+  from public.follows f1
+  join public.follows f2
+    on f1.follower_id = f2.following_id
+    and f1.following_id = f2.follower_id
+  group by user_id_1, user_id_2;
+
 -- Trigger: la signup creează profil + progress gol
 create or replace function public.handle_new_user()
 returns trigger

@@ -10,6 +10,7 @@ import ReviewPage from './pages/ReviewPage.jsx';
 import DiagnosticPage from './pages/DiagnosticPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 import LeaderboardPage from './pages/LeaderboardPage.jsx';
+import FriendsPage from './pages/FriendsPage.jsx';
 import Onboarding from './components/Onboarding.jsx';
 import { LESSONS } from './data/lessons.js';
 import { useProgress } from './hooks/useProgress.js';
@@ -31,6 +32,7 @@ export default function App() {
   if (page === 'diagnostic') return <DiagnosticPage onBack={() => setPage('home')} />;
   if (page === 'profile') return <ProfilePage onBack={() => setPage('home')} />;
   if (page === 'leaderboard') return <LeaderboardPage onBack={() => setPage('home')} />;
+  if (page === 'friends') return <FriendsPage onBack={() => setPage('home')} />;
 
   if (page === 'review') {
     return (
@@ -80,6 +82,7 @@ export default function App() {
       onDiagnostic={() => setPage('diagnostic')}
       onProfile={() => setPage('profile')}
       onLeaderboard={() => setPage('leaderboard')}
+      onFriends={() => setPage('friends')}
     />
   );
 }
