@@ -34,6 +34,10 @@ function loadStored() {
 export function useDatasetCollector() {
   const [dataset,       setDataset]       = useState(loadStored);
   const [activeLabel,   setActiveLabel]   = useState(LSR_ALPHABET[0]);
+  // Cheia sub care se salvează exemplele. Tastarea rămâne liberă (etichetele pot
+  // avea spații interioare: „buna ziua”), dar spațiile de la capete nu ajung
+  // niciodată în dataset — ele au creat clase fantomă precum „Tu ” sau „Soră ”.
+  const labelKey = activeLabel.trim();
   const [storageFull,   setStorageFull]   = useState(false);
 
   // Auto-salvare la fiecare modificare
@@ -58,11 +62,11 @@ export function useDatasetCollector() {
 
     setDataset((prev) => ({
       ...prev,
-      [activeLabel]: [...(prev[activeLabel] ?? []), vector],
+      [labelKey]: [...(prev[labelKey] ?? []), vector],
     }));
 
     return true;
-  }, [activeLabel]);
+  }, [labelKey]);
 
   /**
    * Capturează o SECVENȚĂ de cadre (film) pentru eticheta activă.
@@ -81,20 +85,20 @@ export function useDatasetCollector() {
 
     setDataset((prev) => ({
       ...prev,
-      [activeLabel]: [...(prev[activeLabel] ?? []), seq],
+      [labelKey]: [...(prev[labelKey] ?? []), seq],
     }));
 
     return true;
-  }, [activeLabel]);
+  }, [labelKey]);
 
   /** Șterge toate exemplele pentru eticheta activă */
   const clearActiveLabel = useCallback(() => {
     setDataset((prev) => {
       const next = { ...prev };
-      delete next[activeLabel];
+      delete next[labelKey];
       return next;
     });
-  }, [activeLabel]);
+  }, [labelKey]);
 
   /**
    * Importă un dataset exportat anterior și îl unește cu cel curent.
@@ -109,8 +113,13 @@ export function useDatasetCollector() {
 
     setDataset((prev) => {
       const next = { ...prev };
-      for (const [label, samples] of Object.entries(raw)) {
-        if (label === '_meta') continue;
+      for (const [rawLabel, samples] of Object.entries(raw)) {
+        if (rawLabel === '_meta') continue;
+        // Spațiile accidentale la capete au produs clase fantomă („Soră ” separat de
+        // „Soră”), care împart exemplele în două și strică precizia. Normalizăm la
+        // import, ca dataseturile deja colectate de echipă să se vindece singure.
+        const label = String(rawLabel).trim();
+        if (!label) continue;
         // Fiecare exemplu e static (63 valori) sau secvență (film) — determinat din formă
         const valid = (samples ?? []).filter((s) => isVec(s) || isSeq(s));
         if (!valid.length) continue;
@@ -149,7 +158,7 @@ export function useDatasetCollector() {
     URL.revokeObjectURL(url);
   }, [dataset]);
 
-  const samplesFor  = (label) => dataset[label]?.length ?? 0;
+  const samplesFor  = (label) => dataset[String(label).trim()]?.length ?? 0;
   const totalSamples = Object.values(dataset).reduce((s, arr) => s + arr.length, 0);
   const labels = Object.keys(dataset).filter((l) => dataset[l]?.length);
 
