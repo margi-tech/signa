@@ -38,6 +38,29 @@ const HEADINGS = {
 };
 
 /**
+ * Câmpurile de signup rămân montate la comutarea pe login — doar colapsează,
+ * ca tranziția să fie continuă și valorile introduse să nu se piardă.
+ */
+function Collapsible({ open, maxHeight, children }) {
+  return (
+    <div
+      aria-hidden={!open}
+      className="overflow-hidden"
+      style={{
+        maxHeight: open ? maxHeight : 0,
+        opacity: open ? 1 : 0,
+        transform: open ? 'translateY(0)' : 'translateY(-8px)',
+        pointerEvents: open ? 'auto' : 'none',
+        transition: 'max-height .5s cubic-bezier(.22,1,.36,1), opacity .35s ease-out,'
+          + ' transform .5s cubic-bezier(.22,1,.36,1)',
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+/**
  * Panou autentificare: login, signup, reset parolă.
  */
 export default function AuthPanel({ mode, onModeChange, busy, onBusy, onMessage, afterAuth }) {
@@ -115,6 +138,7 @@ export default function AuthPanel({ mode, onModeChange, busy, onBusy, onMessage,
         </AuthField>
         <PrimaryButton
           disabled={busy}
+          busy={busy}
           onClick={() => run(async () => {
             const emailErr = validateEmail(email);
             if (emailErr) {
@@ -155,7 +179,7 @@ export default function AuthPanel({ mode, onModeChange, busy, onBusy, onMessage,
       </div>
 
       <div className="space-y-4">
-        {mode === 'signup' && (
+        <Collapsible open={mode === 'signup'} maxHeight={96}>
           <div className="grid grid-cols-2 gap-3">
             <AuthField label="Prenume" error={fieldErrors.firstName}>
               <AuthInput
@@ -176,9 +200,9 @@ export default function AuthPanel({ mode, onModeChange, busy, onBusy, onMessage,
               />
             </AuthField>
           </div>
-        )}
+        </Collapsible>
 
-        {mode === 'signup' && (
+        <Collapsible open={mode === 'signup'} maxHeight={116}>
           <AuthField
             label="Username"
             hint="3–20 caractere, litere, cifre, punct sau underscore"
@@ -192,7 +216,7 @@ export default function AuthPanel({ mode, onModeChange, busy, onBusy, onMessage,
               error={fieldErrors.username}
             />
           </AuthField>
-        )}
+        </Collapsible>
 
         <AuthField label="Email" error={fieldErrors.email}>
           <AuthInput
@@ -230,6 +254,7 @@ export default function AuthPanel({ mode, onModeChange, busy, onBusy, onMessage,
       {mode === 'login' ? (
         <PrimaryButton
           disabled={busy}
+          busy={busy}
           onClick={() => run(async () => {
             if (!validateLogin()) throw new Error('Verifică câmpurile marcate.');
             const { error } = await supabase.auth.signInWithPassword({
@@ -246,6 +271,7 @@ export default function AuthPanel({ mode, onModeChange, busy, onBusy, onMessage,
       ) : (
         <PrimaryButton
           disabled={busy}
+          busy={busy}
           onClick={() => run(async () => {
             if (!validateSignup()) throw new Error('Verifică câmpurile marcate.');
             if (await isUsernameTaken(username.trim())) {

@@ -67,3 +67,75 @@ body {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* ── Animații ecran auth (sg-*) ───────────────────────────────────── */
+@keyframes sg-aurora-a {
+  0%   { transform: translate3d(0,0,0) scale(1);          opacity: .5;  }
+  33%  { transform: translate3d(-70px,54px,0) scale(1.16); opacity: .72; }
+  66%  { transform: translate3d(46px,86px,0) scale(.95);   opacity: .44; }
+  100% { transform: translate3d(0,0,0) scale(1);          opacity: .5;  }
+}
+@keyframes sg-aurora-b {
+  0%   { transform: translate3d(0,0,0) scale(1.04);        opacity: .34; }
+  50%  { transform: translate3d(90px,-72px,0) scale(1.3);  opacity: .6;  }
+  100% { transform: translate3d(0,0,0) scale(1.04);        opacity: .34; }
+}
+@keyframes sg-aurora-c {
+  0%   { transform: translate3d(0,0,0) rotate(0deg);          opacity: .3; }
+  50%  { transform: translate3d(-56px,-40px,0) rotate(12deg); opacity: .5; }
+  100% { transform: translate3d(0,0,0) rotate(0deg);          opacity: .3; }
+}
+@keyframes sg-float {
+  0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); }
+  50%      { transform: translateY(-14px) rotate(calc(var(--r, 0deg) + 2deg)); }
+}
+@keyframes sg-fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+@keyframes sg-fade-right {
+  from { opacity: 0; transform: translateX(-22px); }
+  to   { opacity: 1; transform: translateX(0);     }
+}
+@keyframes sg-sheen {
+  0%   { transform: translateX(-130%) skewX(-18deg); }
+  100% { transform: translateX(320%)  skewX(-18deg); }
+}
+@keyframes sg-spin { to { transform: rotate(360deg); } }
+@keyframes sg-pulse-ring {
+  0%   { transform: scale(.85); opacity: .55; }
+  70%  { transform: scale(1.5); opacity: 0;   }
+  100% { transform: scale(1.5); opacity: 0;   }
+}
+@keyframes sg-underline {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+@keyframes sg-topbar {
+  0%   { background-position: 0% 50%;   }
+  100% { background-position: 200% 50%; }
+}
+
+/* Easing standard pentru intrări */
+.sg-ease { animation-timing-function: cubic-bezier(.22, 1, .36, 1); }
+
+.sg-aurora-a { animation: sg-aurora-a 16s ease-in-out infinite; }
+.sg-aurora-b { animation: sg-aurora-b 21s ease-in-out infinite; }
+.sg-aurora-c { animation: sg-aurora-c 26s ease-in-out infinite; }
+.sg-float       { animation: sg-float ease-in-out infinite; }
+.sg-fade-up     { animation: sg-fade-up    .8s cubic-bezier(.22,1,.36,1) both; }
+.sg-fade-right  { animation: sg-fade-right .7s cubic-bezier(.22,1,.36,1) both; }
+.sg-sheen       { animation: sg-sheen 3.6s cubic-bezier(.4,0,.2,1) infinite; }
+.sg-spin        { animation: sg-spin .7s linear infinite; }
+.sg-pulse-ring  { animation: sg-pulse-ring 3.4s cubic-bezier(.22,1,.36,1) infinite; }
+.sg-dot-ring    { animation: sg-pulse-ring 2.2s ease-out infinite; }
+.sg-underline   { transform-origin: left; animation: sg-underline .9s cubic-bezier(.22,1,.36,1) 1s both; }
+.sg-topbar      { background-size: 200% 100%; animation: sg-topbar 9s linear infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+}
