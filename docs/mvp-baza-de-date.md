@@ -30,7 +30,7 @@ Auth MVP: **doar email + parolă**. Google OAuth rămâne după MVP.
 
 1. [x] Creează proiectul Supabase (regiune EU) și pune cheile în `.env.local` — vezi [`docs/supabase-setup.md`](./supabase-setup.md)
 2. [x] Extinde schema: `profiles` (nume, prenume, username, rol, vizibilitate) + RLS + trigger
-3. [x] Leagă signup/login de câmpurile noi — [ ] deploy pe Vercel (pauză)
+3. [x] Leagă signup/login de câmpurile noi — [ ] deploy pe Vercel (blocat de permisiuni Vercel Hobby pe repo privat)
 
 ---
 
@@ -118,7 +118,7 @@ Fișiere: `ProfilePage.jsx`, `LeaderboardPage.jsx`, `useProgress.js`, `useProgre
 - [x] `role` nu e editabil din UI (doar din Supabase Table Editor)
 - [x] Sync automat după `completeLesson` + la login (butonul manual rămâne backup)
 - [x] Clasament: nume afișat din prenume/username; profilurile private nu apar
-- [x] Fără sesiune sau fără net: aplicația rămâne pe localStorage (offline-first)
+- [x] Fără sesiune: aplicația rămâne blocată în ecranul de autentificare (auth obligatoriu)
 
 ### Faza 4 — Aplicație publică (Vercel)
 
@@ -126,10 +126,10 @@ Signa e PWA static (Vite). Vercel e potrivit; Railway ar fi pentru un backend No
 
 Fișier: `vercel.json` (deja gata).
 
-- [ ] Proiect Vercel legat de GitHub `margi-tech/signa`
-- [ ] Environment Variables: `VITE_SUPABASE_URL` + `ANON_KEY` (Production și Preview)
+- [x] Proiect Vercel legat de GitHub `margi-tech/signa`
+- [x] Environment Variables: `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` (Production și Preview)
 - [ ] Supabase Auth: Redirect URLs = domeniul Vercel + localhost
-- [ ] Preview deploy pe acest branch, apoi test signup/login pe URL public
+- [ ] Deploy neblocat pe URL public (în prezent blocat de Vercel Hobby când autorul commitului nu e owner de proiect)
 
 ### Faza 5 — Acceptare US #22
 
@@ -138,7 +138,8 @@ Fișier: `vercel.json` (deja gata).
 - [x] Test merge XP: acoperit în `useProgressSync.test.js` (două browsere / max XP)
 - [x] Test profil privat: nu apare în clasament (verificat live)
 - [x] Notă pentru echipă: [`docs/supabase-setup.md`](./supabase-setup.md)
-- [ ] PR `feat/22-supabase-schema` → `main` + bifează US #22 în Taiga
+- [x] PR `feat/22-supabase-schema` → `main` (merge commit `047f0a2`)
+- [ ] Bifează US #22 în Taiga după deploy public funcțional
 
 ---
 
@@ -164,7 +165,7 @@ Fișier: `vercel.json` (deja gata).
 | 2 | Parola nu e vizibilă în Table Editor pe `profiles` | Deschizi tabela — zero coloană parolă |
 | 3 | La signup apar rânduri în `profiles` + `progress` | SQL Editor / Table Editor |
 | 4 | XP se salvează în cloud după o lecție (logat) | Al doilea browser, același cont |
-| 5 | Fără login, totul merge pe localStorage | Fereastră incognito, fără cont |
+| 5 | Fără login, accesul e blocat până la autentificare | Fereastră incognito: vezi doar ecranul de auth |
 | 6 | Profil privat nu apare în clasament | Schimbi visibility, reîncarci Clasament |
 | 7 | Există rol admin vs user în DB | Un rând cu `role=admin`, restul `user` |
 | 8 | App publică pe Vercel, signup funcționează | URL `.vercel.app`, nu doar localhost |

@@ -61,7 +61,7 @@ Organizat pe priorități, nu pe faze cronologice — unele lucruri se pot face 
 - [x] UI Profil (login/register) + Clasament (live când e configurat)
 - [x] Sync progres cu merge max(XP/stele) — `useProgressSync.js`
 - [x] Proiect Supabase live (`signa`, EU) + sync automat după lecție și la login
-- [ ] Deploy public Vercel (pauză: Hobby + colaborare pe repo privat)
+- [ ] Deploy public Vercel (repo conectat + env setate; încă blocat când autorul commitului nu e owner pe Hobby/private)
 
 ---
 

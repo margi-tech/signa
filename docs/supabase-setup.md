@@ -6,7 +6,7 @@ Ghidul de produs: [`docs/mvp-baza-de-date.md`](./mvp-baza-de-date.md). Schema: `
 
 **Proiect live:** `signa` · `https://sdwbgooayrtjlnhqxcja.supabase.co` · regiune EU (Ireland).
 
-Deploy-ul public (Vercel) e pe pauză — Hobby blochează preview-urile altui autor. Demo-ul se face pe `http://localhost:5173`.
+Deploy-ul public (Vercel) poate fi blocat pe planul Hobby când autorul commitului nu este owner al proiectului Vercel pentru repo privat. Demo-ul local rămâne pe `http://localhost:5173`.
 
 ---
 
@@ -70,6 +70,19 @@ Fiecare își face `.env.local` din `.env.example` + URL + **anon** key. Fără 
    - `VITE_SUPABASE_ANON_KEY`
 3. Adaugă URL-ul `.vercel.app` la Redirect URLs în Supabase
 4. Preview pe branch-ul `feat/22-supabase-schema`, apoi test signup pe URL public
+
+### Notă practică (aug 2026)
+
+- Integrarea Supabase pe Vercel adaugă automat variabile `SUPABASE_*` / `POSTGRES_*`, dar aplicația Vite citește doar variabile cu prefix `VITE_`.
+- Verifică explicit că există:
+  - `VITE_SUPABASE_URL`
+  - `VITE_SUPABASE_ANON_KEY`
+- După modificarea variabilelor de mediu, rulează **Redeploy**.
+
+## 8. Comportament auth în aplicație
+
+- Când Supabase este configurat, autentificarea este obligatorie.
+- Fără sesiune activă, utilizatorul vede doar ecranul de login/signup (auth gate).
 
 ## Ce să NU faci
 
