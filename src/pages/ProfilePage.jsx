@@ -120,30 +120,36 @@ export default function ProfilePage({ onBack }) {
             <p className="text-ink-900 font-semibold text-sm">Conectat</p>
             <p className="text-ink-500 text-xs break-all">{user.email}</p>
 
-            <input
-              type="text"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              placeholder="prenume"
-              autoComplete="given-name"
-              className={inputClass}
-            />
-            <input
-              type="text"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              placeholder="nume"
-              autoComplete="family-name"
-              className={inputClass}
-            />
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="username"
-              autoComplete="username"
-              className={inputClass}
-            />
+            <Field label="Prenume">
+              <input
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="prenume"
+                autoComplete="given-name"
+                className={inputClass}
+              />
+            </Field>
+            <Field label="Nume">
+              <input
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="nume"
+                autoComplete="family-name"
+                className={inputClass}
+              />
+            </Field>
+            <Field label="Username">
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="username"
+                autoComplete="username"
+                className={inputClass}
+              />
+            </Field>
 
             <label className="flex items-center justify-between gap-3 py-1">
               <span className="text-ink-700 text-sm">

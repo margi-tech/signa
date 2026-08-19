@@ -43,4 +43,28 @@ describe('mergeProgress', () => {
     expect(m.favorites).toEqual([]);
     expect(m.onboardingDone).toBe(true);
   });
+
+  it('două browsere: ține XP-ul mai mare și unește lecțiile', () => {
+    const browserA = {
+      xp: 540,
+      streak: 0,
+      lastPracticeDate: '2026-08-18',
+      lessons: { 1: { stars: 3, completedAt: '2026-08-18' } },
+      letterMastery: { A: { correct: 5, attempts: 5 } },
+    };
+    const browserBRemote = {
+      xp: 580,
+      streak: 1,
+      last_practice_date: '2026-08-19',
+      lessons: { 1: { stars: 2, completedAt: '2026-08-19' }, 3: { stars: 1, completedAt: '2026-08-19' } },
+      letter_mastery: { B: { correct: 1, attempts: 1 } },
+    };
+    const m = mergeProgress(browserA, browserBRemote);
+    expect(m.xp).toBe(580);
+    expect(m.streak).toBe(1);
+    expect(m.lessons[1].stars).toBe(3);
+    expect(m.lessons[3].stars).toBe(1);
+    expect(m.letterMastery.A).toBeTruthy();
+    expect(m.letterMastery.B).toBeTruthy();
+  });
 });

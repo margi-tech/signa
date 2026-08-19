@@ -7,6 +7,7 @@ describe('authErrorMessage', () => {
     expect(authErrorMessage({ message: 'User already registered' })).toMatch(/deja un cont/i);
     expect(authErrorMessage({ code: '23505', message: 'duplicate key' })).toMatch(/deja luat/i);
     expect(authErrorMessage({ message: 'email rate limit exceeded' })).toMatch(/Prea multe încercări/);
+    expect(authErrorMessage({ message: 'Unable to validate email address' })).toMatch(/nume@domeniu/);
   });
 
   it('păstrează un fallback', () => {

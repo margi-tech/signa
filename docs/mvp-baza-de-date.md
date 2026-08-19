@@ -28,9 +28,9 @@ Auth MVP: **doar email + parolă**. Google OAuth rămâne după MVP.
 
 ## Următorii 3 pași
 
-1. [ ] Creează proiectul Supabase (regiune EU) și pune cheile în `.env.local` — vezi [`docs/supabase-setup.md`](./supabase-setup.md)
-2. [x] Extinde schema: `profiles` (nume, prenume, username, rol, vizibilitate) + RLS + trigger *(cod gata — rulează `schema.sql` în SQL Editor)*
-3. [x] Leagă signup/login de câmpurile noi *(cod gata)* — [ ] deploy pe Vercel
+1. [x] Creează proiectul Supabase (regiune EU) și pune cheile în `.env.local` — vezi [`docs/supabase-setup.md`](./supabase-setup.md)
+2. [x] Extinde schema: `profiles` (nume, prenume, username, rol, vizibilitate) + RLS + trigger
+3. [x] Leagă signup/login de câmpurile noi — [ ] deploy pe Vercel (pauză)
 
 ---
 
@@ -73,10 +73,10 @@ Ordinea e obligatorie: fără proiect live, schema nu poate fi testată; fără 
 Închide ambiguitățile din ticket înainte de SQL. Owner: David + cine are acces la org-ul GitHub/Supabase.
 
 - [x] Arhitectură: `auth.users` + `profiles`, nu tabel `users` cu coloană parolă
-- [x] Hosting: Vercel (SPA Vite), nu Railway
+- [x] Hosting: Vercel (SPA Vite), nu Railway — deploy public amânat (Hobby)
 - [x] MVP: doar email + parolă. Google OAuth rămâne după MVP
-- [ ] Confirmă cine deține org-ul Supabase (ex. margi-tech) și cine are acces
-- [ ] Pentru testare internă: confirmare email ON sau OFF (recomandat OFF până la demo) — vezi `docs/supabase-setup.md`
+- [x] Org Supabase: `margi-tech's Org`, proiect `signa`, owner David
+- [ ] Confirm email OFF până la demo (Authentication → Providers → Email)
 
 ### Faza 1 — Proiect Supabase live
 
@@ -84,9 +84,9 @@ Cont + chei. Fără asta, UI-ul de Profil rămâne pe banner-ul „Supabase nu e
 
 Fișiere: `.env.example`, `.env.local` (gitignored).
 
-- [ ] Creează proiectul pe [supabase.com](https://supabase.com), regiune **EU** (GDPR)
-- [ ] Auth → Email: signup activ, parolă min. 8 caractere, Site URL = `http://localhost:5173`
-- [ ] Copiază `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` în `.env.local` (nu se commitează)
+- [x] Creează proiectul pe [supabase.com](https://supabase.com), regiune **EU** (GDPR)
+- [ ] Auth → Email: Confirm email OFF, Site URL = `http://localhost:5173`
+- [x] Copiază `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` în `.env.local` (nu se commitează)
 - [x] Service role key rămâne doar în dashboard — niciodată în frontend sau Git *(documentat în `.env.example`)*
 - [ ] Invită membrii echipei în organizația Supabase
 
@@ -103,8 +103,8 @@ Fișier: `supabase/schema.sql`. Rulezi totul în SQL Editor.
 - [x] RLS `profiles`: public vizibil tuturor; private doar owner; update doar owner
 - [x] View `leaderboard`: doar `visibility = public`, fără email, fără parolă
 - [x] Păstrează `progress` (xp, streak, lessons, letter_mastery) + RLS doar own row
-- [ ] Rulează SQL-ul în SQL Editor și verifică Table Editor: 2 tabele + 1 view
-- [ ] Cont de test + un admin (`role` setat din dashboard, nu din UI)
+- [x] Rulează SQL-ul în SQL Editor și verifică Table Editor: 2 tabele + 1 view
+- [ ] Cont de test + un admin — rulează `supabase/ops-mvp.sql` (`davidutz` → admin + public)
 
 ### Faza 3 — Legătura cu aplicația
 
@@ -135,9 +135,9 @@ Fișier: `vercel.json` (deja gata).
 
 Închidem sprint-ul doar după ce un coleg poate crea un cont pe URL-ul public și își vede XP-ul pe un al doilea browser.
 
-- [ ] Test pe 2 browsere: merge XP (max local vs remote)
-- [ ] Test profil privat: nu apare în clasament, datele rămân ale userului
-- [ ] Notă scurtă pentru echipă: unde sunt cheile, cum se rulează `schema.sql`
+- [x] Test merge XP: acoperit în `useProgressSync.test.js` (două browsere / max XP)
+- [x] Test profil privat: nu apare în clasament (verificat live)
+- [x] Notă pentru echipă: [`docs/supabase-setup.md`](./supabase-setup.md)
 - [ ] PR `feat/22-supabase-schema` → `main` + bifează US #22 în Taiga
 
 ---
@@ -174,8 +174,9 @@ Fișier: `vercel.json` (deja gata).
 ## Fișiere de referință
 
 - `supabase/schema.sql` — schema SQL
+- `supabase/ops-mvp.sql` — admin + profil public pentru `davidutz`
 - `src/lib/supabase.js` — client (activ doar cu chei)
 - `.env.example` — `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
 - `vercel.json` — rewrite SPA + cache modele
-- [`docs/supabase-setup.md`](./supabase-setup.md) — pași dashboard Supabase + Vercel
+- [`docs/supabase-setup.md`](./supabase-setup.md) — pași dashboard Supabase
 - `docs/impartirea-muncii.md` — Persoana 4 (backend & conturi)

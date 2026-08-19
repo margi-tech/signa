@@ -1,8 +1,12 @@
-# Signa — Setup Supabase + Vercel (US #22)
+# Signa — Setup Supabase (US #22)
 
 Pași pentru un coleg. Recunoașterea semnelor rămâne pe dispozitiv — pe server ajung doar profil + XP.
 
 Ghidul de produs: [`docs/mvp-baza-de-date.md`](./mvp-baza-de-date.md). Schema: `supabase/schema.sql`.
+
+**Proiect live:** `signa` · `https://sdwbgooayrtjlnhqxcja.supabase.co` · regiune EU (Ireland).
+
+Deploy-ul public (Vercel) e pe pauză — Hobby blochează preview-urile altui autor. Demo-ul se face pe `http://localhost:5173`.
 
 ---
 
@@ -40,17 +44,25 @@ Ghidul de produs: [`docs/mvp-baza-de-date.md`](./mvp-baza-de-date.md). Schema: `
 4. Alt browser, același cont → același XP după login
 5. Profil privat → nu mai apari în Clasament
 
-## 5. Admin
+## 5. Admin + profil public
 
-Rolul nu se schimbă din aplicație.
+Rolul nu se schimbă din aplicație. Rulează `supabase/ops-mvp.sql` în SQL Editor (contul `davidutz` → `admin` + `public`).
+
+Sau manual:
 
 ```sql
 update public.profiles
-set role = 'admin'
-where username = 'david';
+set role = 'admin', visibility = 'public'
+where username = 'davidutz';
 ```
 
-## 6. Vercel
+## 6. Invită echipa
+
+Project Settings → **Team** / **Members** → Invite pe email (rol Developer e suficient).
+
+Fiecare își face `.env.local` din `.env.example` + URL + **anon** key. Fără `service_role`.
+
+## 7. Vercel (pauză — nu e blocker pentru US #22)
 
 1. Importă `margi-tech/signa` pe [vercel.com](https://vercel.com)
 2. Environment Variables (Production **și** Preview):
