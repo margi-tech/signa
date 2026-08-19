@@ -69,7 +69,7 @@ export function AuthField({ label, hint, error, action, children }) {
 const inputBase =
   'w-full bg-white border rounded-2xl text-[15px] font-semibold text-ink-900 placeholder:text-ink-400 '
   + 'placeholder:font-medium focus:outline-none focus:border-signa-500 focus:ring-4 focus:ring-signa-500/[0.14] '
-  + 'transition-[border-color,box-shadow] duration-[180ms] ease-out';
+  + 'focus:-translate-y-px transition-[border-color,box-shadow,transform] duration-[180ms] ease-out';
 
 /** `icon` opțional — fără el, padding-ul rămâne cel clasic (folosit în Profil). */
 export function AuthInput({ className = '', error, icon, ...props }) {
@@ -119,44 +119,89 @@ export function PasswordInput({
   );
 }
 
-export function PasswordStrength({ password }) {
-  if (!password || password.length >= 8) return null;
-  return <p className="text-ink-400 text-xs">Minim 8 caractere.</p>;
+/** Nivelele barei de parolă — lățime + culoare + etichetă. */
+function strengthLevel(password) {
+  if (password.length < 8) return { width: '33%', color: '#f59e0b', label: 'Minim 8 caractere' };
+  if (/[^\p{L}]/u.test(password)) return { width: '100%', color: '#059669', label: 'Puternică' };
+  return { width: '68%', color: '#34d399', label: 'Bună' };
 }
+
+export function PasswordStrength({ password }) {
+  const open = Boolean(password);
+  const level = strengthLevel(password || '');
+  return (
+    <div
+      className="overflow-hidden"
+      style={{
+        maxHeight: open ? 34 : 0,
+        opacity: open ? 1 : 0,
+        transition: 'max-height .35s cubic-bezier(.22,1,.36,1), opacity .3s ease-out',
+      }}
+    >
+      <div className="pt-1.5 space-y-1">
+        <div className="h-[5px] rounded-full bg-ink-900/[0.08] overflow-hidden">
+          <div
+            className="h-full rounded-full"
+            style={{
+              width: open ? level.width : '0%',
+              backgroundColor: level.color,
+              transition: 'width .45s cubic-bezier(.22,1,.36,1), background-color .3s ease-out',
+            }}
+          />
+        </div>
+        <p className="text-ink-400 text-xs">{level.label}</p>
+      </div>
+    </div>
+  );
+}
+
+/** Indicatorul glisează între taburi în loc să fie un border per tab. */
+const TAB_INDICATOR = {
+  login:  { width: 42, x: 0  },
+  signup: { width: 72, x: 64 },
+};
 
 export function AuthTabs({ mode, onChange, disabled }) {
   const tabs = [
     { id: 'login', label: 'Intră' },
     { id: 'signup', label: 'Cont nou' },
   ];
+  const indicator = TAB_INDICATOR[mode] ?? TAB_INDICATOR.login;
   return (
-    <div className="flex gap-[22px] border-b border-ink-900/[0.06]">
+    <div className="relative flex gap-[22px] border-b border-ink-900/[0.06]">
       {tabs.map((t) => (
         <button
           key={t.id}
           type="button"
           disabled={disabled}
           onClick={() => onChange(t.id)}
-          className={`pb-[11px] text-sm font-semibold transition-colors border-b-2 -mb-px ${
-            mode === t.id
-              ? 'text-ink-900 border-signa-500'
-              : 'text-ink-400 border-transparent hover:text-ink-600'
+          className={`pb-[11px] text-sm font-semibold transition-colors ${
+            mode === t.id ? 'text-ink-900' : 'text-ink-400 hover:text-ink-600'
           }`}
         >
           {t.label}
         </button>
       ))}
+      <span
+        aria-hidden
+        className="absolute bottom-0 left-0 h-[2px] bg-signa-500"
+        style={{
+          width: indicator.width,
+          transform: `translateX(${indicator.x}px)`,
+          transition: 'transform .42s cubic-bezier(.22,1,.36,1), width .42s cubic-bezier(.22,1,.36,1)',
+        }}
+      />
     </div>
   );
 }
 
-export function PrimaryButton({ children, disabled, onClick, type = 'button' }) {
+export function PrimaryButton({ children, disabled, onClick, type = 'button', busy = false }) {
   return (
     <button
       type={type}
       disabled={disabled}
       onClick={onClick}
-      className="w-full rounded-2xl py-[17px] font-extrabold text-[15px] text-white
+      className="relative overflow-hidden w-full rounded-2xl py-[17px] font-extrabold text-[15px] text-white
         bg-gradient-to-b from-signa-500 to-signa-600 shadow-[0_10px_24px_rgba(16,185,129,.30)]
         transition-[transform,box-shadow] duration-[160ms] ease-out
         hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(16,185,129,.38)]
@@ -164,7 +209,22 @@ export function PrimaryButton({ children, disabled, onClick, type = 'button' }) 
         disabled:opacity-50 disabled:hover:translate-y-0 disabled:active:scale-100
         disabled:hover:shadow-[0_10px_24px_rgba(16,185,129,.30)]"
     >
-      {children}
+      <span
+        aria-hidden
+        className="absolute inset-y-0 left-0 w-[38%] sg-sheen pointer-events-none"
+        style={{
+          background: 'linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent)',
+        }}
+      />
+      <span className="relative flex items-center justify-center gap-2.5">
+        {busy && (
+          <span
+            aria-hidden
+            className="w-[15px] h-[15px] rounded-full border-2 border-white/35 border-t-white sg-spin"
+          />
+        )}
+        {children}
+      </span>
     </button>
   );
 }
