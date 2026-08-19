@@ -7,12 +7,28 @@ const LABELS_PATH     = '/models/signa-labels.json';
 const DYN_MODEL_PATH  = '/models/signa-model-dynamic.json';
 const DYN_LABELS_PATH = '/models/signa-labels-dynamic.json';
 
+/**
+ * Curăță etichetele venite din dataset: spațiile accidentale la capete au creat
+ * clase fantomă („Tu ” ≠ „Tu”), imposibil de validat prin comparația strictă din
+ * LessonPage/SpellPage. Vezi și trim-ul de la colectare și import.
+ */
+export function cleanLabels(labels) {
+  return labels.map((l) => String(l).trim());
+}
+
 /** Rulează softmax-ul unui model și împachetează rezultatul */
 function rank(tf, model, data, labels) {
   return tf.tidy(() => {
     const probs = Array.from(model.predict(tf.tensor(data)).dataSync());
-    const ranked = probs
-      .map((p, i) => ({ label: labels[i], p }))
+    // Clasele cu același nume (ex. „Soră” colectată și cu, și fără spațiu) sunt
+    // același semn — probabilitățile lor se adună, nu se concurează între ele.
+    const merged = new Map();
+    probs.forEach((p, i) => {
+      const label = labels[i];
+      merged.set(label, (merged.get(label) ?? 0) + p);
+    });
+    const ranked = [...merged.entries()]
+      .map(([label, p]) => ({ label, p }))
       .sort((a, b) => b.p - a.p);
     return {
       label:      ranked[0].label,
@@ -46,8 +62,8 @@ export function useClassifier() {
       const res = await fetch(`${labelsPath}?t=${Date.now()}`);
       if (!res.ok) return null;
       const meta = await res.json();
-      const labels = meta.labels;
-      if (!labels?.length) return null;
+      const labels = cleanLabels(meta.labels ?? []);
+      if (!labels.length) return null;
 
       if (!tfRef.current) tfRef.current = await import('@tensorflow/tfjs');
       const tf = tfRef.current;
