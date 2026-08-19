@@ -60,8 +60,8 @@ Organizat pe priorități, nu pe faze cronologice — unele lucruri se pot face 
 - [x] Scaffold: `src/lib/supabase.js`, `.env.example`, `supabase/schema.sql` (RLS)
 - [x] UI Profil (login/register) + Clasament (live când e configurat)
 - [x] Sync progres cu merge max(XP/stele) — `useProgressSync.js`
-- [ ] Proiect Supabase live + chei (decizie echipă / GDPR)
-- [ ] Sync automat la fiecare lecție (acum e buton manual pe Profil)
+- [x] Proiect Supabase live (`signa`, EU) + sync automat după lecție și la login
+- [ ] Deploy public Vercel (pauză: Hobby + colaborare pe repo privat)
 
 ---
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import HomePage from './pages/HomePage.jsx';
 import CameraPage from './pages/CameraPage.jsx';
 import CollectPage from './pages/CollectPage.jsx';
@@ -11,14 +11,42 @@ import DiagnosticPage from './pages/DiagnosticPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 import LeaderboardPage from './pages/LeaderboardPage.jsx';
 import Onboarding from './components/Onboarding.jsx';
+import AuthGate from './components/auth/AuthGate.jsx';
 import { LESSONS } from './data/lessons.js';
 import { useProgress } from './hooks/useProgress.js';
+import { isSupabaseConfigured, supabase } from './lib/supabase.js';
 
 export default function App() {
   const [page, setPage] = useState('home');
   const [lessonId, setLessonId] = useState(null);
   const [reviewLesson, setReviewLesson] = useState(null);
   const { onboardingDone, finishOnboarding } = useProgress();
+
+  const [user, setUser] = useState(undefined);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured || !supabase) {
+      setUser(null);
+      return undefined;
+    }
+    supabase.auth.getUser().then(({ data }) => setUser(data.user ?? null));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  if (user === undefined) {
+    return (
+      <div className="h-full bg-cream flex items-center justify-center">
+        <div className="w-7 h-7 rounded-full border-2 border-ink-900/10 border-t-signa-500 animate-spin" />
+      </div>
+    );
+  }
+
+  if (isSupabaseConfigured && !user) {
+    return <AuthGate onAuth={() => {}} />;
+  }
 
   if (!onboardingDone) {
     return <Onboarding onDone={finishOnboarding} />;
