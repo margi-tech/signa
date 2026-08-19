@@ -79,3 +79,12 @@ export async function isUsernameTaken(username, exceptUserId = null) {
   }
   return Boolean(data);
 }
+
+/** Link de resetare parolă — necesită redirect URL configurat în Supabase. */
+export async function requestPasswordReset(email) {
+  if (!supabase) throw new Error('Supabase nu e configurat.');
+  const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+    redirectTo: window.location.origin,
+  });
+  if (error) throw error;
+}
