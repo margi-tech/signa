@@ -15,10 +15,27 @@ import {
   AuthField,
   AuthInput,
   AuthTabs,
+  MailIcon,
+  OrSeparator,
   PasswordInput,
   PasswordStrength,
   PrimaryButton,
+  SocialButtons,
 } from './AuthUi';
+
+/** OAuth e opțional — se afișează doar dacă providerii sunt configurați în Supabase. */
+const OAUTH_ENABLED = import.meta.env.VITE_ENABLE_OAUTH === 'true';
+
+const HEADINGS = {
+  login: {
+    title: 'Bine ai revenit',
+    subtitle: 'Continuă de unde ai rămas cu lecțiile tale.',
+  },
+  signup: {
+    title: 'Creează-ți contul',
+    subtitle: 'Începe să înveți Limba Semnelor Române azi.',
+  },
+};
 
 /**
  * Panou autentificare: login, signup, reset parolă.
@@ -69,12 +86,19 @@ export default function AuthPanel({ mode, onModeChange, busy, onBusy, onMessage,
     return Object.keys(errs).length === 0;
   };
 
+  const signInWithProvider = (provider) => run(async () => {
+    const { error } = await supabase.auth.signInWithOAuth({ provider });
+    if (error) throw error;
+  });
+
   if (mode === 'forgot') {
     return (
-      <div className="p-5 space-y-4">
+      <div className="space-y-5">
         <div>
-          <p className="text-ink-900 font-bold">Resetează parola</p>
-          <p className="text-ink-500 text-sm mt-1 leading-relaxed">
+          <h2 className="text-[29px] font-black text-ink-900 tracking-[-.02em] leading-tight">
+            Resetează parola
+          </h2>
+          <p className="text-ink-500 text-[14.5px] mt-1.5 leading-relaxed">
             Primești un link pe email dacă există un cont cu adresa introdusă.
           </p>
         </div>
@@ -86,6 +110,7 @@ export default function AuthPanel({ mode, onModeChange, busy, onBusy, onMessage,
             placeholder="nume@gmail.com"
             autoComplete="email"
             error={fieldErrors.email}
+            icon={<MailIcon />}
           />
         </AuthField>
         <PrimaryButton
@@ -108,7 +133,7 @@ export default function AuthPanel({ mode, onModeChange, busy, onBusy, onMessage,
         <button
           type="button"
           onClick={() => { onModeChange('login'); onMessage(null); }}
-          className="text-sm text-ink-500 hover:text-ink-900 font-medium"
+          className="text-sm text-ink-500 hover:text-ink-900 font-semibold"
         >
           ← Înapoi
         </button>
@@ -116,80 +141,91 @@ export default function AuthPanel({ mode, onModeChange, busy, onBusy, onMessage,
     );
   }
 
+  const heading = HEADINGS[mode] ?? HEADINGS.login;
+
   return (
-    <div className="p-5 space-y-4">
+    <div className="space-y-5">
       <AuthTabs mode={mode} onChange={onModeChange} disabled={busy} />
 
-      {mode === 'signup' && (
-        <div className="grid grid-cols-2 gap-3">
-          <AuthField label="Prenume" error={fieldErrors.firstName}>
-            <AuthInput
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              placeholder="Maria"
-              autoComplete="given-name"
-              error={fieldErrors.firstName}
-            />
-          </AuthField>
-          <AuthField label="Nume" error={fieldErrors.lastName}>
-            <AuthInput
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              placeholder="Popescu"
-              autoComplete="family-name"
-              error={fieldErrors.lastName}
-            />
-          </AuthField>
-        </div>
-      )}
-
-      {mode === 'signup' && (
-        <AuthField
-          label="Username"
-          hint="3–20 caractere, litere, cifre, punct sau underscore"
-          error={fieldErrors.username}
-        >
-          <AuthInput
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="maria.pop"
-            autoComplete="username"
-            error={fieldErrors.username}
-          />
-        </AuthField>
-      )}
-
-      <AuthField label="Email" error={fieldErrors.email}>
-        <AuthInput
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="nume@gmail.com"
-          autoComplete="email"
-          error={fieldErrors.email}
-        />
-      </AuthField>
-
-      <div className="space-y-1">
-        <PasswordInput
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="••••••••"
-          autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-          error={fieldErrors.password}
-        />
-        {mode === 'signup' && <PasswordStrength password={password} />}
+      <div>
+        <h2 className="text-[29px] font-black text-ink-900 tracking-[-.02em] leading-tight">
+          {heading.title}
+        </h2>
+        <p className="text-ink-500 text-[14.5px] mt-1.5 leading-relaxed">{heading.subtitle}</p>
       </div>
 
-      {mode === 'login' && (
-        <button
-          type="button"
-          onClick={() => { onModeChange('forgot'); onMessage(null); }}
-          className="text-sm text-ink-500 hover:text-ink-900 font-medium"
-        >
-          Ai uitat parola?
-        </button>
-      )}
+      <div className="space-y-4">
+        {mode === 'signup' && (
+          <div className="grid grid-cols-2 gap-3">
+            <AuthField label="Prenume" error={fieldErrors.firstName}>
+              <AuthInput
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="Maria"
+                autoComplete="given-name"
+                error={fieldErrors.firstName}
+              />
+            </AuthField>
+            <AuthField label="Nume" error={fieldErrors.lastName}>
+              <AuthInput
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="Popescu"
+                autoComplete="family-name"
+                error={fieldErrors.lastName}
+              />
+            </AuthField>
+          </div>
+        )}
+
+        {mode === 'signup' && (
+          <AuthField
+            label="Username"
+            hint="3–20 caractere, litere, cifre, punct sau underscore"
+            error={fieldErrors.username}
+          >
+            <AuthInput
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="maria.pop"
+              autoComplete="username"
+              error={fieldErrors.username}
+            />
+          </AuthField>
+        )}
+
+        <AuthField label="Email" error={fieldErrors.email}>
+          <AuthInput
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="nume@gmail.com"
+            autoComplete="email"
+            error={fieldErrors.email}
+            icon={<MailIcon />}
+          />
+        </AuthField>
+
+        <div className="space-y-1">
+          <PasswordInput
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+            autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+            error={fieldErrors.password}
+            action={mode === 'login' ? (
+              <button
+                type="button"
+                onClick={() => { onModeChange('forgot'); onMessage(null); }}
+                className="text-[12.5px] font-bold text-signa-600 hover:text-signa-500 transition-colors"
+              >
+                Ai uitat parola?
+              </button>
+            ) : null}
+          />
+          {mode === 'signup' && <PasswordStrength password={password} />}
+        </div>
+      </div>
 
       {mode === 'login' ? (
         <PrimaryButton
@@ -241,6 +277,26 @@ export default function AuthPanel({ mode, onModeChange, busy, onBusy, onMessage,
         >
           {busy ? 'Se creează…' : 'Creează cont'}
         </PrimaryButton>
+      )}
+
+      {OAUTH_ENABLED && (
+        <div className="space-y-4">
+          <OrSeparator />
+          <SocialButtons onProvider={signInWithProvider} disabled={busy} />
+        </div>
+      )}
+
+      {mode === 'login' && (
+        <p className="text-center text-[13.5px] text-ink-500">
+          Nu ai cont?{' '}
+          <button
+            type="button"
+            onClick={() => { onModeChange('signup'); onMessage(null); }}
+            className="font-bold text-signa-600 hover:text-signa-500 transition-colors"
+          >
+            Creează unul gratuit
+          </button>
+        </p>
       )}
     </div>
   );
