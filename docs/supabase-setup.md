@@ -14,10 +14,10 @@ Deploy-ul public (Vercel) poate fi blocat pe planul Hobby când autorul commitul
 
 1. Creează un proiect pe [supabase.com](https://supabase.com) — alege **EU** (GDPR).
 2. **Authentication → Providers → Email**: signup activ. Parolă minim 8 caractere.
-3. Până la demo: **Confirm email = OFF** (Authentication → Providers → Email → Confirm email), ca echipa să intre imediat.
-4. **Authentication → URL Configuration**
-   - Site URL: `http://localhost:5173`
-   - Redirect URLs: `http://localhost:5173/**` și, după deploy, `https://<proiectul-tau>.vercel.app/**`
+3. **Confirm email = OFF.** Ține-l oprit. SMTP-ul default Supabase permite ~2 emailuri/oră **pe tot proiectul**, deci cu el pornit nimeni nu își mai poate face cont. Simptom: API-ul întoarce `over_email_send_rate_limit`, dar UI-ul poate afișa înșelător „Folosește un email valid”. Reactivarea are sens doar împreună cu un SMTP propriu care poate livra către toți membrii echipei.
+4. **Authentication → URL Configuration** (valorile live, aug 2026)
+   - Site URL: `https://signa-flax.vercel.app`
+   - Redirect URLs: `https://signa-flax.vercel.app/**`, `https://signa-*-signa-team.vercel.app/**` (preview-uri per branch) și `http://localhost:5173/**` (dev)
 
 ## 2. Schema
 
