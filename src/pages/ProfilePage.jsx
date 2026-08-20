@@ -3,6 +3,7 @@ import {
   getOwnProfile,
   isSupabaseConfigured,
   supabase,
+  uploadAvatar,
 } from '../lib/supabase';
 import { useProgress } from '../hooks/useProgress';
 import { pullAndMergeProgress, pushProgress } from '../hooks/useProgressSync';
@@ -15,12 +16,13 @@ import { MessageBanner, SectionCard } from '../components/auth/AuthUi';
  * Fără chei: arată starea locală (XP, streak) și instrucțiuni.
  */
 export default function ProfilePage({ onBack }) {
-  const { xp, streak, level, persist, syncNow } = useProgress();
+  const { xp, streak, level, completedLessonsCount, totalLessonsCount, persist, syncNow } = useProgress();
   const [authMode, setAuthMode] = useState('login');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [username, setUsername] = useState('');
   const [visibility, setVisibility] = useState('public');
+  const [avatarUrl, setAvatarUrl] = useState(null);
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [banner, setBanner] = useState(null);
@@ -47,6 +49,7 @@ export default function ProfilePage({ onBack }) {
     if (!user) {
       setVisibility('public');
       setProfile(null);
+      setAvatarUrl(null);
       return undefined;
     }
     let cancelled = false;
@@ -58,6 +61,7 @@ export default function ProfilePage({ onBack }) {
         setLastName(p.last_name ?? '');
         setUsername(p.username ?? '');
         setVisibility(p.visibility === 'private' ? 'private' : 'public');
+        setAvatarUrl(p.avatar_url ?? null);
       })
       .catch(() => {});
     return () => { cancelled = true; };
@@ -110,10 +114,17 @@ export default function ProfilePage({ onBack }) {
             xp={xp}
             streak={streak}
             level={level}
+            completedLessonsCount={completedLessonsCount}
+            totalLessonsCount={totalLessonsCount}
             firstName={firstName}
             lastName={lastName}
             username={username}
             visibility={visibility}
+            avatarUrl={avatarUrl}
+            onAvatarChange={async (file) => {
+              const url = await uploadAvatar(file);
+              setAvatarUrl(url);
+            }}
             onFirstName={setFirstName}
             onLastName={setLastName}
             onUsername={setUsername}

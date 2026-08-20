@@ -35,10 +35,14 @@ export default function ProfileDashboard({
   xp,
   streak,
   level,
+  completedLessonsCount = 0,
+  totalLessonsCount = 0,
   firstName,
   lastName,
   username,
   visibility,
+  avatarUrl,
+  onAvatarChange,
   onFirstName,
   onLastName,
   onUsername,
@@ -69,7 +73,29 @@ export default function ProfileDashboard({
     <div className="space-y-3">
       <SectionCard className="p-4">
         <div className="flex items-center gap-3">
-          <AvatarBadge firstName={firstName} lastName={lastName} username={username} />
+          <label className="relative flex-shrink-0 cursor-pointer group">
+            <AvatarBadge firstName={firstName} lastName={lastName} username={username} avatarUrl={avatarUrl} />
+            <span className="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+              <span className="opacity-0 group-hover:opacity-100 text-white text-[9px] font-bold uppercase tracking-wide">
+                Schimbă
+              </span>
+            </span>
+            <input
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              disabled={busy || !onAvatarChange}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                e.target.value = '';
+                if (!file || !onAvatarChange) return;
+                run(async () => {
+                  await onAvatarChange(file);
+                  onMessage({ tone: 'success', text: 'Poză de profil actualizată.' });
+                });
+              }}
+            />
+          </label>
           <div className="flex-1 min-w-0">
             <p className="text-ink-900 font-bold truncate">{displayName}</p>
             {username && <p className="text-ink-500 text-sm truncate">@{username}</p>}
@@ -83,6 +109,11 @@ export default function ProfileDashboard({
           {streak > 0 && (
             <span className="bg-amber-50 text-amber-700 rounded-full px-2.5 py-1 text-[11px] font-bold">
               {streak} zile
+            </span>
+          )}
+          {totalLessonsCount > 0 && (
+            <span className="bg-cream-100 text-ink-600 rounded-full px-2.5 py-1 text-[11px] font-bold tabular-nums">
+              {completedLessonsCount}/{totalLessonsCount} lecții
             </span>
           )}
           <span className="text-ink-400 text-[11px] font-medium">

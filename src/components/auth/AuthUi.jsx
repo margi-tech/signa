@@ -288,7 +288,7 @@ export function SecondaryButton({ children, disabled, onClick, variant = 'defaul
   );
 }
 
-export function AvatarBadge({ firstName, lastName, username, size = 'lg' }) {
+export function AvatarBadge({ firstName, lastName, username, avatarUrl, size = 'lg' }) {
   const initials = [firstName, lastName]
     .map((s) => (s || '').trim()[0])
     .filter(Boolean)
@@ -296,6 +296,15 @@ export function AvatarBadge({ firstName, lastName, username, size = 'lg' }) {
     .toUpperCase()
     .slice(0, 2) || (username || '?')[0].toUpperCase();
   const dim = size === 'lg' ? 'w-14 h-14 text-lg' : 'w-9 h-9 text-xs';
+  if (avatarUrl) {
+    return (
+      <img
+        src={avatarUrl}
+        alt=""
+        className={`${dim} rounded-full object-cover flex-shrink-0 bg-signa-100`}
+      />
+    );
+  }
   return (
     <div
       className={`${dim} rounded-full bg-signa-500 text-white font-bold flex items-center justify-center flex-shrink-0`}

@@ -223,6 +223,13 @@ function useProgressState() {
   const xpIntoLevel = progress.xp - xpForLevel(level);
   const xpNeeded = xpForLevel(level + 1) - xpForLevel(level);
 
+  // Lecții cu cel puțin o stea — pentru „nr. de lecții realizate” din profil.
+  const completedLessonsCount = useMemo(
+      () => Object.values(progress.lessons).filter((l) => (l?.stars ?? 0) > 0).length,
+      [progress.lessons]
+  );
+  const totalLessonsCount = LESSONS.length;
+
   return {
     xp: progress.xp,
     streak: progress.streak,
@@ -233,6 +240,8 @@ function useProgressState() {
     xpIntoLevel,
     xpNeeded,
     letterMastery: progress.letterMastery,
+    completedLessonsCount,
+    totalLessonsCount,
     reviewLetters,
     starsFor,
     isUnlocked,
