@@ -9,6 +9,7 @@ import {
   validateEmail,
   validateName,
   validatePassword,
+  validatePasswordConfirm,
   validateUsername,
 } from '../../utils/username';
 import {
@@ -69,6 +70,7 @@ export default function AuthPanel({ mode, onModeChange, busy, onBusy, onMessage,
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [username, setUsername] = useState('');
+  const [passwordConfirm, setPasswordConfirm] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
 
   const run = async (fn) => {
@@ -105,6 +107,8 @@ export default function AuthPanel({ mode, onModeChange, busy, onBusy, onMessage,
     if (emailErr) errs.email = emailErr;
     const passErr = validatePassword(password);
     if (passErr) errs.password = passErr;
+    const confirmErr = validatePasswordConfirm(password, passwordConfirm);
+    if (confirmErr) errs.passwordConfirm = confirmErr;
     setFieldErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -249,6 +253,18 @@ export default function AuthPanel({ mode, onModeChange, busy, onBusy, onMessage,
           />
           {mode === 'signup' && <PasswordStrength password={password} />}
         </div>
+
+        {/* Confirmarea parolei există doar la signup — la login n-are sens. */}
+        <Collapsible open={mode === 'signup'} maxHeight={96}>
+          <PasswordInput
+            label="Confirmă parola"
+            value={passwordConfirm}
+            onChange={(e) => setPasswordConfirm(e.target.value)}
+            placeholder="••••••••"
+            autoComplete="new-password"
+            error={fieldErrors.passwordConfirm}
+          />
+        </Collapsible>
       </div>
 
       {mode === 'login' ? (

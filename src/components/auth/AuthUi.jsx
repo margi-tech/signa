@@ -90,11 +90,11 @@ export function AuthInput({ className = '', error, icon, ...props }) {
 }
 
 export function PasswordInput({
-  value, onChange, placeholder, autoComplete, error, hint, action,
+  value, onChange, placeholder, autoComplete, error, hint, action, label = 'Parolă',
 }) {
   const [show, setShow] = useState(false);
   return (
-    <AuthField label="Parolă" hint={hint} error={error} action={action}>
+    <AuthField label={label} hint={hint} error={error} action={action}>
       <div className="relative">
         <AuthInput
           type={show ? 'text' : 'password'}

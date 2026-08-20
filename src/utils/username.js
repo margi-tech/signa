@@ -24,10 +24,28 @@ export function validateUsername(raw) {
   return null;
 }
 
+/**
+ * Ticket-ul cere minim 5 caractere + cel puțin o cifră. Păstrăm 8 (mai strict,
+ * și cât cere oricum Supabase Auth), plus verificarea de cifră.
+ */
 export function validatePassword(raw) {
   const password = String(raw ?? '');
   if (password.length < 8) {
     return 'Parola trebuie să aibă minim 8 caractere.';
+  }
+  if (!/\d/.test(password)) {
+    return 'Parola trebuie să conțină cel puțin o cifră.';
+  }
+  return null;
+}
+
+/** Confirmarea parolei la signup — trebuie să fie identică. */
+export function validatePasswordConfirm(password, confirm) {
+  if (!String(confirm ?? '')) {
+    return 'Confirmă parola.';
+  }
+  if (String(password ?? '') !== String(confirm)) {
+    return 'Parolele nu coincid.';
   }
   return null;
 }
