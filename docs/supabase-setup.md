@@ -58,6 +58,8 @@ where username = 'davidutz';
 
 ## 5b. Bucket „avatars" (poze de profil, US #23)
 
+⚠️ **Verifică întâi că ești în proiectul corect.** Aplicația folosește `sdwbgooayrtjlnhqxcja` (proiectul **`signa`**), nu alt proiect din organizație. Bucket-ul creat în alt proiect nu ajută cu nimic — aplicația dă „Bucket not found" la upload, fără niciun indiciu că proiectul e de vină. Link direct: [Storage în proiectul signa](https://supabase.com/dashboard/project/sdwbgooayrtjlnhqxcja/storage/buckets).
+
 1. Storage → **New bucket** → nume `avatars`, **Public bucket: ON** (pozele de profil sunt publice, la fel ca restul profilului `visibility=public`).
 2. SQL Editor → rulează `supabase/storage-avatars.sql` — policy-urile RLS (citire publică, scriere doar în propriul folder `{user_id}/...`).
 3. Verificare: Profil → click pe avatar → alege o imagine → apare imediat, sub 2 MB.

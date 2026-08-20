@@ -73,13 +73,23 @@ export default function ProfileDashboard({
     <div className="space-y-3">
       <SectionCard className="p-4">
         <div className="flex items-center gap-3">
-          <label className="relative flex-shrink-0 cursor-pointer group">
+          <label
+            className="relative flex-shrink-0 cursor-pointer group"
+            title="Schimbă poza de profil"
+          >
             <AvatarBadge firstName={firstName} lastName={lastName} username={username} avatarUrl={avatarUrl} />
-            <span className="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
-              <span className="opacity-0 group-hover:opacity-100 text-white text-[9px] font-bold uppercase tracking-wide">
-                Schimbă
-              </span>
+            {/* Badge mereu vizibil: pe mobil nu există hover, iar altfel nimic
+                nu sugerează că avatarul se poate schimba. */}
+            <span
+              aria-hidden
+              className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-white shadow-card flex items-center justify-center text-ink-700 group-hover:bg-signa-500 group-hover:text-white transition-colors"
+            >
+              <svg viewBox="0 0 24 24" className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14.5 4h-5L8 6H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-4l-1.5-2Z" />
+                <circle cx="12" cy="12.5" r="3.5" />
+              </svg>
             </span>
+            <span className="sr-only">Schimbă poza de profil</span>
             <input
               type="file"
               accept="image/*"
