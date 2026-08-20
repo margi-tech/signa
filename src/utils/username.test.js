@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validateUsername, validatePassword, validateName, validateEmail } from './username.js';
+import { validateUsername, validatePassword, validatePasswordConfirm, validateName, validateEmail } from './username.js';
 
 describe('validateUsername', () => {
   it('acceptă 3–20 caractere alfanumerice, punct și underscore', () => {
@@ -19,8 +19,32 @@ describe('validateUsername', () => {
 
 describe('validatePassword', () => {
   it('cere minim 8 caractere', () => {
-    expect(validatePassword('short')).toMatch(/minim 8/);
-    expect(validatePassword('abcdefgh')).toBeNull();
+    expect(validatePassword('short1')).toMatch(/minim 8/);
+  });
+
+  // Cerință din US #21: parola trebuie să conțină cel puțin o cifră.
+  it('cere cel puțin o cifră', () => {
+    expect(validatePassword('abcdefgh')).toMatch(/cifr/);
+    expect(validatePassword('parolamea')).toMatch(/cifr/);
+  });
+
+  it('acceptă o parolă lungă cu cifră', () => {
+    expect(validatePassword('abcdefg1')).toBeNull();
+    expect(validatePassword('P4rola.Mea')).toBeNull();
+  });
+});
+
+describe('validatePasswordConfirm', () => {
+  it('cere confirmarea', () => {
+    expect(validatePasswordConfirm('abcdefg1', '')).toMatch(/Confirmă/);
+  });
+
+  it('respinge parole diferite', () => {
+    expect(validatePasswordConfirm('abcdefg1', 'abcdefg2')).toMatch(/nu coincid/);
+  });
+
+  it('acceptă parole identice', () => {
+    expect(validatePasswordConfirm('abcdefg1', 'abcdefg1')).toBeNull();
   });
 });
 
