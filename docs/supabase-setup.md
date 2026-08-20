@@ -56,6 +56,12 @@ set role = 'admin', visibility = 'public'
 where username = 'davidutz';
 ```
 
+## 5b. Bucket „avatars" (poze de profil, US #23)
+
+1. Storage → **New bucket** → nume `avatars`, **Public bucket: ON** (pozele de profil sunt publice, la fel ca restul profilului `visibility=public`).
+2. SQL Editor → rulează `supabase/storage-avatars.sql` — policy-urile RLS (citire publică, scriere doar în propriul folder `{user_id}/...`).
+3. Verificare: Profil → click pe avatar → alege o imagine → apare imediat, sub 2 MB.
+
 ## 6. Invită echipa
 
 Project Settings → **Team** / **Members** → Invite pe email (rol Developer e suficient).
