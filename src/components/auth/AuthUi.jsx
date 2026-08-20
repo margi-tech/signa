@@ -1,6 +1,48 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 /** Piese UI pentru Auth + Profil — aliniate la HomePage / LeaderboardPage. */
+
+/**
+ * Buton generic cu ripple la apăsare (poziționat din coordonatele pointerului)
+ * și micro-feedback `active:scale`. Randează un `<button>` — restul props-urilor
+ * (onClick, disabled, className, children, type...) trec direct prin.
+ */
+export function RippleButton({ className = '', onPointerDown, children, ...props }) {
+  const ref = useRef(null);
+
+  const spawnRipple = (e) => {
+    const el = ref.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const span = document.createElement('span');
+    const size = Math.max(rect.width, rect.height) * 1.4;
+    span.style.position = 'absolute';
+    span.style.left = `${e.clientX - rect.left - size / 2}px`;
+    span.style.top = `${e.clientY - rect.top - size / 2}px`;
+    span.style.width = `${size}px`;
+    span.style.height = `${size}px`;
+    span.style.borderRadius = '9999px';
+    span.style.background = 'currentColor';
+    span.style.pointerEvents = 'none';
+    span.style.animation = 'sg-ripple .62s cubic-bezier(.22,1,.36,1) forwards';
+    el.appendChild(span);
+    setTimeout(() => span.remove(), 640);
+  };
+
+  return (
+    <button
+      ref={ref}
+      className={`relative overflow-hidden active:scale-[.96] transition-transform duration-150 ${className}`}
+      onPointerDown={(e) => {
+        spawnRipple(e);
+        onPointerDown?.(e);
+      }}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
 
 export function MessageBanner({ tone = 'info', children }) {
   const styles = {
