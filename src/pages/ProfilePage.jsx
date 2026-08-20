@@ -16,7 +16,10 @@ import { MessageBanner, SectionCard } from '../components/auth/AuthUi';
  * Fără chei: arată starea locală (XP, streak) și instrucțiuni.
  */
 export default function ProfilePage({ onBack }) {
-  const { xp, streak, level, completedLessonsCount, totalLessonsCount, persist, syncNow } = useProgress();
+  const {
+    xp, streak, level, xpIntoLevel, xpNeeded,
+    completedLessonsCount, totalLessonsCount, persist, syncNow,
+  } = useProgress();
   const [authMode, setAuthMode] = useState('login');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -78,13 +81,16 @@ export default function ProfilePage({ onBack }) {
   return (
     <div className="h-full bg-cream flex flex-col overflow-hidden">
       <div className="h-[3px] bg-gradient-to-r from-signa-400 via-signa-500/40 to-transparent flex-shrink-0" />
-      <header className="flex items-center justify-between px-5 py-4 flex-shrink-0">
+      <header className="w-full max-w-lg mx-auto flex items-center justify-between px-5 py-4 flex-shrink-0">
         <button onClick={onBack} className="text-ink-500 hover:text-ink-900 text-sm font-medium">← Înapoi</button>
         <h1 className="text-ink-900 font-bold tracking-[0.18em] text-sm">PROFIL</h1>
         <div className="w-16" />
       </header>
 
-      <div className="flex-1 overflow-y-auto px-5 pb-10 space-y-3 scrollbar-hide">
+      {/* max-w-lg: pe telefon e lățimea ecranului, pe desktop cardurile
+          rămân citibile în loc să se întindă pe tot monitorul. */}
+      <div className="flex-1 overflow-y-auto scrollbar-hide">
+        <div className="w-full max-w-lg mx-auto px-5 pb-10 space-y-3">
         {!user && (
           <div className="bg-signa-50 rounded-2xl p-4 border border-signa-200/60">
             <p className="text-signa-700 text-xs font-bold uppercase tracking-wider mb-1">Progres local</p>
@@ -116,6 +122,8 @@ export default function ProfilePage({ onBack }) {
             level={level}
             completedLessonsCount={completedLessonsCount}
             totalLessonsCount={totalLessonsCount}
+            xpIntoLevel={xpIntoLevel}
+            xpNeeded={xpNeeded}
             firstName={firstName}
             lastName={lastName}
             username={username}
@@ -160,6 +168,7 @@ export default function ProfilePage({ onBack }) {
             </SectionCard>
           </>
         )}
+        </div>
       </div>
     </div>
   );

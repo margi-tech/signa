@@ -26,6 +26,21 @@ function formatMemberSince(iso) {
   }
 }
 
+/** Un indicator din rândul de statistici — cifra mare, eticheta mică dedesubt. */
+function StatTile({ value, label, tone = 'neutral' }) {
+  const tones = {
+    neutral: 'bg-cream-100 text-ink-900',
+    amber: 'bg-amber-50 text-amber-700',
+    signa: 'bg-signa-50 text-signa-700',
+  };
+  return (
+    <div className={`rounded-xl px-2 py-2.5 text-center ${tones[tone]}`}>
+      <p className="font-black text-[15px] leading-none tabular-nums">{value}</p>
+      <p className="text-[10px] font-bold uppercase tracking-wide opacity-60 mt-1">{label}</p>
+    </div>
+  );
+}
+
 /**
  * Profil conectat: identitate, setări, sync, logout.
  */
@@ -37,6 +52,8 @@ export default function ProfileDashboard({
   level,
   completedLessonsCount = 0,
   totalLessonsCount = 0,
+  xpIntoLevel = 0,
+  xpNeeded = 0,
   firstName,
   lastName,
   username,
@@ -54,6 +71,7 @@ export default function ProfileDashboard({
   onSignOut,
 }) {
   const memberSince = formatMemberSince(profile?.created_at);
+  const levelPct = xpNeeded > 0 ? Math.min(xpIntoLevel / xpNeeded, 1) : 0;
   const isAdmin = profile?.role === 'admin';
   const displayName = [firstName, lastName].filter(Boolean).join(' ') || username || 'Jucător';
 
@@ -71,8 +89,8 @@ export default function ProfileDashboard({
 
   return (
     <div className="space-y-3">
-      <SectionCard className="p-4">
-        <div className="flex items-center gap-3">
+      <SectionCard className="p-5">
+        <div className="flex items-start gap-4">
           <label
             className="relative flex-shrink-0 cursor-pointer group"
             title="Schimbă poza de profil"
@@ -106,34 +124,58 @@ export default function ProfileDashboard({
               }}
             />
           </label>
+
           <div className="flex-1 min-w-0">
-            <p className="text-ink-900 font-bold truncate">{displayName}</p>
+            <p className="text-ink-900 font-black text-[17px] leading-tight truncate">{displayName}</p>
             {username && <p className="text-ink-500 text-sm truncate">@{username}</p>}
             <p className="text-ink-400 text-xs truncate mt-0.5">{user.email}</p>
           </div>
+
         </div>
-        <div className="flex flex-wrap items-center gap-2 mt-3">
-          <span className="bg-cream-100 text-ink-600 rounded-full px-2.5 py-1 text-[11px] font-bold tabular-nums">
-            Nv. {level} · {xp} XP
-          </span>
-          {streak > 0 && (
-            <span className="bg-amber-50 text-amber-700 rounded-full px-2.5 py-1 text-[11px] font-bold">
-              {streak} zile
+
+        {/* Progresul spre nivelul următor — aceeași bară ca pe ecranul principal. */}
+        <div className="mt-4">
+          <div className="flex items-baseline justify-between">
+            <span className="text-ink-700 text-xs font-bold">Nivel {level}</span>
+            <span className="text-ink-400 text-[11px] font-bold tabular-nums">
+              {xpNeeded > 0 ? `${xpIntoLevel}/${xpNeeded} XP` : `${xp} XP`}
             </span>
-          )}
-          {totalLessonsCount > 0 && (
-            <span className="bg-cream-100 text-ink-600 rounded-full px-2.5 py-1 text-[11px] font-bold tabular-nums">
-              {completedLessonsCount}/{totalLessonsCount} lecții
-            </span>
-          )}
-          <span className="text-ink-400 text-[11px] font-medium">
+          </div>
+          <div className="h-1.5 bg-ink-900/[0.06] rounded-full overflow-hidden mt-1.5">
+            <div
+              className="h-full bg-signa-500 rounded-full transition-all duration-500"
+              style={{ width: `${levelPct * 100}%` }}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2 mt-4">
+          <StatTile value={xp} label="XP total" tone="signa" />
+          <StatTile value={streak > 0 ? `${streak} 🔥` : '—'} label="Zile la rând" tone={streak > 0 ? 'amber' : 'neutral'} />
+          <StatTile
+            value={totalLessonsCount > 0 ? `${completedLessonsCount}/${totalLessonsCount}` : completedLessonsCount}
+            label="Lecții"
+          />
+        </div>
+
+        {/* Vizibilitatea stă jos, nu lângă nume: pe telefon îi mânca lățimea
+            și numele ieșea trunchiat. */}
+        <div className="flex items-center justify-between gap-3 mt-3.5">
+          <p className="text-ink-400 text-xs">
+            {memberSince ? `Membru din ${memberSince}` : ''}
+          </p>
+          <span
+            className={`flex-shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+              visibility === 'public'
+                ? 'bg-signa-50 text-signa-700'
+                : 'bg-cream-100 text-ink-500'
+            }`}
+            title={visibility === 'public' ? 'Apari în clasament' : 'Profil ascuns din clasament'}
+          >
             {visibility === 'public' ? 'Public' : 'Privat'}
             {isAdmin ? ' · Admin' : ''}
           </span>
         </div>
-        {memberSince && (
-          <p className="text-ink-400 text-xs mt-2">Membru din {memberSince}</p>
-        )}
       </SectionCard>
 
       <SectionCard className="p-5 space-y-4">
