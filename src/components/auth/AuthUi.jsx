@@ -67,16 +67,16 @@ export function AuthField({ label, hint, error, action, children }) {
 }
 
 const inputBase =
-  'w-full bg-white border rounded-2xl text-[15px] font-semibold text-ink-900 placeholder:text-ink-400 '
-  + 'placeholder:font-medium focus:outline-none focus:border-signa-500 focus:ring-4 focus:ring-signa-500/[0.14] '
-  + 'focus:-translate-y-px transition-[border-color,box-shadow,transform] duration-[180ms] ease-out';
+  'w-full border rounded-2xl text-[15px] font-semibold text-ink-900 placeholder:text-ink-400 '
+  + 'placeholder:font-medium outline-none transition-[border-color,box-shadow,background] duration-[180ms] ease-out '
+  + 'bg-[#FDFCF9] hover:bg-white focus:bg-white focus:border-signa-500 focus:ring-4 focus:ring-signa-500/[0.13]';
 
 /** `icon` opțional — fără el, padding-ul rămâne cel clasic (folosit în Profil). */
 export function AuthInput({ className = '', error, icon, ...props }) {
   const pad = icon ? 'py-4 md:py-[15px] pl-[46px] pr-4' : 'py-4 md:py-[15px] px-4';
   const border = error
     ? 'border-red-300'
-    : 'border-[rgba(46,42,36,.10)] hover:border-[rgba(46,42,36,.18)]';
+    : 'border-ink-900/[.09] hover:border-ink-900/[.16]';
   const field = <input className={`${inputBase} ${pad} ${border} ${className}`} {...props} />;
   if (!icon) return field;
   return (
@@ -338,15 +338,17 @@ export function SettingsSwitch({ checked, onChange, disabled, label, description
         aria-label={label}
         disabled={disabled}
         onClick={() => onChange(!checked)}
-        className={`relative h-8 w-[3.25rem] flex-shrink-0 rounded-full p-0.5 transition-colors duration-200 disabled:opacity-50 ${
-          checked ? 'bg-signa-500' : 'bg-ink-900/12'
+        className={`relative h-7 w-12 flex-shrink-0 rounded-full shadow-[inset_0_1px_3px_rgba(0,0,0,.12)] transition-colors duration-200 disabled:opacity-50 ${
+          checked ? 'bg-signa-500' : 'bg-ink-900/15'
         }`}
       >
         <span
           aria-hidden
-          className={`block h-7 w-7 rounded-full bg-white shadow-[0_1px_3px_rgba(46,42,36,0.18)] transition-transform duration-200 ease-out ${
-            checked ? 'translate-x-[1.25rem]' : 'translate-x-0'
-          }`}
+          className="absolute top-[3px] block h-[22px] w-[22px] rounded-full bg-white shadow-[0_2px_5px_rgba(0,0,0,.2)]"
+          style={{
+            left: checked ? '23px' : '3px',
+            transition: 'left .2s cubic-bezier(.3,1.4,.5,1)',
+          }}
         />
       </button>
     </div>
