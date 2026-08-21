@@ -132,6 +132,37 @@ body {
 .sg-underline   { transform-origin: left; animation: sg-underline .9s cubic-bezier(.22,1,.36,1) 1s both; }
 .sg-topbar      { background-size: 200% 100%; animation: sg-topbar 9s linear infinite; }
 
+/* ── Animații ecran Acasă ─────────────────────────────────────────── */
+@keyframes sg-fade-in  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes sg-scale-in { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: scale(1); } }
+@keyframes sg-pop {
+  0%   { opacity: 0; transform: scale(.7);   }
+  60%  {              transform: scale(1.06); }
+  100% { opacity: 1; transform: scale(1);    }
+}
+@keyframes sg-flame {
+  0%, 100% { transform: scale(1)    rotate(-3deg); }
+  50%      { transform: scale(1.18) rotate(5deg);  }
+}
+/* Inelul obiectivului se „desenează”; ținta vine din --sg-ring-to,
+   ca să meargă și la progres parțial, nu doar la cerc plin. */
+@keyframes sg-ring-draw {
+  from { stroke-dashoffset: 214; }
+  to   { stroke-dashoffset: var(--sg-ring-to, 0); }
+}
+@keyframes sg-ring-glow {
+  0%, 100% { opacity: .28; transform: scale(1);   }
+  50%      { opacity: .55; transform: scale(1.1); }
+}
+/* Chip-urile lecției: pistă de lumină secvențială */
+@keyframes sg-chip-cue {
+  0%, 62%, 100% { background-color: rgba(255,255,255,.12); border-color: rgba(255,255,255,.14); transform: translateY(0); }
+  70%           { background-color: rgba(255,255,255,.26); border-color: rgba(255,255,255,.34); transform: translateY(-3px); }
+}
+@keyframes sg-arrow { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(4px); } }
+
+.sg-arrow { animation: sg-arrow 1.8s ease-in-out infinite; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: .001ms !important;
