@@ -102,6 +102,7 @@ export default function App() {
   return (
     <HomePage
       onLessons={() => setPage('lessons')}
+      onOpenLesson={(id) => { setLessonId(id); setReviewLesson(null); setPage('lesson'); }}
       onStart={() => setPage('camera')}
       onCollect={() => setPage('collect')}
       onTrain={() => setPage('train')}
