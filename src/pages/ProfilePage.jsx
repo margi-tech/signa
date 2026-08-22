@@ -9,13 +9,13 @@ import { useProgress } from '../hooks/useProgress';
 import { pullAndMergeProgress, pushProgress } from '../hooks/useProgressSync';
 import AuthPanel from '../components/auth/AuthPanel';
 import ProfileDashboard from '../components/auth/ProfileDashboard';
-import { MessageBanner, RippleButton, SectionCard } from '../components/auth/AuthUi';
+import { MessageBanner, SectionCard } from '../components/auth/AuthUi';
 
 /**
  * Profil / autentificare — funcțional doar cu VITE_SUPABASE_* setate.
  * Fără chei: arată starea locală (XP, streak) și instrucțiuni.
  */
-export default function ProfilePage({ onBack }) {
+export default function ProfilePage() {
   const {
     xp, streak, level, xpIntoLevel, xpNeeded,
     completedLessonsCount, totalLessonsCount, persist, syncNow,
@@ -155,18 +155,8 @@ export default function ProfilePage({ onBack }) {
           pe mobil containerul e lățimea ecranului. */}
       <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto scrollbar-hide relative z-10">
         <div className="max-w-[1180px] mx-auto px-4 pt-4 pb-8 md:px-8 md:pt-6 md:pb-10">
-        <div className="flex items-center justify-between mb-4 md:mb-[22px]">
-          <RippleButton
-            onClick={onBack}
-            className="flex items-center gap-2 rounded-xl border border-ink-900/10 bg-white px-4 py-2 text-[13px] font-bold text-ink-700 transition-[transform,box-shadow] duration-150 hover:-translate-y-px hover:shadow-soft"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="w-[15px] h-[15px]">
-              <path d="M14 6l-6 6 6 6" />
-            </svg>
-            Înapoi
-          </RippleButton>
+        <div className="flex items-center justify-center mb-4 md:mb-[22px]">
           <span className="text-[10.5px] font-extrabold uppercase tracking-[.13em] text-ink-400">Profil</span>
-          <span className="w-[92px]" aria-hidden />
         </div>
 
         <div className="space-y-3">
