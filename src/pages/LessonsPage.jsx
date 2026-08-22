@@ -1,176 +1,206 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { LESSONS, buildChaptersWithLessons } from '../data/lessons';
 import { useProgress } from '../hooks/useProgress';
 
-function BookmarkIcon({ filled }) {
+const EASE = 'cubic-bezier(.22,1,.36,1)';
+
+/* ── Iconițe inline (fără librării) ────────────────────────────── */
+
+const stroke = {
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 2.1,
+  strokeLinecap: 'round',
+  strokeLinejoin: 'round',
+  viewBox: '0 0 24 24',
+  'aria-hidden': true,
+};
+
+const HomeIcon = (p) => <svg {...stroke} {...p}><path d="M3 10.5 12 3.5l9 7" /><path d="M5.5 9.5V20h13V9.5" /></svg>;
+const BookIcon = (p) => <svg {...stroke} {...p}><rect x="3.5" y="4" width="17" height="16" rx="2.5" /><path d="M9 4v16" /></svg>;
+const CamIcon = (p) => <svg {...stroke} {...p}><rect x="2.5" y="6.5" width="13" height="11" rx="2.5" /><path d="m15.5 11.5 6-3v7l-6-3z" /></svg>;
+const ChartIcon = (p) => <svg {...stroke} {...p}><path d="M5 20V12" /><path d="M12 20V5" /><path d="M19 20v-5" /></svg>;
+const UserIcon = (p) => <svg {...stroke} {...p}><circle cx="12" cy="8" r="3.6" /><path d="M5 20c1.4-3.4 4-5 7-5s5.6 1.6 7 5" /></svg>;
+const ChevronIcon = (p) => <svg {...stroke} strokeWidth="2.6" {...p}><path d="M9 6l6 6-6 6" /></svg>;
+
+function LockIcon({ size = 16 }) {
   return (
-      <svg width="16" height="16" viewBox="0 0 24 24"
-           fill={filled ? 'currentColor' : 'none'}
-           stroke="currentColor"
-           strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round">
-        <path d="M6 3.5h12a1 1 0 011 1V21l-7-4-7 4V4.5a1 1 0 011-1z"/>
-      </svg>
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden>
+      <rect x="3" y="7" width="10" height="7" rx="2" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
   );
 }
 
-function Stars({ count }) {
+function BookmarkIcon({ filled, size = 13 }) {
   return (
-      <div className="flex gap-0.5">
-        {[0, 1, 2].map((i) => (
-            <svg key={i} width="14" height="14" viewBox="0 0 24 24"
-                 fill={i < count ? '#f59e0b' : '#EFEAE0'}>
-              <path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.2 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8L12 2z"/>
-            </svg>
+    <svg
+      width={size} height={size} viewBox="0 0 24 24"
+      fill={filled ? 'currentColor' : 'none'}
+      stroke="currentColor" strokeWidth="1.9" strokeLinejoin="round" strokeLinecap="round"
+      aria-hidden
+    >
+      <path d="M6 3.5h12a1 1 0 011 1V21l-7-4-7 4V4.5a1 1 0 011-1z" />
+    </svg>
+  );
+}
+
+function Stars({ count, size = 13 }) {
+  return (
+    <div className="flex gap-0.5">
+      {[0, 1, 2].map((i) => (
+        <svg key={i} width={size} height={size} viewBox="0 0 24 24" fill={i < count ? '#f59e0b' : '#EFEAE0'} aria-hidden>
+          <path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.2 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8L12 2z" />
+        </svg>
+      ))}
+    </div>
+  );
+}
+
+/* ── Constante de prezentare ───────────────────────────────────── */
+
+/** Pastila colorată din dreptul fiecărui capitol, în sidebar. */
+const CHAPTER_COLORS = {
+  ch1: '#10b981',
+  ch2: '#4f46e5',
+  ch3: '#2563eb',
+  ch4: '#b45309',
+  ch5: '#be185d',
+  ch6: '#0d9488',
+  ch7: '#7c3aed',
+  ch8: '#e11d48',
+};
+
+/** Estimare grosieră pentru cât mai durează o lecție: ~2 minute pe literă rămasă. */
+const MINUTES_PER_LETTER = 2;
+
+const FILTERS = [
+  { id: 'all', label: 'Toate' },
+  { id: 'progress', label: 'În curs' },
+  { id: 'fav', label: 'Favorite' },
+];
+
+/** Titlul capitolului fără prefixul numeric („1. Alfabet static” → „Alfabet static”). */
+const stripIndex = (title) => title.replace(/^\d+\.\s*/, '');
+
+/* ── Piese ─────────────────────────────────────────────────────── */
+
+function SideItem({ icon: Icon, label, active, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex items-center gap-[13px] h-12 px-[14px] rounded-[14px] text-[15px] text-left
+        transition-colors duration-200 ease-out
+        ${active
+        ? 'bg-signa-50 text-signa-600 font-bold'
+        : 'text-ink-600 font-semibold hover:bg-ink-900/[.03] hover:text-ink-900'}`}
+    >
+      <Icon width="19" height="19" />
+      {label}
+    </button>
+  );
+}
+
+/** Cardul unei lecții din grila capitolului. */
+function LessonCard({
+  lesson, stars, unlocked, favorite, validated, prevTitle, onOpen, onToggleFavorite,
+}) {
+  const isDyn = lesson.type === 'dynamic';
+  const inProgress = unlocked && stars === 0;
+  const pct = lesson.letters.length
+    ? Math.round((lesson.letters.filter((ch) => validated.has(ch)).length / lesson.letters.length) * 100)
+    : 0;
+
+  if (!unlocked) {
+    return (
+      <div className="box-border flex flex-col items-stretch p-6 rounded-[22px]
+        bg-ink-900/[.025] border border-dashed border-ink-900/10 shadow-none cursor-not-allowed">
+        <div className="flex items-start justify-between gap-2">
+          <span className="w-10 h-10 rounded-[13px] bg-ink-900/[.05] text-ink-400
+            flex items-center justify-center flex-shrink-0">
+            <LockIcon />
+          </span>
+          {isDyn && (
+            <span className="text-[9.5px] font-extrabold uppercase tracking-[.08em]
+              text-indigo-600 bg-indigo-50 rounded-[7px] px-2 py-1">
+              Mișcare
+            </span>
+          )}
+        </div>
+        <p className="mt-3.5 text-[14.5px] font-black text-ink-400">{lesson.title}</p>
+        <p className="mt-[9px] text-[11.5px] font-semibold text-ink-400 leading-relaxed">
+          {prevTitle ? `Se deschide după ${prevTitle}` : 'Se deschide mai târziu'}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => onOpen(lesson.id)}
+      className="box-border text-left flex flex-col items-stretch p-6 rounded-[22px]
+        bg-white border border-ink-900/[.05] shadow-[0_6px_20px_rgba(46,42,36,.05)]
+        transition-[transform,box-shadow,border-color] duration-[220ms] ease-out
+        hover:-translate-y-[5px] hover:shadow-[0_18px_36px_rgba(46,42,36,.10)] hover:border-signa-500/[.26]
+        active:-translate-y-px active:scale-[.99]"
+    >
+      <div className="flex items-start justify-between gap-2">
+        <span
+          className={`w-10 h-10 rounded-[13px] flex items-center justify-center flex-shrink-0
+            font-black text-[13px] tabular-nums ${
+          stars > 0
+            ? 'bg-signa-50 text-signa-600'
+            : 'bg-gradient-to-br from-signa-500 to-signa-600 text-white'}`}
+        >
+          {lesson.id}
+        </span>
+
+        <span className="flex items-center gap-2 flex-shrink-0">
+          {stars > 0 ? (
+            <Stars count={stars} />
+          ) : (
+            <span className="text-[9.5px] font-extrabold uppercase tracking-[.08em]
+              text-signa-600 bg-signa-50 rounded-[7px] px-2 py-1 tabular-nums">
+              În curs · {pct}%
+            </span>
+          )}
+          <span
+            role="button"
+            tabIndex={0}
+            aria-label={favorite ? 'Scoate din favorite' : 'Adaugă la favorite'}
+            onClick={(e) => { e.stopPropagation(); onToggleFavorite(lesson.id); }}
+            onKeyDown={(e) => {
+              if (e.key !== 'Enter' && e.key !== ' ') return;
+              e.preventDefault();
+              e.stopPropagation();
+              onToggleFavorite(lesson.id);
+            }}
+            className={`p-0.5 -m-0.5 transition-colors duration-[160ms] cursor-pointer
+              ${favorite ? 'text-signa-600' : 'text-ink-300 hover:text-signa-500'}`}
+          >
+            <BookmarkIcon filled={favorite} />
+          </span>
+        </span>
+      </div>
+
+      <p className="mt-3.5 text-[14.5px] font-black text-ink-900">{lesson.title}</p>
+
+      <div className="flex gap-1 mt-[9px] flex-wrap">
+        {lesson.letters.map((ch) => (
+          <span
+            key={ch}
+            title={ch}
+            className={`h-[23px] min-w-[23px] px-1.5 rounded-[7px] text-[11px] font-extrabold
+              flex items-center justify-center ${ch.length > 1 ? 'truncate max-w-[6.5rem]' : ''}
+              ${validated.has(ch) ? 'bg-signa-50 text-signa-600' : 'bg-cream-100 text-ink-600'}`}
+          >
+            {ch}
+          </span>
         ))}
       </div>
-  );
-}
-
-function FavoriteChip({ lesson, onOpen }) {
-  return (
-      <button
-          onClick={() => onOpen(lesson.id)}
-          className="flex-shrink-0 flex items-center gap-2 bg-white shadow-card rounded-xl
-        pl-2 pr-3 py-2 active:scale-[0.97] transition-transform"
-      >
-      <span className="w-7 h-7 rounded-lg bg-signa-50 text-signa-600 flex items-center
-        justify-center font-black text-xs flex-shrink-0">
-        {lesson.id}
-      </span>
-        <span className="text-ink-900 text-xs font-semibold truncate max-w-[8rem]">
-        {lesson.title}
-      </span>
-      </button>
-  );
-}
-
-function LessonCard({ lesson, stars, unlocked, favorite, onOpen, onToggleFavorite }) {
-  const isDyn = lesson.type === 'dynamic';
-  return (
-      <div className={`relative w-full rounded-2xl transition-all duration-150
-      ${unlocked
-          ? 'bg-white shadow-card hover:shadow-soft'
-          : 'bg-ink-900/[0.03] opacity-70'}`}
-      >
-        <button
-            onClick={() => unlocked && onOpen(lesson.id)}
-            disabled={!unlocked}
-            className="w-full p-4 flex items-center gap-4 text-left active:scale-[0.98] transition-transform"
-        >
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0
-          font-black text-lg
-          ${stars > 0
-              ? 'bg-signa-50 text-signa-600'
-              : unlocked
-                  ? isDyn ? 'bg-indigo-50 text-indigo-500' : 'bg-cream-200 text-ink-900'
-                  : 'bg-ink-900/[0.05] text-ink-400'}`}>
-            {unlocked ? lesson.id : (
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <rect x="3" y="7" width="10" height="7" rx="2" stroke="currentColor" strokeWidth="1.5"/>
-                  <path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.5"/>
-                </svg>
-            )}
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-1.5 pr-6">
-              <div className="flex items-center gap-2 min-w-0">
-              <span className={`font-bold text-sm ${unlocked ? 'text-ink-900' : 'text-ink-400'}`}>
-                {lesson.title}
-              </span>
-                {isDyn && (
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded-md">
-                  mișcare
-                </span>
-                )}
-              </div>
-              <Stars count={stars} />
-            </div>
-            <div className="flex gap-1 flex-wrap">
-              {lesson.letters.map((l) => {
-                const isLong = l.length > 1;
-                return (
-                    <span
-                        key={l}
-                        title={l}
-                        className={`h-6 rounded-md text-[11px] font-bold
-                    flex items-center justify-center
-                    ${isLong ? 'px-1.5 max-w-[6.5rem] truncate' : 'w-6'}
-                    ${unlocked ? 'bg-cream-100 text-ink-600' : 'bg-ink-900/[0.03] text-ink-400'}`}
-                    >
-                  {l}
-                </span>
-                );
-              })}
-            </div>
-          </div>
-        </button>
-
-        {unlocked && (
-            <button
-                onClick={() => onToggleFavorite(lesson.id)}
-                aria-label={favorite ? 'Scoate din favorite' : 'Adaugă la favorite'}
-                className={`absolute top-3 right-3 p-1 -m-1 transition-colors
-            ${favorite ? 'text-signa-600' : 'text-ink-300 hover:text-signa-500'}`}
-            >
-              <BookmarkIcon filled={favorite} />
-            </button>
-        )}
-      </div>
-  );
-}
-
-function ChapterSection({ chapter, isOpen, onToggle, starsFor, isUnlocked, isFavorite, onToggleFavorite, onOpenLesson }) {
-  const chapterStars = chapter.lessons.reduce((s, l) => s + starsFor(l.id), 0);
-  const chapterUnlocked = chapter.lessons.some((l) => isUnlocked(l.id));
-  const chapterDone = chapter.lessons.every((l) => starsFor(l.id) > 0);
-
-  return (
-      <div className="space-y-3">
-          <button
-              onClick={() => onToggle(chapter.id)}
-              className={`w-full flex items-center justify-between px-1 py-1
-          ${!chapterUnlocked ? 'opacity-60' : ''}`}
-          >
-          <div className="flex items-center gap-2">
-          <span className={`font-bold text-xs tracking-[0.14em] uppercase
-            ${chapterDone ? 'text-signa-600' : 'text-ink-900'}`}>
-            {chapter.title}
-          </span>
-            {!chapterUnlocked && (
-                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="text-ink-400">
-                  <rect x="3" y="7" width="10" height="7" rx="2" stroke="currentColor" strokeWidth="1.5"/>
-                  <path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.5"/>
-                </svg>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-          <span className="text-ink-400 text-[11px]">
-            {chapterStars} / {chapter.lessons.length * 3} ⭐
-          </span>
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
-                     className={`text-ink-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}>
-                  <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-          </div>
-        </button>
-
-        {isOpen && (
-            <div className="space-y-3">
-              {chapter.lessons.map((lesson) => (
-                  <LessonCard
-                      key={lesson.id}
-                      lesson={lesson}
-                      stars={starsFor(lesson.id)}
-                      unlocked={isUnlocked(lesson.id)}
-                      favorite={isFavorite(lesson.id)}
-                      onOpen={onOpenLesson}
-                      onToggleFavorite={onToggleFavorite}
-                  />
-              ))}
-            </div>
-        )}
-      </div>
+    </button>
   );
 }
 
@@ -182,93 +212,369 @@ function ChapterSection({ chapter, isOpen, onToggle, starsFor, isUnlocked, isFav
  */
 function findActiveChapterId(chapters, starsFor) {
   const chapterCuLectieNeterminata = chapters.find(
-      (ch) => ch.lessons.some((l) => starsFor(l.id) === 0),
+    (ch) => ch.lessons.some((l) => starsFor(l.id) === 0),
   );
   return chapterCuLectieNeterminata?.id ?? chapters[chapters.length - 1]?.id ?? null;
 }
 
-export default function LessonsPage({ onBack, onOpenLesson }) {
-  const { xp, streak, starsFor, isUnlocked, isFavorite, toggleFavorite, level } = useProgress();
-  const chapters = buildChaptersWithLessons();
-  const totalLessons = chapters.reduce((s, c) => s + c.lessons.length, 0);
-  const totalStars = chapters.reduce(
-      (s, c) => s + c.lessons.reduce((cs, l) => cs + starsFor(l.id), 0), 0,
-  );
-  const favoriteLessons = LESSONS.filter((l) => isFavorite(l.id) && isUnlocked(l.id));
+/* ── Pagina ────────────────────────────────────────────────────── */
 
-  // capitolul activ (cu lecția curentă) deschis implicit; restul la click
-  const [openChapterId, setOpenChapterId] = useState(
-      () => findActiveChapterId(chapters, starsFor),
+export default function LessonsPage({
+  onBack, onOpenLesson, onCamera, onLeaderboard, onProfile,
+}) {
+  const {
+    starsFor, isUnlocked, isFavorite, toggleFavorite, letterMastery,
+  } = useProgress();
+
+  const chapters = buildChaptersWithLessons();
+
+  const [selectedChapterId, setSelectedChapterId] = useState(
+    () => findActiveChapterId(chapters, starsFor),
   );
+  const [filter, setFilter] = useState('all');
+
+  const chapterIndex = Math.max(chapters.findIndex((c) => c.id === selectedChapterId), 0);
+  const chapter = chapters[chapterIndex];
+  const nextChapter = chapters[chapterIndex + 1] ?? null;
+
+  // Literele exersate corect măcar o dată — pentru cipuri și pentru procente.
+  const validated = useMemo(
+    () => new Set(Object.entries(letterMastery)
+      .filter(([, m]) => (m?.correct ?? 0) > 0)
+      .map(([ch]) => ch)),
+    [letterMastery],
+  );
+
+  const chapterLetters = chapter.lessons.flatMap((l) => l.letters);
+  const chapterStars = chapter.lessons.reduce((s, l) => s + starsFor(l.id), 0);
+  const chapterMaxStars = chapter.lessons.length * 3;
+  const lessonsDone = chapter.lessons.filter((l) => starsFor(l.id) > 0).length;
+  const lettersLearned = chapterLetters.filter((ch) => validated.has(ch)).length;
+  const lessonsLeft = chapter.lessons.length - lessonsDone;
+
+  // Lecția de continuat: prima deblocată fără stele; altfel prima deblocată.
+  const nextLesson = chapter.lessons.find((l) => isUnlocked(l.id) && starsFor(l.id) === 0)
+    ?? chapter.lessons.find((l) => isUnlocked(l.id))
+    ?? null;
+
+  const nextValidated = nextLesson ? nextLesson.letters.filter((ch) => validated.has(ch)).length : 0;
+  const nextTotal = nextLesson ? nextLesson.letters.length : 0;
+  const nextPct = nextTotal ? nextValidated / nextTotal : 0;
+  const minutesLeft = Math.max((nextTotal - nextValidated) * MINUTES_PER_LETTER, 1);
+
+  const favoriteCount = chapter.lessons.filter((l) => isFavorite(l.id)).length;
+
+  const visibleLessons = chapter.lessons.filter((l) => {
+    if (filter === 'progress') return isUnlocked(l.id) && starsFor(l.id) === 0;
+    if (filter === 'fav') return isFavorite(l.id);
+    return true;
+  });
+
+  const prevTitleFor = (lessonId) => {
+    const idx = LESSONS.findIndex((l) => l.id === lessonId);
+    return idx > 0 ? LESSONS[idx - 1].title : null;
+  };
+
+  const chapterRow = (ch, i) => {
+    const stars = ch.lessons.reduce((s, l) => s + starsFor(l.id), 0);
+    const selected = ch.id === selectedChapterId;
+    return (
+      <button
+        key={ch.id}
+        type="button"
+        onClick={() => { setSelectedChapterId(ch.id); setFilter('all'); }}
+        className={`flex items-center gap-2.5 px-[14px] py-2.5 rounded-[11px] text-[13.5px] text-left
+          transition-colors duration-[160ms] ease-out flex-shrink-0
+          ${selected
+          ? 'bg-cream-200 text-ink-900 font-extrabold'
+          : 'text-ink-600 font-bold hover:bg-ink-900/[.03]'}`}
+      >
+        <span
+          aria-hidden
+          className="w-2 h-2 rounded-[3px] flex-shrink-0"
+          style={{ background: CHAPTER_COLORS[ch.id] ?? '#10b981' }}
+        />
+        <span className="flex-1 truncate">{ch.title}</span>
+        <span className={`text-[11px] tabular-nums ${selected ? 'text-ink-500' : 'text-ink-400'}`}>
+          {stars}/{ch.lessons.length * 3}
+        </span>
+      </button>
+    );
+  };
 
   return (
-      <div className="h-full bg-cream flex flex-col overflow-hidden">
-        <div className="h-[3px] bg-gradient-to-r from-signa-400 via-signa-500/40 to-transparent flex-shrink-0" />
+    <div className="h-full overflow-hidden bg-cream flex flex-col">
+      <div
+        className="h-[3px] flex-shrink-0 sg-topbar"
+        style={{
+          background: 'linear-gradient(90deg,#34d399,rgba(16,185,129,.4),transparent,#34d399,rgba(16,185,129,.4),transparent)',
+        }}
+      />
 
-        <header className="flex items-center justify-between px-5 py-4 flex-shrink-0">
-          <button
-              onClick={onBack}
-              className="flex items-center gap-1.5 text-ink-500 hover:text-ink-900 text-sm font-medium transition-colors"
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            Înapoi
-          </button>
-          <h1 className="text-ink-900 font-bold tracking-[0.18em] text-sm">LECȚII</h1>
-          <div className="flex items-center gap-1.5 bg-white shadow-card rounded-full px-3 py-1
-          text-amber-600 text-sm font-bold tabular-nums">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M13 2L4.5 13.5h6L11 22l8.5-11.5h-6L13 2z"/>
-            </svg>
-            {xp}
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[262px_1fr]">
+        {/* ── Sidebar ─────────────────────────────────────────── */}
+        <aside className="hidden lg:flex flex-col bg-[#FFFDF9] border-r border-ink-900/[.07] px-5 pt-[26px] pb-6 overflow-y-auto scrollbar-hide">
+          <div className="flex items-center gap-3 px-2 pb-[30px]">
+            <span className="relative w-[38px] h-[38px] flex-none">
+              <span
+                aria-hidden
+                className="absolute inset-0 rounded-[11px] border-2 border-signa-500/55"
+                style={{ animation: `sg-pulse-ring 3.6s ${EASE} infinite` }}
+              />
+              <img src="/icon.svg" alt="" className="w-[38px] h-[38px] rounded-[11px] block" />
+            </span>
+            <span className="font-black text-[17px] tracking-[.17em] text-ink-900">SIGNA</span>
           </div>
-        </header>
 
-        <div className="px-5 pb-4 flex-shrink-0 flex items-center justify-between">
-          <p className="text-ink-500 text-xs">
-            {totalStars} / {totalLessons * 3} stele · nivel {level}
-          </p>
-          {streak > 0 && (
-              <p className="text-amber-600 text-xs font-bold">🔥 {streak} zile</p>
-          )}
-        </div>
+          <div>
+            <p className="px-[14px] mb-2.5 text-[10px] font-extrabold uppercase tracking-[.2em] text-[#C4BAA9]">
+              Meniu
+            </p>
+            <nav className="flex flex-col gap-1">
+              <SideItem icon={HomeIcon} label="Acasă" onClick={onBack} />
+              <SideItem icon={BookIcon} label="Lecții" active />
+              <SideItem icon={CamIcon} label="Cameră" onClick={onCamera} />
+              <SideItem icon={ChartIcon} label="Clasament" onClick={onLeaderboard} />
+              <SideItem icon={UserIcon} label="Profil" onClick={onProfile} />
+            </nav>
+          </div>
 
-        {favoriteLessons.length > 0 && (
-            <div className="px-5 pb-4 flex-shrink-0">
-              <p className="text-ink-400 text-[11px] font-bold uppercase tracking-wider mb-2">
-                Favorite
+          <div className="mt-[26px] border-t border-ink-900/[.07] pt-[18px] flex flex-col gap-0.5">
+            <p className="px-[14px] mb-2 text-[10px] font-extrabold uppercase tracking-[.2em] text-[#C4BAA9]">
+              Capitole
+            </p>
+            {chapters.map(chapterRow)}
+          </div>
+        </aside>
+
+        {/* ── Conținut ────────────────────────────────────────── */}
+        <main className="min-h-0 overflow-y-auto scrollbar-hide flex flex-col gap-[22px]
+          px-5 pt-5 pb-8 lg:px-11 lg:pt-[34px] lg:pb-11
+          bg-[radial-gradient(110%_45%_at_50%_0%,#F3FBF6_0%,#FFFBF3_62%)]
+          lg:bg-[radial-gradient(ellipse_70%_50%_at_85%_0%,#FFFDF7,#FBF6ED)]">
+
+          {/* Capitole ca rând orizontal — doar sub lg */}
+          <div className="lg:hidden flex flex-col gap-3">
+            <button
+              type="button"
+              onClick={onBack}
+              className="self-start flex items-center gap-2 rounded-xl border border-ink-900/10 bg-white
+                px-4 py-2 text-[13px] font-bold text-ink-700"
+            >
+              <ChevronIcon className="w-[15px] h-[15px] rotate-180" />
+              Înapoi
+            </button>
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-5 px-5">
+              {chapters.map(chapterRow)}
+            </div>
+          </div>
+
+          {/* 1 · Header capitol */}
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-6">
+            <div className="min-w-0">
+              <p className="text-[10.5px] lg:text-xs font-extrabold uppercase tracking-[.14em] lg:tracking-[.22em] text-ink-400">
+                Capitolul {chapterIndex + 1} din {chapters.length}
               </p>
-              <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
-                {favoriteLessons.map((lesson) => (
-                    <FavoriteChip key={lesson.id} lesson={lesson} onOpen={onOpenLesson} />
+              <h1 className="mt-1.5 lg:mt-2 text-[29px] lg:text-[2.6rem] font-black text-ink-900
+                tracking-[-.02em] lg:tracking-[-.025em] leading-tight lg:leading-[1.1] text-pretty">
+                {stripIndex(chapter.title)}
+              </h1>
+              <p className="mt-1 text-[13.5px] font-semibold text-ink-500 tabular-nums">
+                {chapter.description}
+                {' · '}{chapter.lessons.length} {chapter.lessons.length === 1 ? 'lecție' : 'lecții'}
+                {' · '}{chapterLetters.length} {chapterLetters.length === 1 ? 'literă' : 'litere'}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {FILTERS.map((f) => {
+                const active = filter === f.id;
+                return (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => setFilter(f.id)}
+                    className={`rounded-full px-3.5 py-2 text-[12.5px] font-extrabold border
+                      transition-[color,background-color,border-color,transform] duration-[160ms] ease-out
+                      ${active
+                      ? 'bg-ink-900 border-ink-900 text-white'
+                      : 'bg-white border-ink-900/[.09] text-ink-700 hover:border-signa-500 hover:text-signa-600 hover:-translate-y-px'}`}
+                  >
+                    {f.id === 'fav' ? `Favorite · ${favoriteCount}` : f.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 2 · Continuă + progresul capitolului */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1.35fr_1fr] gap-[18px] items-stretch">
+            <div className="relative overflow-hidden rounded-3xl lg:rounded-[26px] p-[22px] lg:p-[34px_36px]
+              bg-[linear-gradient(135deg,#064e3b,#065f46_52%,#047857)]
+              shadow-[0_18px_38px_rgba(6,78,59,.24)] lg:shadow-[0_20px_48px_rgba(8,74,52,.24)]">
+              <span
+                aria-hidden
+                className="absolute -top-[140px] -right-[60px] w-[320px] h-[320px] rounded-full pointer-events-none"
+                style={{
+                  background: 'radial-gradient(circle, rgba(52,211,153,.48), transparent 70%)',
+                  filter: 'blur(48px)',
+                }}
+              />
+
+              {nextLesson ? (
+                <>
+                  <div className="relative flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="text-[10.5px] font-extrabold uppercase tracking-[.14em] text-emerald-100/75">
+                        Continuă de aici
+                      </p>
+                      <h2 className="mt-2 lg:mt-2.5 text-[22px] lg:text-[2.5rem] font-black text-white
+                        tracking-[-.01em] lg:tracking-[-.02em] lg:leading-[1.06]">
+                        {nextLesson.title}
+                      </h2>
+                      <p className="mt-1.5 lg:mt-2 text-[13px] lg:text-[15px] font-semibold text-cream/65 tabular-nums">
+                        {nextValidated} din {nextTotal} litere validate · ~{minutesLeft}
+                        {minutesLeft === 1 ? ' minut' : ' minute'}
+                      </p>
+                    </div>
+                    <div
+                      className="flex-none w-[62px] h-[62px] rounded-full flex items-center justify-center"
+                      style={{
+                        background: `conic-gradient(#34d399 0turn ${nextPct}turn, rgba(255,255,255,.16) ${nextPct}turn 1turn)`,
+                      }}
+                    >
+                      <div className="w-12 h-12 rounded-full bg-signa-900 flex items-center justify-center">
+                        <span className="text-[12.5px] font-black text-white tabular-nums">
+                          {Math.round(nextPct * 100)}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="relative flex gap-2 mt-5">
+                    {nextLesson.letters.map((ch) => (
+                      <span
+                        key={ch}
+                        title={ch}
+                        className={`flex-1 min-w-0 truncate text-center py-2.5 rounded-xl font-black text-[14px] border
+                          ${validated.has(ch)
+                          ? 'bg-white/[.15] border-white/[.16] text-white'
+                          : 'bg-white/[.07] border-white/10 text-cream/45'}`}
+                      >
+                        {ch}
+                      </span>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => onOpenLesson(nextLesson.id)}
+                    className="relative mt-5 rounded-2xl px-[26px] py-3.5 bg-cream text-signa-900
+                      font-extrabold text-[14.5px] shadow-[0_10px_22px_rgba(0,0,0,.18)]
+                      flex items-center gap-2 transition-transform duration-[160ms] ease-out
+                      hover:-translate-y-0.5 active:scale-[.985]"
+                  >
+                    Continuă lecția
+                    <ChevronIcon className="w-3.5 h-3.5" />
+                  </button>
+                </>
+              ) : (
+                <div className="relative">
+                  <p className="text-[10.5px] font-extrabold uppercase tracking-[.14em] text-emerald-100/75">
+                    Capitol blocat
+                  </p>
+                  <h2 className="mt-2 text-[22px] font-black text-white tracking-[-.01em]">
+                    {stripIndex(chapter.title)}
+                  </h2>
+                  <p className="mt-1.5 text-[13px] font-semibold text-cream/65 leading-relaxed">
+                    Termină capitolul anterior ca să deschizi lecțiile de aici.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-white border border-ink-900/[.05] rounded-[22px] lg:rounded-[26px]
+              shadow-[0_10px_30px_rgba(46,42,36,.06)]
+              px-6 py-[22px] lg:px-8 lg:py-[30px] flex flex-col justify-between gap-4">
+              <div>
+                <p className="text-[10.5px] font-extrabold uppercase tracking-[.14em] text-ink-400">
+                  Progresul capitolului
+                </p>
+                <p className="mt-2 flex items-baseline gap-1.5">
+                  <span className="text-[32px] font-black text-ink-900 leading-none tabular-nums">{chapterStars}</span>
+                  <span className="text-[15px] font-bold text-ink-400 tabular-nums">/ {chapterMaxStars} stele</span>
+                </p>
+                <div className="mt-3.5 h-[9px] rounded-full bg-ink-900/[.07] overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-signa-400 to-signa-600 transition-[width] duration-500"
+                    style={{ width: `${chapterMaxStars ? (chapterStars / chapterMaxStars) * 100 : 0}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 border-t border-ink-900/[.06] pt-[18px]">
+                <div>
+                  <p className="text-[19px] lg:text-[23px] font-black text-signa-900 leading-none tabular-nums">
+                    {lessonsDone}<span className="text-[13px] lg:text-base text-ink-400">/{chapter.lessons.length}</span>
+                  </p>
+                  <p className="mt-1.5 lg:mt-[5px] text-[9.5px] lg:text-[11px] font-extrabold uppercase tracking-[.14em] text-ink-400">
+                    Lecții făcute
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[19px] lg:text-[23px] font-black text-ink-900 leading-none tabular-nums">
+                    {lettersLearned}<span className="text-[13px] lg:text-base text-ink-400">/{chapterLetters.length}</span>
+                  </p>
+                  <p className="mt-1.5 lg:mt-[5px] text-[9.5px] lg:text-[11px] font-extrabold uppercase tracking-[.14em] text-ink-400">
+                    Litere învățate
+                  </p>
+                </div>
+              </div>
+
+              {lessonsLeft > 0 && nextChapter && (
+                <div className="rounded-[14px] bg-signa-50 border border-signa-500/[.14] px-3.5 py-3">
+                  <p className="text-[12px] font-bold text-signa-900 leading-relaxed">
+                    {lessonsLeft === 1 ? 'Încă o lecție' : `Încă ${lessonsLeft} lecții`} și se deschide
+                    {' '}capitolul {chapterIndex + 2} — {stripIndex(nextChapter.title).toLowerCase()}.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 3 · Grila lecțiilor */}
+          <div>
+            <div className="flex items-baseline justify-between mb-3.5">
+              <h3 className="text-[15px] font-black text-ink-900">Lecțiile capitolului</h3>
+              <span className="text-[12px] font-bold text-ink-400">Deblocare progresivă</span>
+            </div>
+
+            {visibleLessons.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                {visibleLessons.map((lesson) => (
+                  <LessonCard
+                    key={lesson.id}
+                    lesson={lesson}
+                    stars={starsFor(lesson.id)}
+                    unlocked={isUnlocked(lesson.id)}
+                    favorite={isFavorite(lesson.id)}
+                    validated={validated}
+                    prevTitle={prevTitleFor(lesson.id)}
+                    onOpen={onOpenLesson}
+                    onToggleFavorite={toggleFavorite}
+                  />
                 ))}
               </div>
-            </div>
-        )}
-
-        <div className="flex-1 overflow-y-auto scrollbar-hide px-5 pb-8 space-y-6">
-          {chapters.map((chapter) => (
-              <ChapterSection
-                  key={chapter.id}
-                  chapter={chapter}
-                  isOpen={openChapterId === chapter.id}
-                  onToggle={(id) => setOpenChapterId((prev) => (prev === id ? null : id))}
-                  starsFor={starsFor}
-                  isUnlocked={isUnlocked}
-                  isFavorite={isFavorite}
-                  onToggleFavorite={toggleFavorite}
-                  onOpenLesson={onOpenLesson}
-              />
-          ))}
-
-          <div className="rounded-2xl p-4 bg-white/60 border border-ink-900/[0.06] text-center">
-            <p className="text-ink-500 text-xs leading-relaxed">
-              După alfabet: cuvinte LSR (Bună, Mulțumesc…) prin „Scrie cuvântul”.
-              Semnele-gest vin după recolectarea datasetului.
-            </p>
+            ) : (
+              <p className="text-[13px] font-semibold text-ink-400 py-6">
+                {filter === 'fav'
+                  ? 'Nicio lecție marcată ca favorită în acest capitol.'
+                  : 'Nicio lecție în curs în acest capitol.'}
+              </p>
+            )}
           </div>
-        </div>
+        </main>
       </div>
+    </div>
   );
 }

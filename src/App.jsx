@@ -84,6 +84,9 @@ export default function App() {
       <LessonsPage
         onBack={() => setPage('home')}
         onOpenLesson={(id) => { setLessonId(id); setReviewLesson(null); setPage('lesson'); }}
+        onCamera={() => setPage('camera')}
+        onLeaderboard={() => setPage('leaderboard')}
+        onProfile={() => setPage('profile')}
       />
     );
   }
