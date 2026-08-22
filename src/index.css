@@ -137,13 +137,46 @@ body {
 @keyframes sg-grow  { from { transform: scaleY(0); } to { transform: scaleY(1); } }
 @keyframes sg-drift { 0%,100% { transform: translate3d(0,0,0) scale(1); } 50% { transform: translate3d(28px,-22px,0) scale(1.12); } }
 @keyframes sg-ripple { from { transform: scale(0); opacity: .42; } to { transform: scale(2.6); opacity: 0; } }
-@keyframes sg-pop { 0% { opacity:0; transform: scale(.72) rotate(-7deg); } 60% { opacity:1; } 100% { opacity:1; transform: scale(1) rotate(0); } }
+/* Numit distinct de `sg-pop` de pe Acasă: acolo e un pop cu overshoot,
+   aici e unul cu rotație, iar două keyframes cu același nume s-ar suprascrie. */
+@keyframes sg-pop-avatar { 0% { opacity:0; transform: scale(.72) rotate(-7deg); } 60% { opacity:1; } 100% { opacity:1; transform: scale(1) rotate(0); } }
 
 .sg-up    { animation: fade-up .6s cubic-bezier(.22,1,.36,1) both; }
-.sg-popin { animation: sg-pop .78s cubic-bezier(.34,1.5,.64,1) both; }
+.sg-popin { animation: sg-pop-avatar .78s cubic-bezier(.34,1.5,.64,1) both; }
 .delay-600 { animation-delay: 600ms; }
 .delay-700 { animation-delay: 700ms; }
 .delay-800 { animation-delay: 800ms; }
+
+/* ── Animații ecran Acasă ─────────────────────────────────────────── */
+@keyframes sg-fade-in  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes sg-scale-in { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: scale(1); } }
+@keyframes sg-pop {
+  0%   { opacity: 0; transform: scale(.7);   }
+  60%  {              transform: scale(1.06); }
+  100% { opacity: 1; transform: scale(1);    }
+}
+@keyframes sg-flame {
+  0%, 100% { transform: scale(1)    rotate(-3deg); }
+  50%      { transform: scale(1.18) rotate(5deg);  }
+}
+/* Inelul obiectivului se „desenează”; ținta vine din --sg-ring-to,
+   ca să meargă și la progres parțial, nu doar la cerc plin. */
+@keyframes sg-ring-draw {
+  from { stroke-dashoffset: 214; }
+  to   { stroke-dashoffset: var(--sg-ring-to, 0); }
+}
+@keyframes sg-ring-glow {
+  0%, 100% { opacity: .28; transform: scale(1);   }
+  50%      { opacity: .55; transform: scale(1.1); }
+}
+/* Chip-urile lecției: pistă de lumină secvențială */
+@keyframes sg-chip-cue {
+  0%, 62%, 100% { background-color: rgba(255,255,255,.12); border-color: rgba(255,255,255,.14); transform: translateY(0); }
+  70%           { background-color: rgba(255,255,255,.26); border-color: rgba(255,255,255,.34); transform: translateY(-3px); }
+}
+@keyframes sg-arrow { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(4px); } }
+
+.sg-arrow { animation: sg-arrow 1.8s ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
