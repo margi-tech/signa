@@ -1,8 +1,6 @@
 import { useMemo, useState } from 'react';
-import { LESSONS, buildChaptersWithLessons } from '../data/lessons';
+import { LESSONS } from '../data/lessons';
 import { useProgress } from '../hooks/useProgress';
-
-const EASE = 'cubic-bezier(.22,1,.36,1)';
 
 /* ── Iconițe inline (fără librării) ────────────────────────────── */
 
@@ -16,11 +14,6 @@ const stroke = {
   'aria-hidden': true,
 };
 
-const HomeIcon = (p) => <svg {...stroke} {...p}><path d="M3 10.5 12 3.5l9 7" /><path d="M5.5 9.5V20h13V9.5" /></svg>;
-const BookIcon = (p) => <svg {...stroke} {...p}><rect x="3.5" y="4" width="17" height="16" rx="2.5" /><path d="M9 4v16" /></svg>;
-const CamIcon = (p) => <svg {...stroke} {...p}><rect x="2.5" y="6.5" width="13" height="11" rx="2.5" /><path d="m15.5 11.5 6-3v7l-6-3z" /></svg>;
-const ChartIcon = (p) => <svg {...stroke} {...p}><path d="M5 20V12" /><path d="M12 20V5" /><path d="M19 20v-5" /></svg>;
-const UserIcon = (p) => <svg {...stroke} {...p}><circle cx="12" cy="8" r="3.6" /><path d="M5 20c1.4-3.4 4-5 7-5s5.6 1.6 7 5" /></svg>;
 const ChevronIcon = (p) => <svg {...stroke} strokeWidth="2.6" {...p}><path d="M9 6l6 6-6 6" /></svg>;
 
 function LockIcon({ size = 16 }) {
@@ -57,6 +50,11 @@ function Stars({ count, size = 13 }) {
   );
 }
 
+const EASE = 'cubic-bezier(.22,1,.36,1)';
+
+const anim = (name, dur, delay = 0, fill = 'both', ease = EASE) =>
+  ({ animation: `${name} ${dur}s ${ease} ${delay}s ${fill}` });
+
 /* ── Constante de prezentare ───────────────────────────────────── */
 
 /** Pastila colorată din dreptul fiecărui capitol, în sidebar. */
@@ -85,26 +83,10 @@ const stripIndex = (title) => title.replace(/^\d+\.\s*/, '');
 
 /* ── Piese ─────────────────────────────────────────────────────── */
 
-function SideItem({ icon: Icon, label, active, onClick }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex items-center gap-[13px] h-12 px-[14px] rounded-[14px] text-[15px] text-left
-        transition-colors duration-200 ease-out
-        ${active
-        ? 'bg-signa-50 text-signa-600 font-bold'
-        : 'text-ink-600 font-semibold hover:bg-ink-900/[.03] hover:text-ink-900'}`}
-    >
-      <Icon width="19" height="19" />
-      {label}
-    </button>
-  );
-}
 
 /** Cardul unei lecții din grila capitolului. */
 function LessonCard({
-  lesson, stars, unlocked, favorite, validated, prevTitle, onOpen, onToggleFavorite,
+  lesson, stars, unlocked, favorite, validated, prevTitle, onOpen, onToggleFavorite, delay = 0,
 }) {
   const isDyn = lesson.type === 'dynamic';
   const inProgress = unlocked && stars === 0;
@@ -114,8 +96,11 @@ function LessonCard({
 
   if (!unlocked) {
     return (
-      <div className="box-border flex flex-col items-stretch p-6 rounded-[22px]
-        bg-ink-900/[.025] border border-dashed border-ink-900/10 shadow-none cursor-not-allowed">
+      <div
+        style={anim('sg-fade-up', 0.65, delay)}
+        className="box-border flex flex-col items-stretch p-6 rounded-[22px]
+          bg-ink-900/[.025] border border-dashed border-ink-900/10 shadow-none cursor-not-allowed"
+      >
         <div className="flex items-start justify-between gap-2">
           <span className="w-10 h-10 rounded-[13px] bg-ink-900/[.05] text-ink-400
             flex items-center justify-center flex-shrink-0">
@@ -140,6 +125,7 @@ function LessonCard({
     <button
       type="button"
       onClick={() => onOpen(lesson.id)}
+      style={anim('sg-fade-up', 0.65, delay)}
       className="box-border text-left flex flex-col items-stretch p-6 rounded-[22px]
         bg-white border border-ink-900/[.05] shadow-[0_6px_20px_rgba(46,42,36,.05)]
         transition-[transform,box-shadow,border-color] duration-[220ms] ease-out
@@ -204,33 +190,16 @@ function LessonCard({
   );
 }
 
-/**
- * Capitolul "activ": primul care are o lecție încă necompletată
- * (0 stele). Dacă toate lecțiile dintr-un capitol au stele, se trece
- * automat la următorul. Așa rămâne deschis capitolul curent după ce
- * termini o lecție, sau se deschide următorul dacă tocmai l-ai încheiat.
- */
-function findActiveChapterId(chapters, starsFor) {
-  const chapterCuLectieNeterminata = chapters.find(
-    (ch) => ch.lessons.some((l) => starsFor(l.id) === 0),
-  );
-  return chapterCuLectieNeterminata?.id ?? chapters[chapters.length - 1]?.id ?? null;
-}
 
 /* ── Pagina ────────────────────────────────────────────────────── */
 
 export default function LessonsPage({
-  onBack, onOpenLesson, onCamera, onLeaderboard, onProfile,
+  onBack, onOpenLesson, chapters, selectedChapterId, onSelectChapter,
 }) {
   const {
     starsFor, isUnlocked, isFavorite, toggleFavorite, letterMastery,
   } = useProgress();
 
-  const chapters = buildChaptersWithLessons();
-
-  const [selectedChapterId, setSelectedChapterId] = useState(
-    () => findActiveChapterId(chapters, starsFor),
-  );
   const [filter, setFilter] = useState('all');
 
   const chapterIndex = Math.max(chapters.findIndex((c) => c.id === selectedChapterId), 0);
@@ -282,7 +251,7 @@ export default function LessonsPage({
       <button
         key={ch.id}
         type="button"
-        onClick={() => { setSelectedChapterId(ch.id); setFilter('all'); }}
+        onClick={() => { onSelectChapter(ch.id); setFilter('all'); }}
         className={`flex items-center gap-2.5 px-[14px] py-2.5 rounded-[11px] text-[13.5px] text-left
           transition-colors duration-[160ms] ease-out flex-shrink-0
           ${selected
@@ -303,55 +272,10 @@ export default function LessonsPage({
   };
 
   return (
-    <div className="h-full overflow-hidden bg-cream flex flex-col">
-      <div
-        className="h-[3px] flex-shrink-0 sg-topbar"
-        style={{
-          background: 'linear-gradient(90deg,#34d399,rgba(16,185,129,.4),transparent,#34d399,rgba(16,185,129,.4),transparent)',
-        }}
-      />
-
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[262px_1fr]">
-        {/* ── Sidebar ─────────────────────────────────────────── */}
-        <aside className="hidden lg:flex flex-col bg-[#FFFDF9] border-r border-ink-900/[.07] px-5 pt-[26px] pb-6 overflow-y-auto scrollbar-hide">
-          <div className="flex items-center gap-3 px-2 pb-[30px]">
-            <span className="relative w-[38px] h-[38px] flex-none">
-              <span
-                aria-hidden
-                className="absolute inset-0 rounded-[11px] border-2 border-signa-500/55"
-                style={{ animation: `sg-pulse-ring 3.6s ${EASE} infinite` }}
-              />
-              <img src="/icon.svg" alt="" className="w-[38px] h-[38px] rounded-[11px] block" />
-            </span>
-            <span className="font-black text-[17px] tracking-[.17em] text-ink-900">SIGNA</span>
-          </div>
-
-          <div>
-            <p className="px-[14px] mb-2.5 text-[10px] font-extrabold uppercase tracking-[.2em] text-[#C4BAA9]">
-              Meniu
-            </p>
-            <nav className="flex flex-col gap-1">
-              <SideItem icon={HomeIcon} label="Acasă" onClick={onBack} />
-              <SideItem icon={BookIcon} label="Lecții" active />
-              <SideItem icon={CamIcon} label="Cameră" onClick={onCamera} />
-              <SideItem icon={ChartIcon} label="Clasament" onClick={onLeaderboard} />
-              <SideItem icon={UserIcon} label="Profil" onClick={onProfile} />
-            </nav>
-          </div>
-
-          <div className="mt-[26px] border-t border-ink-900/[.07] pt-[18px] flex flex-col gap-0.5">
-            <p className="px-[14px] mb-2 text-[10px] font-extrabold uppercase tracking-[.2em] text-[#C4BAA9]">
-              Capitole
-            </p>
-            {chapters.map(chapterRow)}
-          </div>
-        </aside>
-
-        {/* ── Conținut ────────────────────────────────────────── */}
-        <main className="min-h-0 overflow-y-auto scrollbar-hide flex flex-col gap-[22px]
-          px-5 pt-5 pb-8 lg:px-11 lg:pt-[34px] lg:pb-11
-          bg-[radial-gradient(110%_45%_at_50%_0%,#F3FBF6_0%,#FFFBF3_62%)]
-          lg:bg-[radial-gradient(ellipse_70%_50%_at_85%_0%,#FFFDF7,#FBF6ED)]">
+    <div className="min-h-full flex flex-col gap-[22px]
+      px-5 pt-5 pb-8 lg:px-11 lg:pt-[34px] lg:pb-11
+      bg-[radial-gradient(110%_45%_at_50%_0%,#F3FBF6_0%,#FFFBF3_62%)]
+      lg:bg-[radial-gradient(ellipse_70%_50%_at_85%_0%,#FFFDF7,#FBF6ED)]">
 
           {/* Capitole ca rând orizontal — doar sub lg */}
           <div className="lg:hidden flex flex-col gap-3">
@@ -372,14 +296,23 @@ export default function LessonsPage({
           {/* 1 · Header capitol */}
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-6">
             <div className="min-w-0">
-              <p className="text-[10.5px] lg:text-xs font-extrabold uppercase tracking-[.14em] lg:tracking-[.22em] text-ink-400">
+              <p
+                style={anim('sg-fade-right', 0.6, 0.06)}
+                className="text-[10.5px] lg:text-xs font-extrabold uppercase tracking-[.14em] lg:tracking-[.22em] text-ink-400"
+              >
                 Capitolul {chapterIndex + 1} din {chapters.length}
               </p>
-              <h1 className="mt-1.5 lg:mt-2 text-[29px] lg:text-[2.6rem] font-black text-ink-900
-                tracking-[-.02em] lg:tracking-[-.025em] leading-tight lg:leading-[1.1] text-pretty">
+              <h1
+                style={anim('sg-fade-up', 0.7, 0.14)}
+                className="mt-1.5 lg:mt-2 text-[29px] lg:text-[2.6rem] font-black text-ink-900
+                  tracking-[-.02em] lg:tracking-[-.025em] leading-tight lg:leading-[1.1] text-pretty"
+              >
                 {stripIndex(chapter.title)}
               </h1>
-              <p className="mt-1 text-[13.5px] font-semibold text-ink-500 tabular-nums">
+              <p
+                style={anim('sg-fade-up', 0.7, 0.2)}
+                className="mt-1 text-[13.5px] font-semibold text-ink-500 tabular-nums"
+              >
                 {chapter.description}
                 {' · '}{chapter.lessons.length} {chapter.lessons.length === 1 ? 'lecție' : 'lecții'}
                 {' · '}{chapterLetters.length} {chapterLetters.length === 1 ? 'literă' : 'litere'}
@@ -387,13 +320,14 @@ export default function LessonsPage({
             </div>
 
             <div className="flex items-center gap-2 flex-shrink-0">
-              {FILTERS.map((f) => {
+              {FILTERS.map((f, i) => {
                 const active = filter === f.id;
                 return (
                   <button
                     key={f.id}
                     type="button"
                     onClick={() => setFilter(f.id)}
+                    style={anim('sg-scale-in', 0.5, 0.22 + i * 0.07)}
                     className={`rounded-full px-3.5 py-2 text-[12.5px] font-extrabold border
                       transition-[color,background-color,border-color,transform] duration-[160ms] ease-out
                       ${active
@@ -409,15 +343,34 @@ export default function LessonsPage({
 
           {/* 2 · Continuă + progresul capitolului */}
           <div className="grid grid-cols-1 lg:grid-cols-[1.35fr_1fr] gap-[18px] items-stretch">
-            <div className="relative overflow-hidden rounded-3xl lg:rounded-[26px] p-[22px] lg:p-[34px_36px]
-              bg-[linear-gradient(135deg,#064e3b,#065f46_52%,#047857)]
-              shadow-[0_18px_38px_rgba(6,78,59,.24)] lg:shadow-[0_20px_48px_rgba(8,74,52,.24)]">
+            <div
+              style={anim('sg-fade-up', 0.75, 0.3)}
+              className="relative overflow-hidden rounded-3xl lg:rounded-[26px] p-[22px] lg:p-[34px_36px]
+                bg-[linear-gradient(135deg,#064e3b,#065f46_52%,#047857)]
+                shadow-[0_18px_38px_rgba(6,78,59,.24)] lg:shadow-[0_20px_48px_rgba(8,74,52,.24)]"
+            >
               <span
                 aria-hidden
-                className="absolute -top-[140px] -right-[60px] w-[320px] h-[320px] rounded-full pointer-events-none"
+                className="absolute -top-[140px] -right-[60px] w-[320px] h-[320px] rounded-full pointer-events-none sg-aurora-a"
                 style={{
                   background: 'radial-gradient(circle, rgba(52,211,153,.48), transparent 70%)',
                   filter: 'blur(48px)',
+                }}
+              />
+              <span
+                aria-hidden
+                className="absolute -bottom-[110px] left-[20%] w-[280px] h-[280px] rounded-full pointer-events-none sg-aurora-b"
+                style={{
+                  background: 'radial-gradient(circle, rgba(255,255,255,.18), transparent 72%)',
+                  filter: 'blur(50px)',
+                }}
+              />
+              <span
+                aria-hidden
+                className="absolute inset-y-0 left-0 w-[34%] pointer-events-none"
+                style={{
+                  background: 'linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent)',
+                  animation: 'sg-sheen 6.5s cubic-bezier(.4,0,.2,1) 1.6s infinite',
                 }}
               />
 
@@ -425,14 +378,23 @@ export default function LessonsPage({
                 <>
                   <div className="relative flex items-start justify-between gap-4">
                     <div className="min-w-0">
-                      <p className="text-[10.5px] font-extrabold uppercase tracking-[.14em] text-emerald-100/75">
+                      <p
+                        style={anim('sg-fade-right', 0.6, 0.44)}
+                        className="text-[10.5px] font-extrabold uppercase tracking-[.14em] text-emerald-100/75"
+                      >
                         Continuă de aici
                       </p>
-                      <h2 className="mt-2 lg:mt-2.5 text-[22px] lg:text-[2.5rem] font-black text-white
-                        tracking-[-.01em] lg:tracking-[-.02em] lg:leading-[1.06]">
+                      <h2
+                        style={anim('sg-fade-up', 0.7, 0.5)}
+                        className="mt-2 lg:mt-2.5 text-[22px] lg:text-[2.5rem] font-black text-white
+                          tracking-[-.01em] lg:tracking-[-.02em] lg:leading-[1.06]"
+                      >
                         {nextLesson.title}
                       </h2>
-                      <p className="mt-1.5 lg:mt-2 text-[13px] lg:text-[15px] font-semibold text-cream/65 tabular-nums">
+                      <p
+                        style={anim('sg-fade-up', 0.7, 0.56)}
+                        className="mt-1.5 lg:mt-2 text-[13px] lg:text-[15px] font-semibold text-cream/65 tabular-nums"
+                      >
                         {nextValidated} din {nextTotal} litere validate · ~{minutesLeft}
                         {minutesLeft === 1 ? ' minut' : ' minute'}
                       </p>
@@ -441,6 +403,7 @@ export default function LessonsPage({
                       className="flex-none w-[62px] h-[62px] rounded-full flex items-center justify-center"
                       style={{
                         background: `conic-gradient(#34d399 0turn ${nextPct}turn, rgba(255,255,255,.16) ${nextPct}turn 1turn)`,
+                        ...anim('sg-pop', 0.6, 0.6),
                       }}
                     >
                       <div className="w-12 h-12 rounded-full bg-signa-900 flex items-center justify-center">
@@ -452,10 +415,17 @@ export default function LessonsPage({
                   </div>
 
                   <div className="relative flex gap-2 mt-5">
-                    {nextLesson.letters.map((ch) => (
+                    {nextLesson.letters.map((ch, i) => {
+                      // Pista de lumină rulează doar când nimic nu e validat —
+                      // altfel ar spăla diferența dintre literele făcute și restul.
+                      const cue = nextPct === 0
+                        ? `, sg-chip-cue 5s ease-in-out ${(1.6 + i * 0.15).toFixed(2)}s infinite`
+                        : '';
+                      return (
                       <span
                         key={ch}
                         title={ch}
+                        style={{ animation: `sg-pop .5s ${EASE} ${(0.64 + i * 0.06).toFixed(2)}s both${cue}` }}
                         className={`flex-1 min-w-0 truncate text-center py-2.5 rounded-xl font-black text-[14px] border
                           ${validated.has(ch)
                           ? 'bg-white/[.15] border-white/[.16] text-white'
@@ -463,19 +433,31 @@ export default function LessonsPage({
                       >
                         {ch}
                       </span>
-                    ))}
+                      );
+                    })}
                   </div>
 
                   <button
                     type="button"
                     onClick={() => onOpenLesson(nextLesson.id)}
-                    className="relative mt-5 rounded-2xl px-[26px] py-3.5 bg-cream text-signa-900
+                    style={anim('sg-fade-up', 0.6, 0.94)}
+                    className="relative overflow-hidden mt-5 rounded-2xl px-[26px] py-3.5 bg-cream text-signa-900
                       font-extrabold text-[14.5px] shadow-[0_10px_22px_rgba(0,0,0,.18)]
                       flex items-center gap-2 transition-transform duration-[160ms] ease-out
                       hover:-translate-y-0.5 active:scale-[.985]"
                   >
-                    Continuă lecția
-                    <ChevronIcon className="w-3.5 h-3.5" />
+                    <span
+                      aria-hidden
+                      className="absolute inset-y-0 left-0 w-2/5 pointer-events-none"
+                      style={{
+                        background: 'linear-gradient(90deg,transparent,rgba(11,100,70,.10),transparent)',
+                        animation: 'sg-sheen 4.5s cubic-bezier(.4,0,.2,1) 2s infinite',
+                      }}
+                    />
+                    <span className="relative">Continuă lecția</span>
+                    <span aria-hidden className="relative flex sg-arrow">
+                      <ChevronIcon className="w-3.5 h-3.5" />
+                    </span>
                   </button>
                 </>
               ) : (
@@ -493,27 +475,41 @@ export default function LessonsPage({
               )}
             </div>
 
-            <div className="bg-white border border-ink-900/[.05] rounded-[22px] lg:rounded-[26px]
-              shadow-[0_10px_30px_rgba(46,42,36,.06)]
-              px-6 py-[22px] lg:px-8 lg:py-[30px] flex flex-col justify-between gap-4">
+            <div
+              style={anim('sg-fade-up', 0.75, 0.4)}
+              className="bg-white border border-ink-900/[.05] rounded-[22px] lg:rounded-[26px]
+                shadow-[0_10px_30px_rgba(46,42,36,.06)]
+                px-6 py-[22px] lg:px-8 lg:py-[30px] flex flex-col justify-between gap-4"
+            >
               <div>
-                <p className="text-[10.5px] font-extrabold uppercase tracking-[.14em] text-ink-400">
+                <p
+                  style={anim('sg-fade-right', 0.6, 0.54)}
+                  className="text-[10.5px] font-extrabold uppercase tracking-[.14em] text-ink-400"
+                >
                   Progresul capitolului
                 </p>
-                <p className="mt-2 flex items-baseline gap-1.5">
+                <p style={anim('sg-fade-up', 0.6, 0.6)} className="mt-2 flex items-baseline gap-1.5">
                   <span className="text-[32px] font-black text-ink-900 leading-none tabular-nums">{chapterStars}</span>
                   <span className="text-[15px] font-bold text-ink-400 tabular-nums">/ {chapterMaxStars} stele</span>
                 </p>
-                <div className="mt-3.5 h-[9px] rounded-full bg-ink-900/[.07] overflow-hidden">
+                <div className="relative mt-3.5 h-[9px] rounded-full bg-ink-900/[.07] overflow-hidden">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-signa-400 to-signa-600 transition-[width] duration-500"
                     style={{ width: `${chapterMaxStars ? (chapterStars / chapterMaxStars) * 100 : 0}%` }}
+                  />
+                  <div
+                    aria-hidden
+                    className="absolute inset-y-0 left-0 w-[34%] pointer-events-none"
+                    style={{
+                      background: 'linear-gradient(90deg,transparent,rgba(255,255,255,.85),transparent)',
+                      animation: 'sg-sheen 4.2s cubic-bezier(.4,0,.2,1) 2s infinite',
+                    }}
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3 border-t border-ink-900/[.06] pt-[18px]">
-                <div>
+                <div style={anim('sg-fade-up', 0.6, 0.72)}>
                   <p className="text-[19px] lg:text-[23px] font-black text-signa-900 leading-none tabular-nums">
                     {lessonsDone}<span className="text-[13px] lg:text-base text-ink-400">/{chapter.lessons.length}</span>
                   </p>
@@ -521,7 +517,7 @@ export default function LessonsPage({
                     Lecții făcute
                   </p>
                 </div>
-                <div>
+                <div style={anim('sg-fade-up', 0.6, 0.8)}>
                   <p className="text-[19px] lg:text-[23px] font-black text-ink-900 leading-none tabular-nums">
                     {lettersLearned}<span className="text-[13px] lg:text-base text-ink-400">/{chapterLetters.length}</span>
                   </p>
@@ -532,7 +528,10 @@ export default function LessonsPage({
               </div>
 
               {lessonsLeft > 0 && nextChapter && (
-                <div className="rounded-[14px] bg-signa-50 border border-signa-500/[.14] px-3.5 py-3">
+                <div
+                  style={anim('sg-fade-up', 0.6, 0.88)}
+                  className="rounded-[14px] bg-signa-50 border border-signa-500/[.14] px-3.5 py-3"
+                >
                   <p className="text-[12px] font-bold text-signa-900 leading-relaxed">
                     {lessonsLeft === 1 ? 'Încă o lecție' : `Încă ${lessonsLeft} lecții`} și se deschide
                     {' '}capitolul {chapterIndex + 2} — {stripIndex(nextChapter.title).toLowerCase()}.
@@ -544,16 +543,17 @@ export default function LessonsPage({
 
           {/* 3 · Grila lecțiilor */}
           <div>
-            <div className="flex items-baseline justify-between mb-3.5">
+            <div style={anim('sg-fade-up', 0.6, 0.46)} className="flex items-baseline justify-between mb-3.5">
               <h3 className="text-[15px] font-black text-ink-900">Lecțiile capitolului</h3>
               <span className="text-[12px] font-bold text-ink-400">Deblocare progresivă</span>
             </div>
 
             {visibleLessons.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-                {visibleLessons.map((lesson) => (
+                {visibleLessons.map((lesson, i) => (
                   <LessonCard
                     key={lesson.id}
+                    delay={0.5 + i * 0.06}
                     lesson={lesson}
                     stars={starsFor(lesson.id)}
                     unlocked={isUnlocked(lesson.id)}
@@ -572,8 +572,6 @@ export default function LessonsPage({
                   : 'Nicio lecție în curs în acest capitol.'}
               </p>
             )}
-          </div>
-        </main>
       </div>
     </div>
   );

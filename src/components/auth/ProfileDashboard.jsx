@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   isUsernameTaken,
   supabase,
@@ -15,6 +15,8 @@ import {
   RippleButton,
   SettingsSwitch,
 } from './AuthUi';
+
+const EASE = 'cubic-bezier(.22,1,.36,1)';
 
 function formatMemberSince(iso) {
   if (!iso) return null;
@@ -41,10 +43,13 @@ function initialsOf(firstName, lastName, username) {
 }
 
 /** Un tile din rândul de statistici — cifra mare (contor animat), eticheta mică dedesubt. */
-function StatTile({ value, sub, label, shortLabel, tone, countDelay = 300, className = '' }) {
-  const shown = useCountUp(value, { delay: countDelay });
+function StatTile({
+  value, sub, label, shortLabel, tone,
+  countDelay = 300, countDuration = 1000, className = '', style,
+}) {
+  const shown = useCountUp(value, { delay: countDelay, duration: countDuration });
   return (
-    <div className={`rounded-2xl border p-[14px_16px] text-center lg:text-left ${tone} ${className}`}>
+    <div style={style} className={`rounded-2xl border p-[14px_16px] text-center lg:text-left ${tone} ${className}`}>
       <p className="font-black text-[19px] lg:text-[24px] leading-none tabular-nums">
         {shown}
         {sub && <span className="text-ink-400 text-[13px] lg:text-[16px] font-black">{sub}</span>}
@@ -105,13 +110,21 @@ export default function ProfileDashboard({
   onSignOut,
 }) {
   const [lastSynced, setLastSynced] = useState(null);
+  const [syncing, setSyncing] = useState(false);
+
+  // Bara pornește goală la fiecare intrare pe profil, ca umplerea să se rejoace.
+  const [barOn, setBarOn] = useState(false);
+  useEffect(() => {
+    const id = setTimeout(() => setBarOn(true), 90);
+    return () => clearTimeout(id);
+  }, []);
   const memberSince = formatMemberSince(profile?.created_at);
   const levelPct = xpNeeded > 0 ? Math.min(xpIntoLevel / xpNeeded, 1) : 0;
   const isAdmin = profile?.role === 'admin';
   const displayName = [firstName, lastName].filter(Boolean).join(' ') || username || 'Jucător';
   const initials = initialsOf(firstName, lastName, username);
   const isPublic = visibility === 'public';
-  const xpIntoLevelShown = useCountUp(xpIntoLevel, { delay: 250, duration: 800 });
+  const xpIntoLevelShown = useCountUp(xpIntoLevel, { duration: 850, delay: 260 });
 
   const run = async (fn) => {
     onBusy(true);
@@ -149,10 +162,18 @@ export default function ProfileDashboard({
     onMessage({ tone: 'success', text: 'Profil salvat.' });
   });
 
-  const sync = () => run(async () => {
-    await onSync();
-    setLastSynced(new Date());
-  });
+  const sync = () => {
+    if (syncing) return;
+    setSyncing(true);
+    run(async () => {
+      try {
+        await onSync();
+        setLastSynced(new Date());
+      } finally {
+        setSyncing(false);
+      }
+    });
+  };
 
   const signOut = () => run(async () => {
     await supabase.auth.signOut();
@@ -163,35 +184,64 @@ export default function ProfileDashboard({
   return (
     <div className="space-y-[18px]">
       {/* Banner profil */}
-      <div className="sg-up rounded-[20px] bg-white border border-ink-900/[0.06] shadow-[0_1px_2px_rgba(46,42,36,.04),0_8px_24px_rgba(46,42,36,.045)] overflow-hidden">
+      <div
+        style={{ animation: `sg-fade-up .7s ${EASE} .12s both` }}
+        className="rounded-[20px] bg-white border border-ink-900/[0.06] shadow-[0_1px_2px_rgba(46,42,36,.04),0_8px_24px_rgba(46,42,36,.045)] overflow-hidden"
+      >
         <div
           data-sg-banner
-          className="sg-up delay-100 relative overflow-hidden bg-[linear-gradient(120deg,#064e3b,#065f46_55%,#047857)] px-5 pt-[22px] pb-[60px] md:px-[30px] md:pt-[26px] md:pb-[74px]"
+          className="relative overflow-hidden bg-[linear-gradient(120deg,#064e3b,#065f46_55%,#047857)] px-5 pt-[22px] pb-[60px] md:px-[30px] md:pt-[26px] md:pb-[74px]"
         >
           <span
             aria-hidden
             data-sg-glow
-            className="absolute -top-[140px] -right-[60px] w-[340px] h-[340px] rounded-full pointer-events-none"
+            className="absolute -top-[140px] -right-[60px] w-[340px] h-[340px] rounded-full pointer-events-none sg-aurora-a"
             style={{
               background: 'radial-gradient(circle, rgba(52,211,153,.5), transparent 70%)',
               filter: 'blur(48px)',
             }}
           />
+          <span
+            aria-hidden
+            className="absolute -bottom-[120px] left-[24%] w-[260px] h-[260px] rounded-full pointer-events-none sg-aurora-b"
+            style={{
+              background: 'radial-gradient(circle, rgba(255,255,255,.16), transparent 72%)',
+              filter: 'blur(52px)',
+            }}
+          />
+          <span
+            aria-hidden
+            className="absolute inset-y-0 left-0 w-[34%] pointer-events-none"
+            style={{
+              background: 'linear-gradient(90deg,transparent,rgba(255,255,255,.13),transparent)',
+              animation: 'sg-sheen 6.5s cubic-bezier(.4,0,.2,1) 1.4s infinite',
+            }}
+          />
           <div className="relative flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-[10.5px] font-extrabold uppercase tracking-[.13em] text-emerald-100/70 mb-1.5 md:mb-2">
+              <p
+                style={{ animation: `sg-fade-right .6s ${EASE} .26s both` }}
+                className="text-[10.5px] font-extrabold uppercase tracking-[.13em] text-emerald-100/70 mb-1.5 md:mb-2"
+              >
                 Nivelul {level} · {levelName(level)}
               </p>
-              <h1 className="text-[22px] md:text-[30px] font-black text-white tracking-[-.02em] leading-tight truncate">
+              <h1
+                style={{ animation: `sg-fade-up .7s ${EASE} .32s both` }}
+                className="text-[22px] md:text-[30px] font-black text-white tracking-[-.02em] leading-tight truncate"
+              >
                 {displayName}
               </h1>
-              <p className="mt-1 md:mt-1.5 text-cream/[.66] text-[12.5px] md:text-[14px] font-semibold truncate">
+              <p
+                style={{ animation: `sg-fade-up .7s ${EASE} .38s both` }}
+                className="mt-1 md:mt-1.5 text-cream/[.66] text-[12.5px] md:text-[14px] font-semibold truncate"
+              >
                 @{username}
                 <span className="hidden md:inline"> · {user.email}</span>
               </p>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               <span
+                style={{ animation: `sg-scale-in .5s ${EASE} .42s both` }}
                 className="rounded-full bg-white/[.14] border border-white/20 text-emerald-100 text-[10.5px] md:text-[11.5px] font-extrabold px-2.5 md:px-3 py-[5px] md:py-[7px] uppercase tracking-[.04em]"
                 title={isPublic ? 'Apari în clasament' : 'Profil ascuns din clasament'}
               >
@@ -199,7 +249,8 @@ export default function ProfileDashboard({
                 {isAdmin ? ' · Admin' : ''}
               </span>
               <label
-                className="hidden md:flex cursor-pointer items-center gap-2 rounded-xl border bg-white/[.12] border-white/[.22] text-white px-[14px] py-2 text-[12.5px] font-bold transition-[transform,box-shadow] duration-150 hover:-translate-y-px hover:shadow-soft active:scale-[.96]"
+                style={{ animation: `sg-fade-up .6s ${EASE} .48s both` }}
+                className="hidden md:flex cursor-pointer items-center gap-2 rounded-xl border bg-white/[.12] border-white/[.22] text-white px-[14px] py-2 text-[12.5px] font-bold transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:shadow-soft active:scale-[.96]"
                 title="Schimbă poza de profil"
               >
                 Schimbă poza
@@ -223,14 +274,16 @@ export default function ProfileDashboard({
           </div>
         </div>
 
-        <div className="sg-up delay-200 px-5 pb-5 md:px-[30px] md:pb-6 grid grid-cols-[auto_1fr] gap-4 md:gap-[26px] items-end">
+        <div className="px-5 pb-5 md:px-[30px] md:pb-6 grid grid-cols-[auto_1fr] gap-4 md:gap-[26px] items-end">
           <label
-            className="sg-popin delay-300 relative -mt-[38px] md:-mt-[46px] flex-shrink-0 cursor-pointer group"
+            style={{ animation: 'sg-pop .7s cubic-bezier(.34,1.5,.64,1) .5s both' }}
+            className="relative -mt-[38px] md:-mt-[46px] flex-shrink-0 cursor-pointer group"
             title="Schimbă poza de profil"
           >
             <span
               aria-hidden
               className="absolute -inset-[6px] rounded-[34px] border-2 border-signa-500/30 pointer-events-none"
+              style={{ animation: `sg-pulse-ring 3.6s ${EASE} 1.4s infinite` }}
             />
             <div className="w-20 h-20 md:w-[104px] md:h-[104px] rounded-[24px] md:rounded-[28px] bg-signa-100 border-4 border-white shadow-[0_10px_24px_rgba(46,42,36,.16)] md:shadow-[0_12px_30px_rgba(46,42,36,.16)] flex items-center justify-center overflow-hidden transition-transform duration-200 hover:scale-[1.035] hover:-rotate-[1.5deg]">
               {avatarUrl ? (
@@ -272,10 +325,21 @@ export default function ProfileDashboard({
                 {xpIntoLevelShown} / {xpNeeded} XP
               </span>
             </div>
-            <div className="h-[9px] md:h-[10px] rounded-full bg-ink-900/[.07] overflow-hidden">
+            <div className="relative h-[10px] rounded-full bg-ink-900/[.07] overflow-hidden">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-signa-400 to-signa-600 transition-[width] duration-500"
-                style={{ width: `${levelPct * 100}%`, transformOrigin: 'left' }}
+                className="h-full rounded-full bg-[linear-gradient(90deg,#34d399,#059669)]"
+                style={{
+                  width: `${(barOn ? levelPct : 0) * 100}%`,
+                  transition: `width 1.2s ${EASE} .5s`,
+                }}
+              />
+              <div
+                aria-hidden
+                className="absolute inset-y-0 left-0 w-[34%] pointer-events-none"
+                style={{
+                  background: 'linear-gradient(90deg,transparent,rgba(255,255,255,.85),transparent)',
+                  animation: 'sg-sheen 4.2s cubic-bezier(.4,0,.2,1) 1.8s infinite',
+                }}
               />
             </div>
 
@@ -285,16 +349,18 @@ export default function ProfileDashboard({
                 label="XP total"
                 shortLabel="XP"
                 tone="bg-signa-50 border-signa-500/[.14] text-signa-900"
-                countDelay={380}
-                className="sg-up delay-400"
+                countDelay={260}
+                countDuration={950}
+                style={{ animation: `sg-fade-up .6s ${EASE} .66s both` }}
               />
               <StatTile
                 value={streak}
                 label="Zile la rând"
                 shortLabel="Zile"
                 tone="bg-amber-50 border-amber-600/[.14] text-amber-700"
-                countDelay={450}
-                className="sg-up delay-500"
+                countDelay={320}
+                countDuration={700}
+                style={{ animation: `sg-fade-up .6s ${EASE} .73s both` }}
               />
               <StatTile
                 value={completedLessonsCount}
@@ -302,8 +368,8 @@ export default function ProfileDashboard({
                 label="Lecții"
                 shortLabel="Lecții"
                 tone="bg-[#FAF8F4] border-ink-900/[.07] text-ink-900"
-                countDelay={520}
-                className="sg-up delay-500"
+                countDelay={360}
+                style={{ animation: `sg-fade-up .6s ${EASE} .8s both` }}
               />
             </div>
           </div>
@@ -313,7 +379,7 @@ export default function ProfileDashboard({
       {/* Grid principal */}
       <div className="grid gap-[18px] items-start lg:grid-cols-[1.55fr_1fr]">
         {/* Date profil */}
-        <div className="sg-up delay-600 rounded-[20px] bg-white border border-ink-900/[0.06] shadow-[0_1px_2px_rgba(46,42,36,.04),0_8px_24px_rgba(46,42,36,.045)] p-5 md:p-[26px_28px]">
+        <div style={{ animation: `sg-fade-up .7s ${EASE} .5s both` }} className="rounded-[20px] bg-white border border-ink-900/[0.06] shadow-[0_1px_2px_rgba(46,42,36,.04),0_8px_24px_rgba(46,42,36,.045)] p-5 md:p-[26px_28px]">
           <p className="text-[17px] font-black text-ink-900">Date profil</p>
           <p className="text-[13px] text-ink-500 mt-1">Numele apare în clasament și pe certificate.</p>
 
@@ -363,18 +429,30 @@ export default function ProfileDashboard({
               type="button"
               disabled={busy}
               onClick={save}
-              className="w-full md:w-auto rounded-2xl px-[26px] py-[15px] md:py-[13px] text-[14.5px] font-extrabold text-white bg-gradient-to-b from-signa-500 to-signa-600 shadow-[0_8px_20px_rgba(16,185,129,.26)] transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:shadow-[0_14px_28px_rgba(16,185,129,.34)] disabled:opacity-50 disabled:translate-y-0"
+              className="relative overflow-hidden w-full md:w-auto rounded-2xl px-[26px] py-[15px] md:py-[13px] text-[14.5px] font-extrabold text-white bg-gradient-to-b from-signa-500 to-signa-600 shadow-[0_8px_20px_rgba(16,185,129,.26)] transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:shadow-[0_14px_28px_rgba(16,185,129,.34)] disabled:opacity-50 disabled:translate-y-0"
             >
-              {busy ? 'Se salvează…' : 'Salvează modificările'}
+              <span
+                aria-hidden
+                className="absolute inset-y-0 left-0 w-[38%] pointer-events-none"
+                style={{
+                  background: 'linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent)',
+                  animation: 'sg-sheen 3.6s cubic-bezier(.4,0,.2,1) 1.8s infinite',
+                }}
+              />
+              <span className="relative">{busy ? 'Se salvează…' : 'Salvează modificările'}</span>
             </RippleButton>
           </div>
         </div>
 
         {/* Coloana dreapta */}
         <div className="flex flex-col gap-[18px]">
-          <div className="sg-up delay-700 rounded-[20px] bg-white border border-ink-900/[0.06] shadow-[0_1px_2px_rgba(46,42,36,.04),0_8px_24px_rgba(46,42,36,.045)] p-5 md:p-6">
-            <div className="flex items-start gap-3">
-              <span className="w-[38px] h-[38px] flex-shrink-0 rounded-xl bg-signa-50 text-signa-600 flex items-center justify-center">
+          <div style={{ animation: `sg-fade-up .7s ${EASE} .58s both` }} className="rounded-[20px] bg-white border border-ink-900/[0.06] shadow-[0_1px_2px_rgba(46,42,36,.04),0_8px_24px_rgba(46,42,36,.045)] p-5 md:p-6">
+            <div className="group flex items-start gap-3">
+              <span
+                className="w-[38px] h-[38px] flex-shrink-0 rounded-xl bg-signa-50 text-signa-600 flex items-center justify-center
+                  transition-transform duration-[280ms] group-hover:scale-[1.08] group-hover:-rotate-6"
+                style={{ transitionTimingFunction: EASE }}
+              >
                 <CloudIcon />
               </span>
               <div className="min-w-0">
@@ -386,22 +464,36 @@ export default function ProfileDashboard({
             </div>
             <div className="border-t border-ink-900/[0.06] mt-4 pt-4 flex items-center justify-between gap-3">
               <span className="flex items-center gap-[7px] text-[12.5px] font-bold text-signa-600">
-                <span className="w-[7px] h-[7px] rounded-full bg-signa-500 flex-shrink-0" />
+                <span aria-hidden className="relative w-[7px] h-[7px] flex-shrink-0">
+                  <span className="absolute inset-0 rounded-full bg-signa-500" />
+                  <span className="absolute -inset-1 rounded-full border-[1.5px] border-signa-500/55 sg-dot-ring" />
+                </span>
                 {lastSynced ? `Acum ${Math.max(0, Math.round((Date.now() - lastSynced.getTime()) / 60000))} min` : 'Nesincronizat'}
               </span>
               <RippleButton
                 type="button"
                 disabled={busy}
                 onClick={sync}
-                className="rounded-xl border border-ink-900/10 bg-white px-4 py-2 text-[12.5px] font-bold text-ink-700 transition-[transform,box-shadow] duration-150 hover:-translate-y-px hover:shadow-soft disabled:opacity-50"
+                className="flex items-center gap-2 rounded-xl border border-ink-900/10 bg-white px-4 py-2 text-[12.5px] font-bold text-ink-700 transition-[transform,box-shadow] duration-150 hover:-translate-y-px hover:shadow-soft disabled:opacity-50"
               >
-                <span className="md:hidden">Sync</span>
-                <span className="hidden md:inline">Sincronizează</span>
+                {syncing && (
+                  <span
+                    aria-hidden
+                    className="w-[13px] h-[13px] rounded-full border-2 border-ink-900/15 flex-shrink-0"
+                    style={{ borderTopColor: '#10b981', animation: 'sg-spin .7s linear infinite' }}
+                  />
+                )}
+                {syncing ? 'Se sincronizează…' : (
+                  <>
+                    <span className="md:hidden">Sync</span>
+                    <span className="hidden md:inline">Sincronizează</span>
+                  </>
+                )}
               </RippleButton>
             </div>
           </div>
 
-          <div className="sg-up delay-800 rounded-[20px] bg-white border border-ink-900/[0.06] shadow-[0_1px_2px_rgba(46,42,36,.04),0_8px_24px_rgba(46,42,36,.045)] p-5 md:p-6">
+          <div style={{ animation: `sg-fade-up .7s ${EASE} .66s both` }} className="rounded-[20px] bg-white border border-ink-900/[0.06] shadow-[0_1px_2px_rgba(46,42,36,.04),0_8px_24px_rgba(46,42,36,.045)] p-5 md:p-6">
             <p className="text-[15px] font-black text-ink-900">
               {memberSince ? `Membru din ${memberSince}` : 'Membru Signa'}
             </p>
@@ -410,7 +502,7 @@ export default function ProfileDashboard({
             </p>
           </div>
 
-          <div className="sg-up delay-800 rounded-[20px] border border-red-600/[.16] bg-red-600/[.03] p-[18px_20px] md:p-[22px_24px]">
+          <div style={{ animation: `sg-fade-up .7s ${EASE} .74s both` }} className="rounded-[20px] border border-red-600/[.16] bg-red-600/[.03] p-[18px_20px] md:p-[22px_24px]">
             <p className="text-[10.5px] font-extrabold uppercase tracking-[.13em] text-red-600/[.65] mb-2.5">
               Zonă sensibilă
             </p>
@@ -422,7 +514,7 @@ export default function ProfileDashboard({
                 type="button"
                 disabled={busy}
                 onClick={signOut}
-                className="flex-shrink-0 rounded-2xl border border-red-600/[.22] text-red-600 bg-transparent px-5 py-[11px] font-bold text-[13.5px] transition-colors hover:bg-red-600 hover:border-red-600 hover:text-white disabled:opacity-50"
+                className="flex-shrink-0 rounded-2xl border border-red-600/[.22] text-red-600 bg-transparent px-5 py-[11px] font-bold text-[13.5px] transition-[color,background-color,border-color,transform] duration-150 hover:bg-red-600 hover:border-red-600 hover:text-white hover:-translate-y-0.5 disabled:opacity-50"
               >
                 <span className="md:hidden">Ieși</span>
                 <span className="hidden md:inline">Deconectare</span>

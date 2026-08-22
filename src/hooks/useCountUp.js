@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 
 /** Animă o cifră de la 0 la `target` cu ease-out cubic — folosit în statisticile de profil. */
 export function useCountUp(target, { duration = 1000, delay = 300 } = {}) {
-  const [v, setV] = useState(0);
+  // Pornește de la valoarea finală, nu de la 0: dacă animația nu apucă să
+  // ruleze (reduced-motion, tab în fundal), cifra rămâne corectă, nu pe 0.
+  const [v, setV] = useState(target);
   useEffect(() => {
     let raf;
     const t0 = performance.now() + delay;

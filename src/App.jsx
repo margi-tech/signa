@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import HomePage from './pages/HomePage.jsx';
+import AppShell, { SHELL_PAGES } from './components/AppShell.jsx';
 import CameraPage from './pages/CameraPage.jsx';
 import CollectPage from './pages/CollectPage.jsx';
 import TrainPage from './pages/TrainPage.jsx';
@@ -57,7 +57,6 @@ export default function App() {
   if (page === 'train') return <TrainPage onBack={() => setPage('home')} />;
   if (page === 'spell') return <SpellPage onBack={() => setPage('home')} />;
   if (page === 'diagnostic') return <DiagnosticPage onBack={() => setPage('home')} />;
-  if (page === 'profile') return <ProfilePage onBack={() => setPage('home')} />;
   if (page === 'leaderboard') return <LeaderboardPage onBack={() => setPage('home')} />;
 
   if (page === 'review') {
@@ -79,18 +78,6 @@ export default function App() {
     );
   }
 
-  if (page === 'lessons') {
-    return (
-      <LessonsPage
-        onBack={() => setPage('home')}
-        onOpenLesson={(id) => { setLessonId(id); setReviewLesson(null); setPage('lesson'); }}
-        onCamera={() => setPage('camera')}
-        onLeaderboard={() => setPage('leaderboard')}
-        onProfile={() => setPage('profile')}
-      />
-    );
-  }
-
   if (page === 'lesson') {
     const lesson = reviewLesson ?? LESSONS.find((l) => l.id === lessonId);
     return (
@@ -103,17 +90,15 @@ export default function App() {
   }
 
   return (
-    <HomePage
-      onLessons={() => setPage('lessons')}
+    <AppShell
+      page={SHELL_PAGES.includes(page) ? page : 'home'}
+      onNavigate={setPage}
       onOpenLesson={(id) => { setLessonId(id); setReviewLesson(null); setPage('lesson'); }}
-      onStart={() => setPage('camera')}
       onCollect={() => setPage('collect')}
       onTrain={() => setPage('train')}
       onSpell={() => setPage('spell')}
       onReview={() => setPage('review')}
       onDiagnostic={() => setPage('diagnostic')}
-      onProfile={() => setPage('profile')}
-      onLeaderboard={() => setPage('leaderboard')}
     />
   );
 }

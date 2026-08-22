@@ -2,52 +2,15 @@
    HomePage — ecran de reluare: „continuă unde ai rămas”, nu meniu
 ───────────────────────────────────────────────────────────────── */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { LESSONS } from '../data/lessons';
 import { useProgress } from '../hooks/useProgress';
-import { getOwnProfile, isSupabaseConfigured, supabase } from '../lib/supabase';
+import {
+  ArrowIcon, BarsIcon, BookIcon, CamIcon, FlameIcon, HomeIcon,
+  LinesIcon, RepeatIcon, SoundIcon, UserIcon,
+} from '../components/icons.jsx';
 
 const EASE = 'cubic-bezier(.22,1,.36,1)';
-
-/* ── Iconițe inline (fără librării) ────────────────────────────── */
-
-const stroke = {
-  fill: 'none',
-  stroke: 'currentColor',
-  strokeWidth: 2,
-  strokeLinecap: 'round',
-  strokeLinejoin: 'round',
-  viewBox: '0 0 24 24',
-  'aria-hidden': true,
-};
-
-const HomeIcon = (p) => <svg {...stroke} {...p}><path d="M3 10.5 12 3.5l9 7" /><path d="M5.5 9.5V20h13V9.5" /></svg>;
-const BookIcon = (p) => <svg {...stroke} {...p}><rect x="3.5" y="4" width="17" height="16" rx="2.5" /><path d="M9 4v16" /></svg>;
-const CamIcon = (p) => <svg {...stroke} {...p}><rect x="2.5" y="6.5" width="13" height="11" rx="2.5" /><path d="m15.5 11.5 6-3v7l-6-3z" /></svg>;
-const UserIcon = (p) => <svg {...stroke} {...p}><circle cx="12" cy="8" r="3.6" /><path d="M5 20c1.4-3.4 4-5 7-5s5.6 1.6 7 5" /></svg>;
-const ChartIcon = (p) => <svg {...stroke} {...p}><path d="M5 20V12" /><path d="M12 20V5" /><path d="M19 20v-5" /></svg>;
-const BarsIcon = (p) => <svg {...stroke} strokeWidth="2.2" {...p}><path d="M5 19v-7" /><path d="M12 19V6" /><path d="M19 19v-4" /></svg>;
-const LinesIcon = (p) => <svg {...stroke} strokeWidth="2.2" {...p}><path d="M4 7h16" /><path d="M4 12h11" /><path d="M4 17h7" /></svg>;
-const RepeatIcon = (p) => <svg {...stroke} strokeWidth="2.2" {...p}><path d="M20 12a8 8 0 1 1-2.6-5.9" /><path d="M20 4v4h-4" /></svg>;
-const ArrowIcon = (p) => <svg {...stroke} strokeWidth="2.6" {...p}><path d="M5 12h13" /><path d="m12.5 6 6 6-6 6" /></svg>;
-const DownloadIcon = (p) => <svg {...stroke} {...p}><path d="M12 3.5v11" /><path d="m8 10.5 4 4 4-4" /><path d="M4.5 18.5h15" /></svg>;
-const TrendIcon = (p) => <svg {...stroke} {...p}><path d="M4 16.5 9 9l4 4.5L20 5.5" /><circle cx="9" cy="9" r="1.6" /></svg>;
-const PulseIcon = (p) => <svg {...stroke} {...p}><path d="M3.5 12h4l2-4 2.5 8 2.5-6 1.5 2h4.5" /></svg>;
-
-const FlameIcon = (p) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden {...p}>
-    <path d="M12 2s5 4.6 5 9.3A5 5 0 0 1 7 11.5C7 8 9 6 9 6s-.5 2.5 1 3.5c0-3 2-6.5 2-7.5Z" />
-  </svg>
-);
-
-const SoundIcon = ({ on, ...p }) => (
-  <svg {...stroke} {...p}>
-    <path d="M11 5.5 6.5 9.5H3.5v5h3L11 18.5z" />
-    {on
-      ? <><path d="M15.5 9.2a4 4 0 0 1 0 5.6" /><path d="M18.4 6.6a8 8 0 0 1 0 10.8" /></>
-      : <><path d="m15.5 10 5 4" /><path d="m20.5 10-5 4" /></>}
-  </svg>
-);
 
 /* ── Utilitare ─────────────────────────────────────────────────── */
 
@@ -151,25 +114,6 @@ function NavItem({ icon: Icon, label, active, onClick }) {
   );
 }
 
-/** Unealtă de dev din josul sidebar-ului. */
-function ToolButton({ icon: Icon, label, onClick, delay }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={anim('sg-fade-in', 0.5, delay, 'both', 'ease-out')}
-      className="group flex items-center gap-[11px] text-left px-[14px] py-2.5 rounded-[11px]
-        text-[13.5px] font-medium text-ink-400 hover:text-ink-700 hover:bg-ink-900/[.04]
-        transition-[color,background-color] duration-[180ms] ease-out"
-    >
-      <span className="flex transition-transform duration-[260ms] group-hover:scale-[1.16]" style={{ transitionTimingFunction: EASE }}>
-        <Icon className="w-4 h-4" />
-      </span>
-      {label}
-    </button>
-  );
-}
-
 /* ── Pagina ────────────────────────────────────────────────────── */
 
 const DAILY_GOAL = 5;
@@ -181,51 +125,13 @@ function todayKey() {
 }
 
 export default function HomePage({
-  onLessons, onStart, onCollect, onTrain, onSpell, onReview, onDiagnostic, onProfile, onLeaderboard,
-  onOpenLesson,
+  onLessons, onStart, onSpell, onReview, onProfile, onLeaderboard, onOpenLesson,
+  firstName = '', initials = '', rank = null,
 }) {
   const {
-    xp, streak, level, xpIntoLevel, xpNeeded, completedLessonsCount, totalLessonsCount,
+    xp, streak, level, completedLessonsCount, totalLessonsCount,
     reviewLetters, letterMastery, starsFor, isUnlocked, soundEnabled, setSoundEnabled,
   } = useProgress();
-
-  const [firstName, setFirstName] = useState('');
-  const [initials, setInitials] = useState('');
-  const [rank, setRank] = useState(null);
-
-  // Numele din profil — doar decorativ; fără Supabase rămâne salutul scurt.
-  useEffect(() => {
-    if (!isSupabaseConfigured) return undefined;
-    let cancelled = false;
-    getOwnProfile()
-      .then((p) => {
-        if (cancelled || !p) return;
-        setFirstName((p.first_name ?? '').trim());
-        const ini = [p.first_name, p.last_name]
-          .map((s) => (s || '').trim()[0])
-          .filter(Boolean).join('').toUpperCase().slice(0, 2);
-        setInitials(ini || (p.username ?? '?')[0].toUpperCase());
-      })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, []);
-
-  // Poziția în clasament — două count-uri ieftine pe view-ul `leaderboard`.
-  useEffect(() => {
-    if (!isSupabaseConfigured || !supabase) return undefined;
-    let cancelled = false;
-    (async () => {
-      try {
-        const ahead = await supabase.from('leaderboard')
-          .select('*', { count: 'exact', head: true }).gt('xp', xp);
-        const all = await supabase.from('leaderboard')
-          .select('*', { count: 'exact', head: true });
-        if (cancelled || ahead.error || all.error) return;
-        setRank({ place: (ahead.count ?? 0) + 1, total: all.count ?? 0 });
-      } catch { /* fără sesiune / offline */ }
-    })();
-    return () => { cancelled = true; };
-  }, [xp]);
 
   // Prima lecție deblocată și nefăcută; altfel ultima în care ai stele.
   const nextLesson = useMemo(() => {
@@ -265,78 +171,17 @@ export default function HomePage({
   const goalLeft = DAILY_GOAL - goalDone;
   const goalPct = goalDone / DAILY_GOAL;
 
-  const levelPct = xpNeeded > 0 ? Math.min(xpIntoLevel / xpNeeded, 1) : 0;
-
   // Cifrele de pe desktop urcă de la 0 la intrare.
   const xpCount = useCountUp(xp, 1300);
   const goalCount = useCountUp(goalDone, 1500, 700);
   const doneCount = useCountUp(completedLessonsCount, 1200, 800);
 
-  // Bara de nivel pornește de la 0% ca tranziția de lățime să aibă ce anima.
+  // Inelul lecției pornește gol, ca tranziția de dashoffset să aibă ce anima.
   const [grown, setGrown] = useState(false);
   useEffect(() => {
     const id = requestAnimationFrame(() => setGrown(true));
     return () => cancelAnimationFrame(id);
   }, []);
-
-  /* Liquid glass care urmărește cursorul prin nav-ul din sidebar. */
-  const [glass, setGlass] = useState({ y: null, stretch: 1, vis: false, warp: false });
-  const lastPos = useRef({ y: null, t: 0 });
-  const warpTimer = useRef(null);
-  const settleTimer = useRef(null);
-  useEffect(() => () => { clearTimeout(warpTimer.current); clearTimeout(settleTimer.current); }, []);
-
-  const navPos = (e) => {
-    const r = e.currentTarget.getBoundingClientRect();
-    return Math.max(0, Math.min(r.height - 48, e.clientY - r.top - 24));
-  };
-
-  // La intrare sare direct sub cursor (fără tranziție), ca să nu alunece
-  // din poziția în care a rămas data trecută.
-  const onNavEnter = (e) => {
-    const y = navPos(e);
-    lastPos.current = { y: null, t: 0 };
-    clearTimeout(warpTimer.current);
-    warpTimer.current = setTimeout(() => setGlass((g) => ({ ...g, warp: false })), 40);
-    setGlass({ y, vis: true, warp: true, stretch: 1 });
-  };
-
-  // Capsula se întinde după viteza cursorului și se relaxează la oprire.
-  const onNavMove = (e) => {
-    const y = navPos(e);
-    const now = performance.now();
-    const last = lastPos.current;
-    const v = last.y != null && now > last.t ? Math.abs(y - last.y) / (now - last.t) : 0;
-    lastPos.current = { y, t: now };
-    clearTimeout(settleTimer.current);
-    settleTimer.current = setTimeout(() => setGlass((g) => ({ ...g, stretch: 1 })), 120);
-    setGlass((g) => ({ ...g, y, vis: true, stretch: Math.min(1.16, 1 + v * 0.05) }));
-  };
-
-  const onNavLeave = () => {
-    lastPos.current = { y: null, t: 0 };
-    clearTimeout(settleTimer.current);
-    clearTimeout(warpTimer.current);
-    setGlass((g) => ({ ...g, vis: false, stretch: 1 }));
-  };
-
-  const squeeze = 1 - (glass.stretch - 1) * 0.55;
-  const glassStyle = glass.y === null
-    ? { opacity: 0, transform: 'translateY(0px) scale(1,.86)', transition: 'opacity .2s ease-out' }
-    : glass.vis
-      ? {
-        opacity: 1,
-        transform: `translateY(${glass.y.toFixed(1)}px) scale(${squeeze.toFixed(3)},${glass.stretch.toFixed(3)})`,
-        transition: glass.warp
-          ? 'opacity .18s ease-out'
-          : `transform .34s ${EASE}, opacity .18s ease-out`,
-      }
-      // Dispare pe loc, unde a ieșit cursorul — doar opacity + o mică strângere.
-      : {
-        opacity: 0,
-        transform: `translateY(${glass.y.toFixed(1)}px) scale(.97,.9)`,
-        transition: `opacity .26s ease-out, transform .26s ${EASE}`,
-      };
 
   /* Val de ridicare peste plăcuțele „De revăzut azi”. */
   const [tileHover, setTileHover] = useState(null);
@@ -365,48 +210,6 @@ export default function HomePage({
   const chips = nextLesson.letters.slice(0, 6);
   const chipsRest = nextLesson.letters.length - chips.length;
 
-  const navItems = [
-    { icon: HomeIcon, label: 'Acasă' },
-    {
-      icon: BookIcon,
-      label: 'Lecții',
-      onClick: onLessons,
-      badge: (
-        <span
-          style={anim('sg-pop', 0.45, 0.5, 'backwards')}
-          className="text-[11px] font-extrabold text-ink-500 bg-ink-900/[.05] rounded-full px-[9px] py-[3px] tabular-nums"
-        >
-          {totalLessonsCount}
-        </span>
-      ),
-    },
-    {
-      icon: CamIcon,
-      label: 'Cameră',
-      onClick: onStart,
-      badge: (
-        <span aria-hidden className="relative w-[7px] h-[7px] flex-none" title="Camera disponibilă">
-          <span className="absolute inset-0 rounded-full bg-signa-500" />
-          <span className="absolute -inset-1 rounded-full border-[1.5px] border-signa-500/55 sg-dot-ring" />
-        </span>
-      ),
-    },
-    {
-      icon: ChartIcon,
-      label: 'Clasament',
-      onClick: onLeaderboard,
-      badge: rank ? (
-        <span
-          style={anim('sg-pop', 0.45, 0.56, 'backwards')}
-          className="text-[11px] font-extrabold text-amber-700 bg-[#FFF7E8] rounded-full px-[9px] py-[3px] tabular-nums"
-        >
-          #{rank.place}
-        </span>
-      ) : null,
-    },
-    { icon: UserIcon, label: 'Profil', onClick: onProfile },
-  ];
-
   const tiles = (
     <>
       <Tile icon={LinesIcon} tone="signa" title="Scrie cuvântul" subtitle="Literă cu literă" onClick={onSpell} delay={0.62} />
@@ -423,170 +226,9 @@ export default function HomePage({
   const reviewRest = reviewLetters.length - reviewChips.length;
 
   return (
-    <div className="h-full overflow-hidden bg-cream flex flex-col">
-      <div
-        className="h-[3px] flex-shrink-0 sg-topbar"
-        style={{
-          background: 'linear-gradient(90deg,#34d399,rgba(16,185,129,.4),transparent,#34d399,rgba(16,185,129,.4),transparent)',
-        }}
-      />
-
-      <div className="flex-1 min-h-0 flex flex-col lg:grid lg:grid-cols-[262px_1fr]">
-        {/* ── Sidebar (desktop) ─────────────────────────────────── */}
-        <aside
-          style={anim('sg-fade-right', 0.65, 0)}
-          className="hidden lg:flex flex-col bg-[#FFFDF9] border-r border-ink-900/[.07] px-5 pt-[26px] pb-6"
-        >
-          <div className="flex items-center gap-3 px-2 pb-[30px]">
-            <span className="relative w-[38px] h-[38px] flex-none">
-              <span
-                aria-hidden
-                className="absolute inset-0 rounded-[11px] border-2 border-signa-500/55"
-                style={{ animation: `sg-pulse-ring 3.6s ${EASE} infinite` }}
-              />
-              <img src="/icon.svg" alt="" className="w-[38px] h-[38px] rounded-[11px] block" />
-            </span>
-            <span className="font-black text-[17px] tracking-[.17em] text-ink-900">SIGNA</span>
-          </div>
-
-          <p
-            style={anim('sg-fade-in', 0.5, 0.18, 'both', 'ease-out')}
-            className="px-[14px] mb-2.5 text-[10px] font-extrabold uppercase tracking-[.2em] text-[#C4BAA9]"
-          >
-            Meniu
-          </p>
-
-          <nav
-            className="relative flex flex-col gap-1"
-            onMouseEnter={onNavEnter}
-            onMouseMove={onNavMove}
-            onMouseLeave={onNavLeave}
-          >
-            {/* Pilula elementului activ (Acasă) + bara de accent */}
-            <span
-              aria-hidden
-              className="absolute left-0 right-0 top-0 h-12 rounded-[14px]
-                bg-[linear-gradient(90deg,#E4F5EC,#EFFAF4)] shadow-[inset_0_0_0_1px_rgba(16,185,129,.12)]"
-              style={{ transform: 'translateY(0px)', transition: `transform .42s ${EASE}` }}
-            />
-            <span
-              aria-hidden
-              className="absolute left-0 top-[14px] w-[3px] h-5 rounded-sm bg-signa-500"
-              style={{ transform: 'translateY(0px)', transition: `transform .42s ${EASE}` }}
-            />
-
-            {/* Capsula de sticlă lichidă — peste pilulă, sub butoane */}
-            <span
-              aria-hidden
-              className="absolute left-0 right-0 top-0 h-12 rounded-2xl pointer-events-none origin-center"
-              style={{
-                background: 'rgba(255,255,255,.42)',
-                backdropFilter: 'blur(9px) saturate(190%)',
-                WebkitBackdropFilter: 'blur(9px) saturate(190%)',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,.95), inset 0 -1px 0 rgba(46,42,36,.05),'
-                  + ' inset 0 0 0 1px rgba(255,255,255,.55), 0 6px 18px rgba(46,42,36,.07)',
-                ...glassStyle,
-              }}
-            >
-              <span
-                className="absolute left-[9%] right-[9%] top-px h-[42%]"
-                style={{
-                  borderRadius: '14px 14px 60% 60% / 14px 14px 100% 100%',
-                  background: 'linear-gradient(180deg,rgba(255,255,255,.7),rgba(255,255,255,0))',
-                }}
-              />
-              <span
-                className="absolute inset-0 rounded-2xl"
-                style={{
-                  background: 'linear-gradient(100deg,rgba(255,255,255,.28),transparent 42%,transparent 62%,rgba(255,255,255,.22))',
-                }}
-              />
-            </span>
-
-            {navItems.map(({ icon: Icon, label, onClick, badge }, i) => (
-              <button
-                key={label}
-                type="button"
-                onClick={onClick}
-                className={`group relative flex items-center gap-[13px] h-12 px-[14px] rounded-[14px] text-[15px]
-                  transition-colors duration-200 ease-out
-                  ${i === 0 ? 'text-signa-600 font-bold' : 'text-ink-600 font-semibold hover:text-ink-900'}`}
-              >
-                <span
-                  className="flex transition-transform duration-[280ms] group-hover:scale-[1.14]"
-                  style={{ transitionTimingFunction: EASE }}
-                >
-                  <Icon width="19" height="19" />
-                </span>
-                {badge ? <span className="mr-auto">{label}</span> : label}
-                {badge}
-              </button>
-            ))}
-          </nav>
-
-          {/* Card de nivel */}
-          <div
-            style={anim('sg-fade-up', 0.6, 0.42)}
-            className="mt-[26px] bg-[#FBF7F0] border border-ink-900/[.06] rounded-[18px] p-4"
-          >
-            <div className="flex items-baseline justify-between mb-[9px]">
-              <span className="text-[11px] font-extrabold uppercase tracking-[.14em] text-ink-400">Nivel {level}</span>
-              <span className="text-[11px] font-extrabold text-[#C4BAA9]">Nv. {level + 1}</span>
-            </div>
-            <div className="relative h-1.5 rounded-full bg-ink-900/[.07] overflow-hidden">
-              <div
-                className="h-full rounded-full bg-[linear-gradient(90deg,#34d399,#10b981)]"
-                style={{ width: `${(grown ? levelPct : 0) * 100}%`, transition: `width 1.3s ${EASE} .7s` }}
-              />
-              <div
-                aria-hidden
-                className="absolute inset-y-0 left-0 w-[34%]"
-                style={{
-                  background: 'linear-gradient(90deg,transparent,rgba(255,255,255,.85),transparent)',
-                  animation: 'sg-sheen 4.2s cubic-bezier(.4,0,.2,1) 2s infinite',
-                }}
-              />
-            </div>
-            <p className="mt-2.5 text-xs font-bold text-ink-500 tabular-nums">
-              {xpIntoLevel} <span className="text-[#C4BAA9]">/ {xpNeeded} XP</span>
-            </p>
-          </div>
-
-          <div className="mt-auto pt-[22px] flex flex-col gap-0.5">
-            <p
-              style={anim('sg-fade-in', 0.5, 0.46, 'both', 'ease-out')}
-              className="px-[14px] mb-2 text-[10px] font-extrabold uppercase tracking-[.2em] text-[#C4BAA9]"
-            >
-              Unelte
-            </p>
-            <ToolButton icon={DownloadIcon} label="Colectare date" onClick={onCollect} delay={0.5} />
-            <ToolButton icon={TrendIcon} label="Antrenare model" onClick={onTrain} delay={0.56} />
-            <ToolButton icon={PulseIcon} label="Diagnostic" onClick={onDiagnostic} delay={0.62} />
-
-            <div
-              style={anim('sg-fade-up', 0.6, 0.68)}
-              className="mt-3.5 pt-4 border-t border-ink-900/[.07] flex items-center gap-[11px]"
-            >
-              <span className="flex items-center justify-center w-[34px] h-[34px] flex-none rounded-[11px]
-                bg-signa-500 text-white text-sm font-black">
-                {(initials || firstName[0] || 'S').toUpperCase()}
-              </span>
-              <span className="min-w-0 flex flex-col">
-                <span className="text-[13.5px] font-extrabold text-ink-900 leading-tight truncate">
-                  {firstName || 'Jucător'}
-                </span>
-                <span className="text-[11.5px] font-semibold text-ink-400 leading-tight tabular-nums">
-                  {streakLabel} la rând
-                </span>
-              </span>
-            </div>
-          </div>
-        </aside>
-
-        {/* ── Conținut ──────────────────────────────────────────── */}
-        <main className="flex-1 min-h-0 overflow-y-auto scrollbar-hide flex flex-col
-          bg-[radial-gradient(110%_45%_at_50%_0%,#F3FBF6_0%,#FFFBF3_62%)]
-          lg:bg-[radial-gradient(ellipse_70%_50%_at_85%_0%,#FFFDF7,#FBF6ED)]">
+    <div className="min-h-full flex flex-col
+      bg-[radial-gradient(110%_45%_at_50%_0%,#F3FBF6_0%,#FFFBF3_62%)]
+      lg:bg-[radial-gradient(ellipse_70%_50%_at_85%_0%,#FFFDF7,#FBF6ED)]">
 
           {/* Header mobil */}
           <header className="lg:hidden flex items-center justify-between px-5 pt-2">
@@ -1064,9 +706,7 @@ export default function HomePage({
             <NavItem icon={BookIcon} label="Lecții" onClick={onLessons} />
             <NavItem icon={CamIcon} label="Cameră" onClick={onStart} />
             <NavItem icon={UserIcon} label="Profil" onClick={onProfile} />
-          </nav>
-        </main>
-      </div>
+      </nav>
     </div>
   );
 }

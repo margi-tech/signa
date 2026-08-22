@@ -178,6 +178,26 @@ body {
 
 .sg-arrow { animation: sg-arrow 1.8s ease-in-out infinite; }
 
+/* ── Tranziția între ecrane ───────────────────────────────────────
+   Direcția vine din ordinea din meniu: „down” cobori în listă,
+   „up” urci. Ecranul care iese rămâne montat cât ține animația. */
+@keyframes sg-page-in-down {
+  from { opacity: 0; transform: translateY(28px) scale(.986); filter: blur(4px); }
+  to   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+@keyframes sg-page-out-down {
+  from { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+  to   { opacity: 0; transform: translateY(-22px) scale(.99); filter: blur(4px); }
+}
+@keyframes sg-page-in-up {
+  from { opacity: 0; transform: translateY(-28px) scale(.986); filter: blur(4px); }
+  to   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+@keyframes sg-page-out-up {
+  from { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+  to   { opacity: 0; transform: translateY(22px) scale(.99); filter: blur(4px); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: .001ms !important;

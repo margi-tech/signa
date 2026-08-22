@@ -111,7 +111,8 @@ export function AuthField({ label, hint, error, action, children }) {
 const inputBase =
   'w-full border rounded-2xl text-[15px] font-semibold text-ink-900 placeholder:text-ink-400 '
   + 'placeholder:font-medium outline-none transition-[border-color,box-shadow,background] duration-[180ms] ease-out '
-  + 'bg-[#FDFCF9] hover:bg-white focus:bg-white focus:border-signa-500 focus:ring-4 focus:ring-signa-500/[0.13]';
+  + 'bg-[#FDFCF9] hover:bg-white focus:bg-white focus:border-signa-500 focus:ring-4 focus:ring-signa-500/[0.14] '
+  + 'focus:-translate-y-px';
 
 /** `icon` opțional — fără el, padding-ul rămâne cel clasic (folosit în Profil). */
 export function AuthInput({ className = '', error, icon, ...props }) {
@@ -380,16 +381,17 @@ export function SettingsSwitch({ checked, onChange, disabled, label, description
         aria-label={label}
         disabled={disabled}
         onClick={() => onChange(!checked)}
-        className={`relative h-7 w-12 flex-shrink-0 rounded-full shadow-[inset_0_1px_3px_rgba(0,0,0,.12)] transition-colors duration-200 disabled:opacity-50 ${
-          checked ? 'bg-signa-500' : 'bg-ink-900/15'
+        style={{ transition: 'background-color .28s cubic-bezier(.22,1,.36,1)' }}
+        className={`relative h-7 w-12 flex-shrink-0 rounded-full shadow-[inset_0_1px_3px_rgba(0,0,0,.12)] disabled:opacity-50 ${
+          checked ? 'bg-signa-500' : 'bg-ink-900/[.16]'
         }`}
       >
         <span
           aria-hidden
-          className="absolute top-[3px] block h-[22px] w-[22px] rounded-full bg-white shadow-[0_2px_5px_rgba(0,0,0,.2)]"
+          className="absolute top-[3px] left-[3px] block h-[22px] w-[22px] rounded-full bg-white shadow-[0_2px_5px_rgba(0,0,0,.2)]"
           style={{
-            left: checked ? '23px' : '3px',
-            transition: 'left .2s cubic-bezier(.3,1.4,.5,1)',
+            transform: checked ? 'translateX(20px)' : 'translateX(0)',
+            transition: 'transform .28s cubic-bezier(.34,1.5,.64,1)',
           }}
         />
       </button>
