@@ -13,41 +13,72 @@ Recunoașterea semnelor rulează **pe dispozitiv**, fără cloud, fără costuri
 ## Structura proiectului
 ```
 src/
-├── components/hand-tracker/   # Camera + canvas overlay
-├── components/collect/        # LetterSelector
-├── components/lesson/         # ReferenceHand (static + animat)
-├── components/prediction/     # PredictionOverlay
-├── components/ui/             # Confetti
+├── components/
+│   ├── AppShell.jsx           # shell persistent: sidebar + tranziții între ecrane
+│   ├── Sidebar.jsx            # meniu, capitole, unelte, card nivel, rând profil
+│   ├── icons.jsx              # SVG-uri partajate (nav, unelte, conținut)
+│   ├── hand-tracker/          # Camera + canvas overlay
+│   ├── collect/               # LetterSelector
+│   ├── lesson/                # ReferenceHand (static + animat) + ReferenceHand3D
+│   ├── prediction/            # PredictionOverlay
+│   ├── auth/                  # AuthPanel, AuthUi, ProfileDashboard, AuthGate
+│   └── ui/                    # Confetti
 ├── hooks/
 │   ├── useHolisticLandmarker.js
 │   ├── useDatasetCollector.js
 │   ├── useClassifier.js
-│   └── useProgress.js         # XP, stele, streak, nivel, mastery
-├── pages/                     # Home, Camera, Collect, Train, Lessons, Lesson,
-│                              # Spell, Review, Diagnostic
+│   ├── useProgress.js         # XP, stele, streak, nivel, mastery
+│   ├── useProgressSync.js     # merge max(XP/stele) cu Supabase
+│   ├── useProfileSummary.js   # nume, inițiale, avatar, rang — chemat o dată din shell
+│   └── useCountUp.js          # contoare animate
+├── pages/                     # Home, Camera, Collect, Train, Lessons, Lesson, Spell,
+│                              # Review, Diagnostic, Profile, Leaderboard, ReferinteCatalog
 ├── data/                      # lsr-alphabet, lessons, words, reference-poses
 ├── lib/supabase.js
 └── utils/normalize.js         # ⚠ CRITICĂ — VECTOR_SIZE 199
 ```
 
+### Shell vs. ecrane full-screen
+**Acasă, Lecții, Profil** trăiesc în `AppShell` — au sidebar comun și tranziție
+între ele. Nu-și pun singure sidebar sau scroll (produce scroll dublu); rădăcina
+lor e `min-h-full`, scroll-ul îl face `<main>`-ul shell-ului.
+
+**Cameră, Lecție, Colectare, Train, Diagnostic, Clasament, Referințe** rămân
+full-screen, randate direct din `App.jsx`.
+
 ## Reguli importante
 1. `normalize()` din `src/utils/normalize.js` NU se modifică fără anunț explicit —
    orice schimbare invalidează datele/modelele. Contract v2: 199 valori.
 2. Recunoașterea rămâne **pe dispozitiv** — niciodată imagini în cloud.
-3. Stil: mobile-first, **temă cream/friendly** (`cream`, `ink`, accent `signa-400`).
+3. Stil: **temă cream/friendly** (`cream`, `ink`, accent `signa-*`), font Nunito.
+   Ecranele de shell sunt desktop-first (breakpoint `lg`); restul, mobile-first.
 4. Comentariile în română sunt ok.
 5. Literele dinamice (J, Z, X, Î, Ș, Ț) = secvențe `SEQ_FRAMES`.
+6. Animațiile sunt CSS pur, cu keyframes `sg-*` din `src/index.css`. **Fără
+   librării de animație.** Refolosește keyframe-urile existente.
+7. ⚠ **Nu scrie în `localStorage` cheia `signa-progress-v2` pe o origine cu
+   sesiune Supabase activă.** Sync-ul face `max()` și urcă datele în contul real,
+   fără cale de întoarcere. Vezi skill-ul `signa-verify`.
+
+## Verificare
+```bash
+npm install
+npm run dev
+npm test          # vitest — 34 teste
+npx vite build
+```
+**Nu există `npm run lint` și nici `tsc`** — proiectul e JS curat. Dacă o cerință
+le menționează, spune că nu se aplică și rulează testele + build-ul.
+
+## Skill-uri
+`.claude/skills/` — invocă-le după caz:
+- **signa-ui** — UI, layout, animații, tokeni, arhitectura de shell
+- **signa-verify** — comenzi de verificare, preview, capcane, siguranța datelor
+- **signa-git** — branch per task, commit, PR, merge, recuperare din stash
 
 ## Faze
 - Faza 1–4 ✅ (camera holistică, colectare, train, lecții)
 - Faza 4.5 🚧 (pipeline GRU gata; lipsește recolectare + modele active în `public/models/`)
-- Faza 5 — scaffold Supabase; proiect live TBD
+- Faza 5 — Supabase live; deploy Vercel blocat de contul echipei
 
-## Cum rulezi local
-```bash
-npm install
-npm run dev
-npm test
-```
-
-Vezi `ROADMAP.md` pentru starea bifelor.
+Vezi `ROADMAP.md` pentru starea bifelor și `ARHITECTURA.md` pentru viziunea de produs.

@@ -79,15 +79,22 @@ Colectare (Foto/Video) → Export JSON → Import (unire) → Antrenare → publ
 
 ```
 src/
-├── components/     # camera, lecții, predicție, UI
-├── hooks/          # landmarker, colectare, clasificator, progres
-├── pages/          # Home, Camera, Collect, Train, Lessons, …
+├── components/     # AppShell + Sidebar (shell persistent), icons,
+│                   # camera, lecții, predicție, auth, UI
+├── hooks/          # landmarker, colectare, clasificator, progres, profil
+├── pages/          # Home, Camera, Collect, Train, Lessons, Lesson, Spell,
+│                   # Review, Diagnostic, Profile, Leaderboard, Referințe
 ├── data/           # alfabet, lecții, cuvinte, reference-poses
 ├── utils/normalize.js   # ⚠ VECTOR_SIZE 199
+├── index.css       # tokeni + animațiile `sg-*`
 └── lib/supabase.js
 public/models/      # modele active (TF.js)
 docs/               # ghiduri echipă
+.claude/skills/     # skill-uri de lucru (UI, verificare, git)
 ```
+
+**Acasă / Lecții / Profil** stau într-un shell comun (`AppShell` + `Sidebar`), cu
+tranziție între ele. Restul ecranelor sunt full-screen, randate din `App.jsx`.
 
 ## Documentație
 
@@ -101,16 +108,32 @@ docs/               # ghiduri echipă
 | [`docs/supabase-setup.md`](docs/supabase-setup.md) | Setup proiect Supabase + chei + Vercel |
 | [`ROADMAP.md`](ROADMAP.md) | Stare proiect & priorități |
 | [`docs/tutorial-incepatori.md`](docs/tutorial-incepatori.md) | Onboarding fără experiență de cod |
+| [`ARHITECTURA.md`](ARHITECTURA.md) | Viziune de produs, model de date, faze |
+| [`CLAUDE.md`](CLAUDE.md) | Context pentru lucrul cu Claude Code |
+
+### Skill-uri (`.claude/skills/`)
+
+| Skill | Când |
+|---|---|
+| `signa-ui` | Ecrane, layout, animații, tokeni, shell |
+| `signa-verify` | Verificare, preview, capcane, siguranța datelor de progres |
+| `signa-git` | Branch per task, commit, PR, merge |
 
 ## Git (echipă)
 
 - Lucrați pe **branch-uri**, nu direct pe `main`
 - Schimbările ajung pe `main` prin **Pull Request**
+- **Dați commit înainte de a schimba branch-ul** — altfel lucrul ajunge în stash
+  și e ușor de pierdut din vedere
 - Nu modificați `src/utils/normalize.js` fără anunț
 
 ## Confidențialitate
 
 Recunoașterea rulează **local pe dispozitiv**. Nu trimitem imagini/video în cloud — doar vectori numerici în dataset-urile exportate (JSON), dacă le partajați în echipă.
+
+⚠ Progresul (`signa-progress-v2` din `localStorage`) se sincronizează cu Supabase
+prin `max()` pe XP/stele. Datele de test scrise local pe o origine autentificată
+ajung în contul real și **nu pot fi coborâte** ulterior.
 
 ## Licență
 
