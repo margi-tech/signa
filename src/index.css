@@ -198,6 +198,35 @@ body {
   to   { opacity: 0; transform: translateY(22px) scale(.99); filter: blur(4px); }
 }
 
+/* ── Ecranul Clasament ────────────────────────────────────────────
+   Coloanele podiumului cresc de jos; `transform-origin: bottom` se pune
+   pe element, nu aici. */
+@keyframes sg-rise  { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes sg-crown {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50%      { transform: translateY(-5px) rotate(4deg); }
+}
+@keyframes sg-row-in {
+  from { opacity: 0; transform: translateX(-14px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Ecranul Cameră ───────────────────────────────────────────────
+   `sg-scan` e parametrizat prin --sg-scan-from: distanța de scanat
+   diferă de la un container la altul (mâna are 300px pe cameră). */
+@keyframes sg-rec { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+@keyframes sg-scan {
+  0%   { transform: translateY(var(--sg-scan-from, 298px)); opacity: 0; }
+  8%   { opacity: 1; }
+  82%  { opacity: 1; }
+  100% { transform: translateY(4px); opacity: 0; }
+}
+@keyframes sg-tip     { 0%, 100% { transform: scale(1); opacity: 1; }    50% { transform: scale(1.28); opacity: .72; } }
+@keyframes sg-halo    { 0%, 100% { transform: scale(.9); opacity: .5; }  50% { transform: scale(1.5); opacity: .1; } }
+@keyframes sg-draw    { from { stroke-dashoffset: 320; } to { stroke-dashoffset: 0; } }
+@keyframes sg-bracket { 0%, 100% { transform: scale(1); opacity: .85; }  50% { transform: scale(1.035); opacity: 1; } }
+@keyframes sg-float-y { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-14px) rotate(1deg); } }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: .001ms !important;

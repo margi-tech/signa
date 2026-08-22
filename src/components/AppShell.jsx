@@ -3,6 +3,8 @@ import Sidebar, { PAGE_ORDER } from './Sidebar.jsx';
 import HomePage from '../pages/HomePage.jsx';
 import LessonsPage from '../pages/LessonsPage.jsx';
 import ProfilePage from '../pages/ProfilePage.jsx';
+import CameraPage from '../pages/CameraPage.jsx';
+import LeaderboardPage from '../pages/LeaderboardPage.jsx';
 import { buildChaptersWithLessons } from '../data/lessons.js';
 import { useProgress } from '../hooks/useProgress.js';
 import { useProfileSummary } from '../hooks/useProfileSummary.js';
@@ -10,7 +12,7 @@ import { useProfileSummary } from '../hooks/useProfileSummary.js';
 const EASE = 'cubic-bezier(.22,1,.36,1)';
 
 /** Ecranele care trăiesc în shell (au sidebar și se tranziționează între ele). */
-export const SHELL_PAGES = ['home', 'lessons', 'profile'];
+export const SHELL_PAGES = ['home', 'lessons', 'camera', 'leaderboard', 'profile'];
 
 /**
  * Capitolul „activ”: primul care are o lecție încă necompletată (0 stele).
@@ -158,6 +160,18 @@ export default function AppShell({
                 onBack={() => go('home')}
                 onOpenLesson={onOpenLesson}
               />
+            </main>
+          )}
+
+          {shows('camera') && (
+            <main className={mainClass} style={layer('camera')} onAnimationEnd={onLayerAnimEnd}>
+              <CameraPage />
+            </main>
+          )}
+
+          {shows('leaderboard') && (
+            <main className={mainClass} style={layer('leaderboard')} onAnimationEnd={onLayerAnimEnd}>
+              <LeaderboardPage />
             </main>
           )}
 

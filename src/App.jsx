@@ -1,16 +1,12 @@
 import { useEffect, useState } from 'react';
 import AppShell, { SHELL_PAGES } from './components/AppShell.jsx';
-import CameraPage from './pages/CameraPage.jsx';
 import CollectPage from './pages/CollectPage.jsx';
 import TrainPage from './pages/TrainPage.jsx';
-import LessonsPage from './pages/LessonsPage.jsx';
 import LessonPage from './pages/LessonPage.jsx';
 import SpellPage from './pages/SpellPage.jsx';
 import ReviewPage from './pages/ReviewPage.jsx';
 import DiagnosticPage from './pages/DiagnosticPage.jsx';
 import ReferinteCatalogPage from './pages/ReferinteCatalogPage.jsx';
-import ProfilePage from './pages/ProfilePage.jsx';
-import LeaderboardPage from './pages/LeaderboardPage.jsx';
 import Onboarding from './components/Onboarding.jsx';
 import AuthGate from './components/auth/AuthGate.jsx';
 import { LESSONS } from './data/lessons.js';
@@ -82,12 +78,10 @@ export default function App() {
     return <Onboarding onDone={finishOnboarding} />;
   }
 
-  if (page === 'camera') return <CameraPage onBack={() => setPage('home')} />;
   if (page === 'collect') return <CollectPage onBack={() => setPage('home')} />;
   if (page === 'train') return <TrainPage onBack={() => setPage('home')} />;
   if (page === 'spell') return <SpellPage onBack={() => setPage('home')} />;
   if (page === 'diagnostic') return <DiagnosticPage onBack={() => setPage('home')} />;
-  if (page === 'leaderboard') return <LeaderboardPage onBack={() => setPage('home')} />;
 
   if (page === 'review') {
     return (
