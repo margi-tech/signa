@@ -21,6 +21,13 @@ export const ChartIcon = (p) => <svg {...stroke} {...p}><path d="M5 20V12" /><pa
 export const DownloadIcon = (p) => <svg {...stroke} {...p}><path d="M12 3.5v11" /><path d="m8 10.5 4 4 4-4" /><path d="M4.5 18.5h15" /></svg>;
 export const TrendIcon = (p) => <svg {...stroke} {...p}><path d="M4 16.5 9 9l4 4.5L20 5.5" /><circle cx="9" cy="9" r="1.6" /></svg>;
 export const PulseIcon = (p) => <svg {...stroke} {...p}><path d="M3.5 12h4l2-4 2.5 8 2.5-6 1.5 2h4.5" /></svg>;
+export const HandIcon = (p) => (
+  <svg {...stroke} {...p}>
+    <path d="M8 11V7.2a1.6 1.6 0 1 1 3.2 0V11" />
+    <path d="M11.2 11V5.8a1.6 1.6 0 1 1 3.2 0V11" />
+    <path d="M14.4 11V7.5a1.6 1.6 0 1 1 3.2 0V13a6 6 0 0 1-12 0v-1.2A1.6 1.6 0 0 1 8 10.2" />
+  </svg>
+);
 
 /* Conținut */
 export const BarsIcon = (p) => <svg {...stroke} strokeWidth="2.2" {...p}><path d="M5 19v-7" /><path d="M12 19V6" /><path d="M19 19v-4" /></svg>;

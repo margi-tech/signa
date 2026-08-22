@@ -8,6 +8,7 @@ import LessonPage from './pages/LessonPage.jsx';
 import SpellPage from './pages/SpellPage.jsx';
 import ReviewPage from './pages/ReviewPage.jsx';
 import DiagnosticPage from './pages/DiagnosticPage.jsx';
+import ReferinteCatalogPage from './pages/ReferinteCatalogPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 import LeaderboardPage from './pages/LeaderboardPage.jsx';
 import Onboarding from './components/Onboarding.jsx';
@@ -16,11 +17,35 @@ import { LESSONS } from './data/lessons.js';
 import { useProgress } from './hooks/useProgress.js';
 import { isSupabaseConfigured, supabase } from './lib/supabase.js';
 
+function pageFromHash() {
+  return window.location.hash.replace(/^#/, '') === 'referinte' ? 'referinte' : null;
+}
+
 export default function App() {
-  const [page, setPage] = useState('home');
+  const [page, setPage] = useState(() => pageFromHash() || 'home');
   const [lessonId, setLessonId] = useState(null);
   const [reviewLesson, setReviewLesson] = useState(null);
   const { onboardingDone, finishOnboarding } = useProgress();
+
+  useEffect(() => {
+    const onHash = () => {
+      const fromHash = pageFromHash();
+      if (fromHash) setPage(fromHash);
+    };
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+
+  const openReferinte = () => {
+    window.location.hash = 'referinte';
+    setPage('referinte');
+  };
+  const closeReferinte = () => {
+    if (window.location.hash.replace(/^#/, '') === 'referinte') {
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+    setPage('home');
+  };
 
   const [user, setUser] = useState(undefined);
 
@@ -35,6 +60,11 @@ export default function App() {
     });
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  // Catalogul de review e un document intern — accesibil și fără login (#referinte).
+  if (page === 'referinte') {
+    return <ReferinteCatalogPage onBack={closeReferinte} />;
+  }
 
   if (user === undefined) {
     return (
@@ -99,6 +129,7 @@ export default function App() {
       onSpell={() => setPage('spell')}
       onReview={() => setPage('review')}
       onDiagnostic={() => setPage('diagnostic')}
+      onReferinte={openReferinte}
     />
   );
 }

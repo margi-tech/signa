@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  BookIcon, CamIcon, ChartIcon, DownloadIcon, HomeIcon,
+  BookIcon, CamIcon, ChartIcon, DownloadIcon, HandIcon, HomeIcon,
   PulseIcon, TrendIcon, UserIcon,
 } from './icons.jsx';
 
@@ -57,7 +57,7 @@ export default function Sidebar({
   chapters, selectedChapterId, onSelectChapter, starsFor,
   level, xpIntoLevel, xpNeeded, totalLessonsCount, rank,
   firstName, initials, avatarUrl, streak,
-  onCollect, onTrain, onDiagnostic,
+  onCollect, onTrain, onDiagnostic, onReferinte,
 }) {
   const onLessons = page === 'lessons';
   const levelPct = xpNeeded > 0 ? Math.min(xpIntoLevel / xpNeeded, 1) : 0;
@@ -372,6 +372,9 @@ export default function Sidebar({
           <ToolButton icon={DownloadIcon} label="Colectare date" onClick={onCollect} delay={0.5} />
           <ToolButton icon={TrendIcon} label="Antrenare model" onClick={onTrain} delay={0.56} />
           <ToolButton icon={PulseIcon} label="Diagnostic" onClick={onDiagnostic} delay={0.62} />
+          {onReferinte && (
+            <ToolButton icon={HandIcon} label="Referințe LSR" onClick={onReferinte} delay={0.68} />
+          )}
         </div>
 
         <div

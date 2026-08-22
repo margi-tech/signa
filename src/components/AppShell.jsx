@@ -30,7 +30,7 @@ function findActiveChapterId(chapters, starsFor) {
  */
 export default function AppShell({
   page, onNavigate,
-  onOpenLesson, onCollect, onTrain, onDiagnostic, onSpell, onReview,
+  onOpenLesson, onCollect, onTrain, onDiagnostic, onSpell, onReview, onReferinte,
 }) {
   const {
     xp, streak, level, xpIntoLevel, xpNeeded, totalLessonsCount, starsFor,
@@ -127,6 +127,7 @@ export default function AppShell({
           onCollect={onCollect}
           onTrain={onTrain}
           onDiagnostic={onDiagnostic}
+          onReferinte={onReferinte}
         />
 
         <div className="relative min-w-0 flex-1 min-h-0 overflow-hidden">
