@@ -1,26 +1,47 @@
 import { useEffect, useState } from 'react';
-import HomePage from './pages/HomePage.jsx';
-import CameraPage from './pages/CameraPage.jsx';
+import AppShell, { SHELL_PAGES } from './components/AppShell.jsx';
 import CollectPage from './pages/CollectPage.jsx';
 import TrainPage from './pages/TrainPage.jsx';
-import LessonsPage from './pages/LessonsPage.jsx';
 import LessonPage from './pages/LessonPage.jsx';
 import SpellPage from './pages/SpellPage.jsx';
 import ReviewPage from './pages/ReviewPage.jsx';
 import DiagnosticPage from './pages/DiagnosticPage.jsx';
-import ProfilePage from './pages/ProfilePage.jsx';
-import LeaderboardPage from './pages/LeaderboardPage.jsx';
+import ReferinteCatalogPage from './pages/ReferinteCatalogPage.jsx';
 import Onboarding from './components/Onboarding.jsx';
 import AuthGate from './components/auth/AuthGate.jsx';
 import { LESSONS } from './data/lessons.js';
 import { useProgress } from './hooks/useProgress.js';
 import { isSupabaseConfigured, supabase } from './lib/supabase.js';
 
+function pageFromHash() {
+  return window.location.hash.replace(/^#/, '') === 'referinte' ? 'referinte' : null;
+}
+
 export default function App() {
-  const [page, setPage] = useState('home');
+  const [page, setPage] = useState(() => pageFromHash() || 'home');
   const [lessonId, setLessonId] = useState(null);
   const [reviewLesson, setReviewLesson] = useState(null);
   const { onboardingDone, finishOnboarding } = useProgress();
+
+  useEffect(() => {
+    const onHash = () => {
+      const fromHash = pageFromHash();
+      if (fromHash) setPage(fromHash);
+    };
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+
+  const openReferinte = () => {
+    window.location.hash = 'referinte';
+    setPage('referinte');
+  };
+  const closeReferinte = () => {
+    if (window.location.hash.replace(/^#/, '') === 'referinte') {
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+    setPage('home');
+  };
 
   const [user, setUser] = useState(undefined);
 
@@ -35,6 +56,11 @@ export default function App() {
     });
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  // Catalogul de review e un document intern — accesibil și fără login (#referinte).
+  if (page === 'referinte') {
+    return <ReferinteCatalogPage onBack={closeReferinte} />;
+  }
 
   if (user === undefined) {
     return (
@@ -52,13 +78,10 @@ export default function App() {
     return <Onboarding onDone={finishOnboarding} />;
   }
 
-  if (page === 'camera') return <CameraPage onBack={() => setPage('home')} />;
   if (page === 'collect') return <CollectPage onBack={() => setPage('home')} />;
   if (page === 'train') return <TrainPage onBack={() => setPage('home')} />;
   if (page === 'spell') return <SpellPage onBack={() => setPage('home')} />;
   if (page === 'diagnostic') return <DiagnosticPage onBack={() => setPage('home')} />;
-  if (page === 'profile') return <ProfilePage onBack={() => setPage('home')} />;
-  if (page === 'leaderboard') return <LeaderboardPage onBack={() => setPage('home')} />;
 
   if (page === 'review') {
     return (
@@ -79,15 +102,6 @@ export default function App() {
     );
   }
 
-  if (page === 'lessons') {
-    return (
-      <LessonsPage
-        onBack={() => setPage('home')}
-        onOpenLesson={(id) => { setLessonId(id); setReviewLesson(null); setPage('lesson'); }}
-      />
-    );
-  }
-
   if (page === 'lesson') {
     const lesson = reviewLesson ?? LESSONS.find((l) => l.id === lessonId);
     return (
@@ -100,16 +114,16 @@ export default function App() {
   }
 
   return (
-    <HomePage
-      onLessons={() => setPage('lessons')}
-      onStart={() => setPage('camera')}
+    <AppShell
+      page={SHELL_PAGES.includes(page) ? page : 'home'}
+      onNavigate={setPage}
+      onOpenLesson={(id) => { setLessonId(id); setReviewLesson(null); setPage('lesson'); }}
       onCollect={() => setPage('collect')}
       onTrain={() => setPage('train')}
       onSpell={() => setPage('spell')}
       onReview={() => setPage('review')}
       onDiagnostic={() => setPage('diagnostic')}
-      onProfile={() => setPage('profile')}
-      onLeaderboard={() => setPage('leaderboard')}
+      onReferinte={openReferinte}
     />
   );
 }

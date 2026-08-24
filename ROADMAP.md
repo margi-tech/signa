@@ -1,6 +1,6 @@
 # Signa — Foaie de parcurs către o aplicație funcțională
 
-Document de lucru, actualizat 28 iul 2026 (sesiune overnight pe `dev`).
+Document de lucru, actualizat 22 aug 2026.
 Organizat pe priorități, nu pe faze cronologice — unele lucruri se pot face în paralel.
 
 ---
@@ -42,6 +42,13 @@ Organizat pe priorități, nu pe faze cronologice — unele lucruri se pot face 
 - [x] Camera rămâne video natural; chrome-ul UI e cream/white
 - [x] Brand verde `signa` păstrat pe fundal luminos
 - [x] PWA icons + theme-color cream
+- [x] Refacere desktop Acasă („continuă unde ai rămas") + Lecții (capitole în sidebar)
+- [x] Refacere Profil după mockup (banner, date, sync, zonă sensibilă)
+- [x] Shell persistent: `AppShell` + `Sidebar` care nu se remontează la navigare
+- [x] Tranziții între ecrane (`sg-page-*`) + strat de animații `sg-*` pe toate trei
+- [ ] Verificare manuală pe desktop real a fluenței tranziției — panoul de preview
+      raportează tab-ul ca ascuns, deci timing-ul nu se poate măsura acolo
+- [ ] Trecere mobil peste ecranele refăcute (au fost gândite desktop-first)
 
 ---
 
@@ -61,7 +68,8 @@ Organizat pe priorități, nu pe faze cronologice — unele lucruri se pot face 
 - [x] UI Profil (login/register) + Clasament (live când e configurat)
 - [x] Sync progres cu merge max(XP/stele) — `useProgressSync.js`
 - [x] Proiect Supabase live (`signa`, EU) + sync automat după lecție și la login
-- [ ] Deploy public Vercel (repo conectat + env setate; încă blocat când autorul commitului nu e owner pe Hobby/private)
+- [ ] Deploy public Vercel — blocat: check-ul Vercel pică cu „Account is blocked"
+      pe contul ownerului echipei (billing/suspendare), nu din cauza codului
 
 ---
 
@@ -70,6 +78,8 @@ Organizat pe priorități, nu pe faze cronologice — unele lucruri se pot face 
 - [x] Erori cameră / CDN MediaPipe cu mesaje acționabile + reload
 - [x] Pagină Diagnostic (FPS, modele, UA)
 - [x] Teste automate: `normalize`, validatori dataset, levels (`npm test`)
+- [x] Skill-uri de lucru în `.claude/skills/` (UI, verificare, git)
+- [ ] Lint/typecheck — proiectul n-are nici `eslint`, nici `tsc` configurate
 - [ ] Profilare pe telefon real (necesită dispozitiv)
 - [ ] Testare mobil Safari/Chrome pe teren
 

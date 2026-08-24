@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   getOwnProfile,
   isSupabaseConfigured,
@@ -15,7 +15,7 @@ import { MessageBanner, SectionCard } from '../components/auth/AuthUi';
  * Profil / autentificare — funcțional doar cu VITE_SUPABASE_* setate.
  * Fără chei: arată starea locală (XP, streak) și instrucțiuni.
  */
-export default function ProfilePage({ onBack }) {
+export default function ProfilePage({ onProfileUpdated }) {
   const {
     xp, streak, level, xpIntoLevel, xpNeeded,
     completedLessonsCount, totalLessonsCount, persist, syncNow,
@@ -31,6 +31,36 @@ export default function ProfilePage({ onBack }) {
   const [banner, setBanner] = useState(null);
   const [busy, setBusy] = useState(false);
   const [authLoading, setAuthLoading] = useState(isSupabaseConfigured);
+  const scrollRef = useRef(null);
+  const stickyRef = useRef(null);
+
+  // Parallax-ul se leagă de containerul care chiar face scroll — <main>-ul
+  // shell-ului. Pagina nu mai are scroll propriu, ca să nu iasă scroll dublu.
+  useEffect(() => {
+    const scroller = scrollRef.current?.closest('main') ?? null;
+    if (!scroller) return undefined;
+    const onScroll = () => {
+      const y = scroller.scrollTop;
+      const banner = scroller.querySelector('[data-sg-banner]');
+      const glow = scroller.querySelector('[data-sg-glow]');
+      if (banner) {
+        banner.style.transform = `translate3d(0, ${y * 0.28}px, 0)`;
+        banner.style.opacity = String(1 - Math.min(y / 190, 1) * 0.85);
+      }
+      if (glow) {
+        glow.style.transform = `translate3d(${-y * 0.14}px, ${y * 0.36}px, 0)`;
+      }
+      const sticky = stickyRef.current;
+      if (sticky) {
+        const show = y > 130;
+        sticky.style.opacity = show ? '1' : '0';
+        sticky.style.transform = show ? 'translateY(0)' : 'translateY(-100%)';
+        sticky.style.pointerEvents = show ? 'auto' : 'none';
+      }
+    };
+    scroller.addEventListener('scroll', onScroll, { passive: true });
+    return () => scroller.removeEventListener('scroll', onScroll);
+  }, []);
 
   useEffect(() => {
     if (!supabase) return undefined;
@@ -78,26 +108,65 @@ export default function ProfilePage({ onBack }) {
     if (p) setProfile(p);
   };
 
+  const stickyName = [firstName, lastName].filter(Boolean).join(' ') || username || 'Jucător';
+  const stickyInitials = ([firstName, lastName].map((s) => (s || '').trim()[0]).filter(Boolean).join('')
+    .toUpperCase().slice(0, 2)) || (username || '?')[0]?.toUpperCase() || '?';
+
   return (
-    <div className="h-full bg-cream flex flex-col overflow-hidden">
-      <div className="h-[3px] bg-gradient-to-r from-signa-400 via-signa-500/40 to-transparent flex-shrink-0" />
+    <div className="min-h-full flex flex-col relative">
+
+      {/* Fundal ambiental — două halouri difuze care plutesc lent, în spatele conținutului. */}
+      <span
+        aria-hidden
+        className="absolute top-[6%] left-[-8%] w-[420px] h-[420px] rounded-full pointer-events-none sg-drift"
+        style={{
+          background: 'radial-gradient(circle, rgba(52,211,153,.22), transparent 70%)',
+          filter: 'blur(65px)',
+          animationDuration: '14s',
+        }}
+      />
+      <span
+        aria-hidden
+        className="absolute bottom-[4%] right-[-6%] w-[380px] h-[380px] rounded-full pointer-events-none sg-drift"
+        style={{
+          background: 'radial-gradient(circle, rgba(255,239,209,.55), transparent 70%)',
+          filter: 'blur(70px)',
+          animationDuration: '18s',
+          animationDirection: 'reverse',
+        }}
+      />
+
+      {/* Bară sticky compactă — apare după ~130px de scroll, cu avatar mic + nume + XP. */}
+      {/* Înveliș `sticky` de înălțime zero: bara plutește peste conținut
+          fără să-i împingă începutul în jos. */}
+      {user && (
+        <div className="sticky top-0 z-20 h-0">
+        <div
+          ref={stickyRef}
+          aria-hidden
+          className="flex items-center gap-3 px-4 md:px-8 py-3 bg-white/80 backdrop-blur border-b border-ink-900/[0.06]"
+          style={{
+            opacity: 0,
+            transform: 'translateY(-100%)',
+            pointerEvents: 'none',
+            transition: 'opacity .34s cubic-bezier(.22,1,.36,1), transform .34s cubic-bezier(.22,1,.36,1)',
+          }}
+        >
+          <div className="w-8 h-8 rounded-xl bg-signa-100 text-signa-900 font-black text-[13px] flex items-center justify-center flex-shrink-0 overflow-hidden">
+            {avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" /> : stickyInitials}
+          </div>
+          <span className="text-ink-900 font-extrabold text-[13.5px] truncate">{stickyName}</span>
+          <span className="text-ink-400 text-[12px] font-bold tabular-nums ml-auto flex-shrink-0">{xp} XP</span>
+        </div>
+        </div>
+      )}
 
       {/* max-w-[1180px]: pe desktop bannerul + cele două coloane au loc să respire,
           pe mobil containerul e lățimea ecranului. */}
-      <div className="flex-1 overflow-y-auto scrollbar-hide">
+      <div ref={scrollRef} className="flex-1 relative z-10">
         <div className="max-w-[1180px] mx-auto px-4 pt-4 pb-8 md:px-8 md:pt-6 md:pb-10">
-        <div className="flex items-center justify-between mb-4 md:mb-[22px]">
-          <button
-            onClick={onBack}
-            className="flex items-center gap-2 rounded-xl border border-ink-900/10 bg-white px-4 py-2 text-[13px] font-bold text-ink-700 transition-[transform,box-shadow] duration-150 hover:-translate-y-px hover:shadow-soft"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="w-[15px] h-[15px]">
-              <path d="M14 6l-6 6 6 6" />
-            </svg>
-            Înapoi
-          </button>
+        <div className="flex items-center justify-center mb-4 md:mb-[22px]">
           <span className="text-[10.5px] font-extrabold uppercase tracking-[.13em] text-ink-400">Profil</span>
-          <span className="w-[92px]" aria-hidden />
         </div>
 
         <div className="space-y-3">
@@ -142,6 +211,7 @@ export default function ProfilePage({ onBack }) {
             onAvatarChange={async (file) => {
               const url = await uploadAvatar(file);
               setAvatarUrl(url);
+              onProfileUpdated?.();   // poza din sidebar se schimbă odată cu asta
             }}
             onFirstName={setFirstName}
             onLastName={setLastName}
@@ -149,7 +219,11 @@ export default function ProfilePage({ onBack }) {
             onVisibility={setVisibility}
             busy={busy}
             onBusy={setBusy}
-            onMessage={setBanner}
+            onMessage={(m) => {
+              setBanner(m);
+              // Salvarea numelui/username-ului schimbă și ce arată sidebar-ul.
+              if (m?.tone === 'success') onProfileUpdated?.();
+            }}
             onSync={async () => {
               await syncNow();
               setBanner({ tone: 'success', text: 'Progres sincronizat.' });
