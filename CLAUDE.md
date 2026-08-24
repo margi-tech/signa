@@ -8,7 +8,8 @@ Recunoașterea semnelor rulează **pe dispozitiv**, fără cloud, fără costuri
 - MediaPipe (`@mediapipe/tasks-vision`) — Hand Landmarker (21 pct/mână) + Face Landmarker
   (blendshapes + orientare cap) + Pose Landmarker (trunchi) — tracking holistic, nu doar mâini
 - TensorFlow.js — clasificator MLP (poze statice) + GRU (semne cu mișcare), antrenate în browser
-- Backend: Supabase (Faza 5, scaffold în `src/lib/supabase.js` + `supabase/schema.sql`)
+- Backend: Supabase live — auth, profil, progres, clasament și social
+  (`src/lib/supabase.js` + `supabase/schema.sql`)
 
 ## Structura proiectului
 ```
@@ -22,6 +23,9 @@ src/
 │   ├── lesson/                # ReferenceHand (static + animat) + ReferenceHand3D
 │   ├── prediction/            # PredictionOverlay
 │   ├── auth/                  # AuthPanel, AuthUi, ProfileDashboard, AuthGate
+│   ├── collect/               # selector + inventar permanent pentru dataset
+│   ├── FriendsSection.jsx     # social integrat în Profil
+│   ├── FriendsList.jsx, UserSearch.jsx, UserProfile.jsx, UserRow.jsx, FollowButton.jsx
 │   └── ui/                    # Confetti
 ├── hooks/
 │   ├── useHolisticLandmarker.js
@@ -35,16 +39,18 @@ src/
 │                              # Review, Diagnostic, Profile, Leaderboard, ReferinteCatalog
 ├── data/                      # lsr-alphabet, lessons, words, reference-poses
 ├── lib/supabase.js
-└── utils/normalize.js         # ⚠ CRITICĂ — VECTOR_SIZE 199
+└── utils/
+    ├── normalize.js           # ⚠ CRITICĂ — VECTOR_SIZE 199
+    └── playerMeta.js          # nivel/rang/metadate vizuale comune socialului
 ```
 
 ### Shell vs. ecrane full-screen
-**Acasă, Lecții, Profil** trăiesc în `AppShell` — au sidebar comun și tranziție
+**Acasă, Lecții, Cameră, Clasament și Profil** trăiesc în `AppShell` — au sidebar comun și tranziție
 între ele. Nu-și pun singure sidebar sau scroll (produce scroll dublu); rădăcina
 lor e `min-h-full`, scroll-ul îl face `<main>`-ul shell-ului.
 
-**Cameră, Lecție, Colectare, Train, Diagnostic, Clasament, Referințe** rămân
-full-screen, randate direct din `App.jsx`.
+**Lecție, Colectare, Train, Diagnostic și Referințe** rămân full-screen, randate
+direct din `App.jsx`.
 
 ## Reguli importante
 1. `normalize()` din `src/utils/normalize.js` NU se modifică fără anunț explicit —
@@ -59,6 +65,10 @@ full-screen, randate direct din `App.jsx`.
 7. ⚠ **Nu scrie în `localStorage` cheia `signa-progress-v2` pe o origine cu
    sesiune Supabase activă.** Sync-ul face `max()` și urcă datele în contul real,
    fără cale de întoarcere. Vezi skill-ul `signa-verify`.
+8. Colectare: 300 foto / 50 filmări per serie automată; foto așteaptă un cadru
+   MediaPipe nou (~75 ms minim), video are pauză 1 s. Camera folosește `cover`.
+9. Prietenii sunt integrați în `ProfileDashboard` prin `FriendsSection`; fără
+   rută/sidebar `friends`.
 
 ## Verificare
 ```bash
@@ -75,6 +85,8 @@ le menționează, spune că nu se aplică și rulează testele + build-ul.
 - **signa-ui** — UI, layout, animații, tokeni, arhitectura de shell
 - **signa-verify** — comenzi de verificare, preview, capcane, siguranța datelor
 - **signa-git** — branch per task, commit, PR, merge, recuperare din stash
+- **signa-collect** — cameră holistică, serii automate, dataset, import/export
+- **signa-social** — follow reciproc, prieteni în Profil, Supabase/RLS
 
 ## Faze
 - Faza 1–4 ✅ (camera holistică, colectare, train, lecții)

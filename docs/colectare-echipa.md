@@ -23,9 +23,19 @@ Pe telefon: același Wi-Fi, apoi IP-ul din terminal (ex. `http://192.168.x.x:517
 2. Alege litera din bandă (sau scrie un cuvânt în câmp)
 3. **Foto** = poză statică (litere fără mișcare)
 4. **Video** = countdown 3s (ridici ambele mâini) + ~1.5s mișcare (J, Z, X, Î, Ș, Ț — se selectează automat)
-5. Ridică mâna → apasă butonul (sau `Spațiu` pe desktop). La Video ai timp să pui ambele mâini înainte de REC.
-6. Țintește minim **50** exemple / literă statică și **30** înregistrări / literă dinamică
-7. Diversifică: unghi, distanță, lumină, mână stângă/dreaptă dacă poți
+5. Manual: ridică mâna și apasă butonul (sau `Spațiu` pe desktop).
+6. Automat: **300 foto** sau **50 filmări**; countdown-ul de 3s îți oferă timp
+   să intri în cadru. Foto salvează numai rezultate MediaPipe noi (~75ms minim),
+   iar Video păstrează pauză de 1s între secvențe.
+7. Poți opri seria cu **Oprește** sau `Escape`. Dacă mâna iese din tracking,
+   seria se oprește fără să repete coordonate vechi.
+8. Pragurile minime pentru antrenare rămân **50** exemple / literă statică și
+   **30** înregistrări / literă dinamică; seriile mai mari oferă diversitate.
+9. Diversifică în timpul seriei: unghi, distanță, expresie, lumină și
+   stânga/dreapta dacă semnul permite.
+
+Vizorul umple complet cadrul (`cover`), fără margini. Verifică permanent ca
+mâinile să nu fie tăiate de marginile imaginii.
 
 ## Export (OBLIGATORIU după fiecare sesiune)
 

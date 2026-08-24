@@ -22,7 +22,9 @@ Date noi mâine = Import vechi+nou → **reantrenezi tot** → înlocuiești mod
 
 ## Pași
 
-1. **Colectezi** — Foto (static) / Video (dinamic). Minim 30 Foto, 15 Video / etichetă. Dinamic = ≥ 2 etichete Video.
+1. **Colectezi** — Foto (static) / Video (dinamic). Prag recomandat: minimum
+   50 Foto / 30 Video per etichetă. Seria automată face 300 Foto sau 50 Video;
+   oprește și exportă mai devreme dacă ai acoperirea necesară.
 2. **Export** — `signa-dataset-prenume.json` → pe canal.
 3. **Unești** (1 persoană) — Import pe rând → Export `signa-dataset-merged.json`.
 4. **Antrenezi** — încarci un singur merged → Model static + Model de mișcare → Descarcă.

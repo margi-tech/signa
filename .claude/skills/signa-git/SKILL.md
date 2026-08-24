@@ -45,15 +45,15 @@ fișierul e atins de ambele părți, ai conflict.
 ## Commit
 
 Mesaje în română, imperativ, cu explicația *de ce* în corp când nu e evident.
-Termină cu:
-
-```
-Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
-```
+Nu adăuga automat un `Co-Authored-By` fix: agentul/modelul se poate schimba.
+Folosește un trailer doar dacă utilizatorul îl cere și identitatea este corectă.
 
 Dă commit doar la fișierele lucrării tale. Repo-ul are frecvent și munca altcuiva
 în working tree — `git add -A` orb amestecă istoricul. Verifică cu
 `git status --short` după staging.
+
+Înainte de commit rulează verificarea specifică proiectului:
+`npm test` + `npx vite build` (nu există lint/tsc configurat).
 
 ## Push și PR
 

@@ -124,7 +124,7 @@ export default function CameraPage() {
   const [prediction, setPrediction] = useState(null);
   const [debug,      setDebug]      = useState(false);
   const [live,       setLive]       = useState(null); // top3 + mișcare, mereu
-  const [cameraOn,   setCameraOn]   = useState(true);
+  const [cameraOn,   setCameraOn]   = useState(false);
   const [session,    setSession]    = useState([]);   // semnele din sesiune
 
   const { isReady, isDynReady, predict, predictSequence } = useClassifier();
@@ -345,93 +345,118 @@ export default function CameraPage() {
           {/* Fără mână în cadru: scheletul-fantomă */}
           {cameraOn && !live && <GhostHand />}
 
-          {/* Linia de scanare */}
-          <span
-            aria-hidden
-            className="absolute top-0 left-[6%] right-[6%] h-[2.5px] rounded-sm pointer-events-none"
-            style={{
-              background: 'linear-gradient(90deg,transparent,rgba(52,211,153,.95),transparent)',
-              '--sg-scan-from': '420px',
-              animation: 'sg-scan 3.4s cubic-bezier(.45,0,.55,1) 1.2s infinite',
-            }}
-          />
+          {cameraOn && (
+            <span
+              aria-hidden
+              className="absolute top-0 left-[6%] right-[6%] h-[2.5px] rounded-sm pointer-events-none"
+              style={{
+                background: 'linear-gradient(90deg,transparent,rgba(52,211,153,.95),transparent)',
+                '--sg-scan-from': '420px',
+                animation: 'sg-scan 3.4s cubic-bezier(.45,0,.55,1) 1.2s infinite',
+              }}
+            />
+          )}
 
-          {/* Badge-uri sus */}
+          {/* Badge-uri sus — LIVE doar cât stream-ul e deschis */}
           <div className="absolute top-5 left-[22px] right-[22px] flex items-center justify-between gap-3.5 z-[2]">
             <span
               style={anim('sg-fade-up', 0.6, 0.5)}
               className="flex items-center gap-2 rounded-full bg-black/40 border border-white/[.12]
                 text-white text-[11.5px] font-extrabold uppercase tracking-[.1em] px-3.5 py-2"
             >
-              <span
-                aria-hidden
-                className="w-[7px] h-[7px] rounded-full bg-[#f43f5e]"
-                style={{ animation: 'sg-rec 1.6s ease-in-out infinite' }}
-              />
-              Live
-            </span>
-            <span
-              style={anim('sg-fade-up', 0.6, 0.56)}
-              className="rounded-full bg-black/40 border border-white/[.12] text-white/70
-                text-[11.5px] font-bold px-3.5 py-2 tabular-nums"
-            >
-              {FPS} fps · 21 puncte
-            </span>
-          </div>
-
-          {/* Panoul de predicție + oprirea camerei */}
-          <div className="absolute left-[22px] right-[22px] bottom-[22px] flex items-end justify-between gap-4 z-[2]">
-            {/* Glass: panoul stă peste feed, deci are nevoie de blur propriu
-                ca litera să rămână lizibilă indiferent de fundal. */}
-            <div
-              style={{
-                ...anim('sg-fade-up', 0.7, 0.88),
-                background: 'rgba(0,0,0,.5)',
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-              }}
-              className="flex items-center gap-3.5 rounded-[20px] border border-white/[.12] px-[22px] py-4"
-            >
-              <span
-                key={prediction?.label ?? 'none'}
-                className="font-black text-white leading-none tabular-nums"
-                style={{
-                  fontSize: 44,
-                  ...anim('sg-fade-up', 0.22, 0, 'both', 'ease-out'),
-                  textShadow: prediction?.dynamic
-                    ? '0 0 32px rgba(129,140,248,.55)'
-                    : '0 0 32px rgba(52,211,153,.45)',
-                }}
-              >
-                {prediction?.label ?? '—'}
-              </span>
-              <span className="min-w-0">
-                <span className="block text-[11px] font-extrabold uppercase tracking-[.12em] text-white/55">
-                  {prediction?.dynamic ? 'Semn dinamic' : 'Semn static'}
-                </span>
-                <span className="mt-1.5 block w-[132px] h-1.5 rounded-full bg-white/15 overflow-hidden">
+              {cameraOn ? (
+                <>
                   <span
-                    className={`block h-full rounded-full ${prediction?.dynamic ? 'bg-indigo-400' : 'bg-signa-400'}`}
-                    style={{
-                      width: `${(prediction?.confidence ?? 0) * 100}%`,
-                      transition: 'width .4s ease-out',
-                    }}
+                    aria-hidden
+                    className="w-[7px] h-[7px] rounded-full bg-[#f43f5e]"
+                    style={{ animation: 'sg-rec 1.6s ease-in-out infinite' }}
                   />
-                </span>
+                  Live
+                </>
+              ) : 'Oprită'}
+            </span>
+            {cameraOn && (
+              <span
+                style={anim('sg-fade-up', 0.6, 0.56)}
+                className="rounded-full bg-black/40 border border-white/[.12] text-white/70
+                  text-[11.5px] font-bold px-3.5 py-2 tabular-nums"
+              >
+                {FPS} fps · 21 puncte
               </span>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setCameraOn((c) => !c)}
-              style={anim('sg-fade-up', 0.7, 0.94)}
-              className="flex-none rounded-2xl border border-white/[.14] bg-black/40 text-white
-                px-5 py-3 text-[13px] font-bold backdrop-blur
-                transition-transform duration-[160ms] ease-out hover:-translate-y-0.5"
-            >
-              {cameraOn ? 'Oprește camera' : 'Pornește camera'}
-            </button>
+            )}
           </div>
+
+          {!cameraOn && (
+            <div className="absolute inset-0 z-[2] flex flex-col items-center justify-center gap-4 px-6">
+              <p className="text-white/70 text-[13.5px] font-semibold text-center max-w-[280px]">
+                Camera e oprită. Pornește-o ca să recunoști semne.
+              </p>
+              <button
+                type="button"
+                onClick={() => setCameraOn(true)}
+                className="rounded-2xl bg-signa-500 text-white px-5 py-3 text-[13px] font-extrabold
+                  shadow-[0_10px_24px_rgba(16,185,129,.35)]
+                  transition-transform duration-[160ms] ease-out hover:-translate-y-0.5"
+              >
+                Pornește camera
+              </button>
+            </div>
+          )}
+
+          {cameraOn && (
+            <div className="absolute left-[22px] right-[22px] bottom-[22px] flex items-end justify-between gap-4 z-[2]">
+              {/* Glass: panoul stă peste feed, deci are nevoie de blur propriu
+                  ca litera să rămână lizibilă indiferent de fundal. */}
+              <div
+                style={{
+                  ...anim('sg-fade-up', 0.7, 0.88),
+                  background: 'rgba(0,0,0,.5)',
+                  backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
+                }}
+                className="flex items-center gap-3.5 rounded-[20px] border border-white/[.12] px-[22px] py-4"
+              >
+                <span
+                  key={prediction?.label ?? 'none'}
+                  className="font-black text-white leading-none tabular-nums"
+                  style={{
+                    fontSize: 44,
+                    ...anim('sg-fade-up', 0.22, 0, 'both', 'ease-out'),
+                    textShadow: prediction?.dynamic
+                      ? '0 0 32px rgba(129,140,248,.55)'
+                      : '0 0 32px rgba(52,211,153,.45)',
+                  }}
+                >
+                  {prediction?.label ?? '—'}
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-[11px] font-extrabold uppercase tracking-[.12em] text-white/55">
+                    {prediction?.dynamic ? 'Semn dinamic' : 'Semn static'}
+                  </span>
+                  <span className="mt-1.5 block w-[132px] h-1.5 rounded-full bg-white/15 overflow-hidden">
+                    <span
+                      className={`block h-full rounded-full ${prediction?.dynamic ? 'bg-indigo-400' : 'bg-signa-400'}`}
+                      style={{
+                        width: `${(prediction?.confidence ?? 0) * 100}%`,
+                        transition: 'width .4s ease-out',
+                      }}
+                    />
+                  </span>
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setCameraOn(false)}
+                style={anim('sg-fade-up', 0.7, 0.94)}
+                className="flex-none rounded-2xl border border-white/[.14] bg-black/40 text-white
+                  px-5 py-3 text-[13px] font-bold backdrop-blur
+                  transition-transform duration-[160ms] ease-out hover:-translate-y-0.5"
+              >
+                Oprește camera
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Panoul lateral */}

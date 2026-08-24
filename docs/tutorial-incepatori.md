@@ -164,7 +164,9 @@ Apoi anunță pe grupul echipei că ai un PR — altcineva trebuie să se uite p
 → Copiază eroarea și dă-i-o lui Claude în conversație: „îmi dă eroarea asta, repar-o: [lipește eroarea]".
 
 **„Am stricat ceva și nu știu ce"**
-→ Spune-i lui Claude: „Anulează toate schimbările nesalvate și adu-mă la ultima versiune care funcționa." Nimic nu e pierdut definitiv — Git ține minte tot.
+→ Nu cere direct ștergerea schimbărilor nesalvate. Spune: „Arată-mi `git status`
+și diff-ul, apoi salvează munca într-un commit sau stash descriptiv înainte să
+repari." Git nu poate recupera sigur orice fișier necomis dacă este șters.
 
 **Vrei să vezi ce au făcut ceilalți**
 → „Adu ultimele schimbări de pe GitHub și fă-mi un rezumat a ce s-a schimbat."

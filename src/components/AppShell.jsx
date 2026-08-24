@@ -12,7 +12,9 @@ import { useProfileSummary } from '../hooks/useProfileSummary.js';
 const EASE = 'cubic-bezier(.22,1,.36,1)';
 
 /** Ecranele care trăiesc în shell (au sidebar și se tranziționează între ele). */
-export const SHELL_PAGES = ['home', 'lessons', 'camera', 'leaderboard', 'profile'];
+export const SHELL_PAGES = [
+  'home', 'lessons', 'camera', 'leaderboard', 'profile',
+];
 
 /**
  * Capitolul „activ”: primul care are o lecție încă necompletată (0 stele).

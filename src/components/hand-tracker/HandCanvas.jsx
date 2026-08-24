@@ -81,10 +81,12 @@ const POSE_COLOR = {
 
 const POSE_VISIBILITY_MIN = 0.5;
 
-function mapCover(video, canvasW, canvasH) {
+function mapVideo(video, canvasW, canvasH, fit) {
   const vw = video?.videoWidth || canvasW;
   const vh = video?.videoHeight || canvasH;
-  const scale = Math.max(canvasW / vw, canvasH / vh);
+  const scale = fit === 'contain'
+    ? Math.min(canvasW / vw, canvasH / vh)
+    : Math.max(canvasW / vw, canvasH / vh);
   const drawW = vw * scale;
   const drawH = vh * scale;
   const offX = (canvasW - drawW) / 2;
@@ -135,7 +137,7 @@ function drawSkeleton(ctx, points, connections, colors, tipSet, opts = {}) {
 /**
  * Canvas transparent: schelet mâini + față + trunchi (object-cover aware).
  */
-export default function HandCanvas({ landmarks, face, pose, videoRef }) {
+export default function HandCanvas({ landmarks, face, pose, videoRef, videoFit = 'cover' }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -164,7 +166,7 @@ export default function HandCanvas({ landmarks, face, pose, videoRef }) {
     const hasPose = pose?.length > 0;
     if (!hasHands && !hasFace && !hasPose) return;
 
-    const { px, py } = mapCover(videoRef?.current, canvas.width, canvas.height);
+    const { px, py } = mapVideo(videoRef?.current, canvas.width, canvas.height, videoFit);
     const map = { px, py };
 
     // Pose (amber) — sub mâini/față
@@ -201,7 +203,7 @@ export default function HandCanvas({ landmarks, face, pose, videoRef }) {
         );
       }
     }
-  }, [landmarks, face, pose, videoRef]);
+  }, [landmarks, face, pose, videoRef, videoFit]);
 
   return (
     <canvas

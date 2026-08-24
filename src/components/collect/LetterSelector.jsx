@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
     LSR_LETTERS,
     LSR_FOOD_WORDS,
@@ -18,100 +18,141 @@ function status(letter, count) {
   return 'done';
 }
 
-/** Categorii afișate — poți adăuga aici viitoarele grupuri (culori, familie…). */
-const GROUPS = [
+/** Inventarul complet de etichete, în aceeași ordine cu lecțiile. */
+export const COLLECTION_GROUPS = [
   { id: 'letters', title: 'Litere',              items: LSR_LETTERS },
-    {id: 'digits', title: 'Cifre',               items: LSR_DIGITS  },
-    {id: 'numbers', title: 'Numere',             items: LSR_NUMBERS },
-  { id: 'food',    title: 'Mâncare',   items: LSR_FOOD_WORDS   },
-    {id: 'colors', title: "Culori",              items: LSR_COLORS },
-    {id: 'Salutation', title: "Saluturi",              items: LSR_SALUTATION },
-  { id: 'pronouns', title: 'Pronume & Familie',  items:[...LSR_PRONOUNS, ...LSR_FAMILY]},
+  { id: 'digits', title: 'Cifre',                 items: LSR_DIGITS },
+  { id: 'numbers', title: 'Numere',               items: LSR_NUMBERS },
+  { id: 'food', title: 'Mâncare',                 items: LSR_FOOD_WORDS },
+  { id: 'colors', title: 'Culori',                items: LSR_COLORS },
+  { id: 'salutations', title: 'Saluturi',         items: LSR_SALUTATION },
+  { id: 'pronouns', title: 'Pronume',             items: LSR_PRONOUNS },
+  { id: 'family', title: 'Familie',               items: LSR_FAMILY },
 ];
 
-function Tile({ letter, active, s, isDynamic, isWord, refCb, onSelect }) {
+function Tile({ letter, active, s, isDynamic, count, refCb, onSelect }) {
+  const target = minFor(isDynamic);
+  const pct = Math.min(count / target, 1);
   return (
     <button
       ref={refCb}
       onClick={() => onSelect(letter)}
-      title={isDynamic ? 'Etichetă dinamică — se înregistrează mișcarea (1.5s)' : undefined}
+      title={`${count}/${target} ${isDynamic ? 'filmări' : 'poze'}`}
       className={`
-        relative flex-shrink-0 h-12 rounded-xl font-bold
-        transition-all duration-150 select-none
-        ${isWord ? 'px-3 text-xs min-w-[3.5rem]' : 'w-12 text-sm'}
+        group relative min-w-0 rounded-[15px] border px-3 py-2.5 text-left
+        transition-[transform,border-color,background-color,box-shadow] duration-150 select-none
+        hover:-translate-y-px
         ${active
-          ? 'bg-signa-500 text-white scale-105 shadow-button'
+          ? 'bg-ink-900 border-ink-900 text-white shadow-[0_8px_18px_rgba(46,42,36,.16)]'
           : s === 'done'
-            ? 'bg-signa-50 text-signa-600'
+            ? 'bg-signa-50 border-signa-500/[.18] text-signa-900'
             : s === 'partial'
-              ? 'bg-amber-50 text-amber-600'
+              ? 'bg-[#FFF7E8] border-amber-600/[.14] text-amber-800'
               : isDynamic
-                ? 'bg-indigo-50 text-indigo-500'
-                : 'bg-cream-100 text-ink-500'}
+                ? 'bg-[#F4F1FB] border-violet-500/[.12] text-violet-700'
+                : 'bg-[#FBF7F0] border-ink-900/[.05] text-ink-700'}
       `}
     >
-      {letter}
-      {isDynamic && (
-        <svg className="absolute top-1 right-1" width="8" height="8" viewBox="0 0 8 8" fill="none">
-          <path d="M1 4c1-2 2-2 3 0s2 2 3 0"
-            stroke={active ? '#fff' : '#818cf8'}
-            strokeWidth="1.3" strokeLinecap="round"/>
-        </svg>
-      )}
-      {!active && s !== 'empty' && (
-        <span className={`absolute bottom-[3px] left-1/2 -translate-x-1/2
-          w-3 h-[2px] rounded-full
-          ${s === 'done' ? 'bg-signa-400' : 'bg-amber-400'}`}
+      <span className="flex items-start justify-between gap-2">
+        <span className="truncate text-[12.5px] font-extrabold">{letter}</span>
+        <span className={`flex-none text-[10px] font-black tabular-nums ${active ? 'text-white/65' : 'opacity-55'}`}>
+          {count}/{target}
+        </span>
+      </span>
+      <span className={`mt-2 block h-1 rounded-full overflow-hidden ${active ? 'bg-white/15' : 'bg-ink-900/[.06]'}`}>
+        <span
+          className={`block h-full rounded-full transition-[width] duration-500
+            ${active ? 'bg-signa-400' : s === 'done' ? 'bg-signa-500' : isDynamic ? 'bg-violet-400' : 'bg-amber-400'}`}
+          style={{ width: `${pct * 100}%` }}
         />
-      )}
+      </span>
+      <span className={`mt-1.5 block text-[9.5px] font-bold uppercase tracking-[.08em]
+        ${active ? 'text-white/55' : 'opacity-45'}`}>
+        {isDynamic ? 'filmări' : 'poze'}
+      </span>
     </button>
   );
 }
 
-function GroupRow({ title, items, activeLetter, onSelect, samplesFor, activeRef, isWordGroup }) {
+function GroupRow({ title, items, activeLetter, onSelect, samplesFor, activeRef }) {
   const doneCount = items.filter((l) => samplesFor(l) >= minFor(DYNAMIC_LETTERS.has(l))).length;
 
   return (
-    <div className="px-4 pt-1.5 pb-1">
-      <div className="flex items-baseline justify-between mb-1 px-0.5">
-        <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-400">
+    <section>
+      <div className="flex items-baseline justify-between mb-2 px-0.5">
+        <span className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-400">
           {title}
         </span>
-        <span className="text-[10px] tabular-nums text-ink-400">
-          {doneCount}/{items.length}
+        <span className="text-[10px] font-bold tabular-nums text-ink-400">
+          {doneCount}/{items.length} complete
         </span>
       </div>
-      <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
+      <div className="grid grid-cols-2 gap-2">
         {items.map((letter) => {
           const active = letter === activeLetter;
+          const count = samplesFor(letter);
           return (
             <Tile
               key={letter}
               letter={letter}
               active={active}
-              s={status(letter, samplesFor(letter))}
+              s={status(letter, count)}
               isDynamic={DYNAMIC_LETTERS.has(letter)}
-              isWord={isWordGroup}
+              count={count}
               refCb={active ? activeRef : null}
               onSelect={onSelect}
             />
           );
         })}
       </div>
-    </div>
+    </section>
   );
 }
 
-export default function LetterSelector({ activeLetter, onSelect, samplesFor }) {
+export default function LetterSelector({
+  activeLetter,
+  onSelect,
+  samplesFor,
+  extraLabels = [],
+}) {
   const activeRef = useRef(null);
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
     activeRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
   }, [activeLetter]);
 
+  const groups = useMemo(() => {
+    const known = new Set(COLLECTION_GROUPS.flatMap((g) => g.items));
+    const custom = extraLabels.filter((label) => !known.has(label));
+    const all = custom.length
+      ? [...COLLECTION_GROUPS, { id: 'custom', title: 'Etichete proprii', items: custom }]
+      : COLLECTION_GROUPS;
+    const needle = query.trim().toLocaleLowerCase('ro-RO');
+    if (!needle) return all;
+    return all
+      .map((group) => ({
+        ...group,
+        items: group.items.filter((item) => item.toLocaleLowerCase('ro-RO').includes(needle)),
+      }))
+      .filter((group) => group.items.length);
+  }, [extraLabels, query]);
+
   return (
-    <div className="space-y-0.5">
-      {GROUPS.map((g) => (
+    <div className="flex flex-col gap-4">
+      <label className="relative block">
+        <span className="sr-only">Filtrează etichetele</span>
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Filtrează litere și cuvinte…"
+          className="w-full rounded-2xl border border-ink-900/[.08] bg-[#FDFCF9] px-4 py-3
+            text-[13px] font-semibold text-ink-900 placeholder:text-ink-400 outline-none
+            focus:border-signa-500 focus:ring-4 focus:ring-signa-500/[.12]"
+        />
+      </label>
+      {groups.map((g) => (
         <GroupRow
           key={g.id}
           title={g.title}
@@ -120,9 +161,13 @@ export default function LetterSelector({ activeLetter, onSelect, samplesFor }) {
           onSelect={onSelect}
           samplesFor={samplesFor}
           activeRef={activeRef}
-          isWordGroup={g.id !== 'letters'}
         />
       ))}
+      {groups.length === 0 && (
+        <p className="py-5 text-center text-[12px] font-semibold text-ink-400">
+          Nicio etichetă găsită.
+        </p>
+      )}
     </div>
   );
 }

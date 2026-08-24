@@ -66,6 +66,11 @@ Ce **poți** verifica de încredere: structura DOM, stilurile calculate
 (`getComputedStyle(el).animationName`, `.animationDelay`, lățimi, culori),
 existența și pozițiile elementelor, absența erorilor din consolă.
 
+Același lucru se aplică seriilor din `CollectPage`: preview-ul ascuns nu poate
+valida pauza foto de 75 ms, FPS-ul MediaPipe sau alinierea în mișcare. Verifică
+doar că butonul pornește countdown-ul; ritmul și camera se testează într-un tab
+Chrome/Safari real.
+
 Pentru animații, verifică **numele și delay-ul keyframe-ului**, nu cât durează:
 
 ```js
@@ -105,6 +110,29 @@ Dacă totuși ai scris local pe o origine autentificată, curăță imediat:
 pe **fiecare** origine (localhost și Vercel au storage separat), altfel una stale
 re-umflă cloud-ul la următoarea sincronizare.
 
+## Siguranța datasetului
+
+`signa-dataset-v1` este local și nu se sincronizează cu Supabase, dar conține
+muncă reală de colectare. Nu îl șterge, înlocui sau injecta pentru preview fără
+acord. Înainte de teste distructive:
+
+1. folosește o origine/instanță separată sau exportă datasetul;
+2. nu apăsa resetarea unei etichete reale;
+3. nu valida o serie automată completă în contul/browserul utilizatorului;
+4. pentru timing foto/video, cere test într-un browser vizibil cu cameră reală.
+
+## Smoke test social
+
+Pentru schimbări la prieteni/Supabase:
+
+1. două conturi publice: A îl urmărește pe B, apoi B pe A → „Prieteni”;
+2. follow unilateral apare în tabul „Cereri” al destinatarului;
+3. profilul privat dispare din `user_directory`, căutare și liste;
+4. verifică existența `follows`, `friendships` și `user_directory`.
+
+Dacă API-ul social întoarce 404/permission errors pe un proiect existent,
+re-rulează tot `supabase/schema.sql` înainte să modifici clientul.
+
 ## Lista de verificat înainte de „gata"
 
 - [ ] `npm test` trece
@@ -114,3 +142,4 @@ re-umflă cloud-ul la următoarea sincronizare.
 - [ ] fișierele temporare de preview șterse
 - [ ] `git status` arată doar fișierele pe care chiar voiai să le atingi
 - [ ] ce n-ai putut verifica (timing, mobil real, cameră) — spus explicit
+- [ ] datele reale din `signa-dataset-v1` nu au fost șterse sau fabricate

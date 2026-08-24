@@ -3,21 +3,23 @@
 > Aplicație PWA „Duolingo pentru Limba Semnelor Române" (LSR).
 > Recunoașterea rulează pe dispozitiv (MediaPipe + TensorFlow.js) — fără cloud, fără costuri.
 
-## Starea actuală (iulie 2026)
+## Starea actuală (24 august 2026)
 
-- ✅ **Faza 1** — Cameră + 21 puncte MediaPipe + `normalize()`
-- ✅ **Faza 2** — Colectare dataset (CollectPage: etichete libere, mod Foto/Video, import/export JSON)
-- ✅ **Faza 3** — Antrenare în browser (TrainPage) + predicție live (model static: 25 litere, validat 250/250)
+- ✅ **Faza 1** — Tracking holistic Hand + Face + Pose + `normalize()` v2 (199)
+- ✅ **Faza 2** — Colectare cu inventar, serii automate 300 foto / 50 video, import/export
+- 🔶 **Faza 3** — Pipeline MLP + GRU gata; modelele vechi 63-dim sunt arhivate,
+  recolectarea și reantrenarea holistică rămân blocante
 - ✅ **Faza 4** — Lecții gamificate (5 lecții × 5 litere, XP + stele)
 - 🔶 **Faza 4.5** — Semne dinamice (J, Z, X, Î, Ș, Ț) — pipeline GRU există, datele trebuie colectate
-- ⬜ **Extindere** — Cuvinte întregi (colectarea permite deja etichete libere)
-- ⬜ **Faza 5** — Backend (Supabase), conturi, clasament
+- ✅ **Faza 5** — Supabase live: auth, progres, avatar, clasament și prieteni
+- ⬜ **Extindere** — Cuvinte întregi și provocări sociale
 
 ## Reguli de aur (valabile pentru toți)
 
 1. **`src/utils/normalize.js` NU se modifică.** Orice schimbare invalidează modelul și tot dataset-ul.
 2. Recunoașterea rămâne **pe dispozitiv** — niciodată imagini/video în cloud.
-3. Stil: mobile-first, dark theme (`slate-900`), accent verde (`signa-400 = #34d399`).
+3. Stil: temă cream/friendly, Nunito, `ink` + accent `signa`; shell desktop-first,
+   ecranele full-screen mobile-first.
 4. Dataset-ul se exportă des (localStorage se poate umple) și se păstrează versiuni în `~/Downloads` sau un folder partajat.
 
 ---
@@ -50,7 +52,8 @@
 - [ ] Colectează cuvintele stabilite folosind câmpul de etichetă liberă + modul potrivit (Foto/Video)
 - [ ] Diversifică datele: mâna stângă/dreaptă, unghiuri, distanțe, iluminare diferită
 - [ ] Organizează fișierele exportate (convenție de nume, folder partajat, log cu cine/ce/când a colectat)
-- [ ] Adaugă în CollectPage o vedere de ansamblu a dataset-ului (ce etichete există, câte exemple fiecare, ce lipsește)
+- [x] Inventar permanent în CollectPage (etichete, număr și prag recomandat)
+- [x] Serii automate: 300 foto pe cadre MediaPipe noi / 50 secvențe video
 
 ---
 
@@ -63,30 +66,33 @@
 ### To do
 - [ ] Adaugă lecții pentru literele dinamice după ce modelul GRU e integrat
 - [ ] Creează lecții pentru cuvinte (referință video/animație → imită → feedback → scor)
-- [ ] Sistem de streak zilnic (zile consecutive de exercițiu) + notificări PWA
-- [ ] Ecran de recapitulare/repetiție spațiată pentru literele deja învățate
-- [ ] Animații de recompensă (confetti, level-up) și sunete de feedback
-- [ ] Onboarding pentru utilizatori noi (permisiune cameră, cum ții mâna, primul semn ghidat)
+- [x] Sistem de streak, XP, nivel și progres per literă
+- [x] Ecran de recapitulare/repetiție
+- [x] Confetti și sunete de feedback
+- [x] Onboarding pentru utilizatori noi
 - [ ] Audit de accesibilitate: contrast, dimensiuni touch target, funcționare fără sunet
 
 ---
 
 ## 👤 Persoana 4 — Backend & Conturi (Faza 5)
 
-**Responsabil de:** infrastructura Supabase, autentificare, sincronizare progres, clasament. **Atenție:** doar date de progres/profil pe server — niciodată imagini sau landmarks.
+**Responsabil de:** infrastructura Supabase, autentificare, sincronizare progres,
+clasament și social. **Atenție:** doar profil/progres/follow pe server — niciodată
+imagini sau landmarks.
 
 **Fișiere noi:** `src/lib/supabase.js`, hooks de sincronizare, pagini de profil/clasament
 
 **Plan MVP (US #22):** [`docs/mvp-baza-de-date.md`](./mvp-baza-de-date.md) · setup: [`docs/supabase-setup.md`](./supabase-setup.md)
 
 ### To do
-- [ ] Configurează proiectul Supabase (auth cu email + Google, tabele: profiles, progress, leaderboard)
-- [ ] Autentificare în aplicație (login/register/logout, sesiune persistentă offline-first)
-- [ ] Sincronizarea progresului local (XP, stele, streak) cu serverul — localStorage rămâne sursa offline
-- [ ] Pagina de clasament (săptămânal + all-time)
-- [ ] Politici RLS (row-level security) pe toate tabelele
-- [ ] Strategie de merge la conflict (progres local vs. server, ex. utilizator pe 2 dispozitive)
-- [ ] Pagină de profil (nume, avatar, statistici)
+- [x] Proiect Supabase EU + auth email/parolă
+- [x] Login/register/logout și sesiune obligatorie
+- [x] Sync progres cu merge `max()` între local și cloud
+- [x] Clasament all-time pentru profiluri publice
+- [x] RLS pe `profiles`, `progress`, `follows` și view-uri sociale
+- [x] Profil bogat: avatar, nivel, statistici și secțiune Prieteni
+- [x] Follow reciproc, căutare publică și cereri derivate
+- [ ] Deblochează deploy-ul Vercel al echipei
 
 ---
 
@@ -100,8 +106,8 @@
 - [ ] Testare pe dispozitive reale: iPhone (Safari), Android (Chrome) — cameră, predicție, lecții
 - [ ] Verifică instalarea PWA (add to home screen, splash, icoane, funcționare offline)
 - [ ] Configurează deploy automat (Vercel/Netlify/Cloudflare Pages) cu preview per branch
-- [ ] Adaugă teste automate pentru logica pură: `normalize()` (snapshot — să nu se schimbe!), validatori dataset, useProgress
-- [ ] Pagină de diagnostic (versiune model, FPS, stare cameră) pentru debugging pe teren
+- [x] Teste automate pentru `normalize`, dataset și niveluri (34 teste)
+- [x] Pagină de diagnostic (versiune model, FPS, stare cameră)
 - [ ] Gestionarea versiunilor de model (cum ajunge un model nou la utilizatori fără cache vechi)
 - [ ] Testare cu utilizatori reali din comunitatea surzilor + colectare feedback structurat
 

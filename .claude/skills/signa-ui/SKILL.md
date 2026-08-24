@@ -1,20 +1,20 @@
 ---
 name: signa-ui
-description: Implementează sau modifică UI în Signa — ecrane, layout, animații, tokeni de design. Folosește când lucrezi la HomePage, LessonsPage, ProfilePage, sidebar/shell, sau când primești un mockup (`.dc.html`, screenshot, spec de design) de tradus în React + Tailwind. Acoperă catalogul de keyframes `sg-*`, arhitectura de shell și convențiile responsive.
+description: Implementează sau modifică UI în Signa — ecrane, layout, animații, tokeni de design. Folosește pentru HomePage, LessonsPage, ProfilePage, CollectPage, sidebar/shell sau când primești un mockup ori screenshot de tradus în React + Tailwind. Acoperă keyframe-urile `sg-*`, arhitectura de shell și convențiile responsive.
 ---
 
 # UI în Signa
 
 ## Arhitectura de shell — citește asta întâi
 
-Ecranele **Acasă, Lecții, Profil** trăiesc într-un shell persistent. Nu au
+Ecranele **Acasă, Lecții, Cameră, Clasament și Profil** trăiesc într-un shell persistent. Nu au
 sidebar propriu și nu-și pun singure fundalul de pagină.
 
 ```
 App.jsx
 └── AppShell.jsx          # page/leaving/dir, straturile <main>, tranziția
     ├── Sidebar.jsx       # NU se remontează la navigare
-    └── <main> × 3        # HomePage / LessonsPage / ProfilePage (doar conținut)
+    └── <main> × 5        # Home / Lessons / Camera / Leaderboard / Profile
 ```
 
 Reguli care decurg din asta:
@@ -25,8 +25,10 @@ Reguli care decurg din asta:
   îl face `<main>`-ul shell-ului; o pagină cu scroll propriu produce scroll dublu.
 - Dacă o pagină are nevoie de scroll (parallax, sticky), leagă-te de
   `ref.current.closest('main')` — vezi `ProfilePage.jsx`.
-- Ecranele full-screen (Cameră, Lecție, Colectare, Train, Diagnostic, Clasament,
-  Referințe) rămân în afara shell-ului, randate direct din `App.jsx`.
+- Ecranele full-screen (Lecție, Colectare, Train, Diagnostic și Referințe) rămân
+  în afara shell-ului, randate direct din `App.jsx`.
+- Prietenii nu au ecran/rută separată: `FriendsSection` este parte din
+  `ProfileDashboard`.
 
 Ordinea din meniu dă direcția tranziției — `PAGE_ORDER` în `Sidebar.jsx`:
 `home 0, lessons 1, camera 2, leaderboard 3, profile 4`.
@@ -105,6 +107,22 @@ aplică oricărei animații care suprascrie o stare vizuală purtătoare de info
 - Carduri mari `rounded-[26px]`, tile-uri `rounded-[22px]`.
 - `tabular-nums` pe orice cifră care se schimbă (XP, procente, contoare).
 - `text-pretty` pe titluri.
+
+### Colectare
+
+- `CollectPage` este full-screen: vizor mare + consolă compactă + inventar
+  persistent. Nu o muta în `AppShell`.
+- Camera folosește `videoFit="cover"`: fără benzi sau margini în jurul fluxului.
+  `HandCanvas` trebuie să folosească același fit.
+- Nu acoperi fața/corpul cu rame decorative sau panouri mari. Păstrează doar
+  indicatorii necesari, countdown-ul și starea REC.
+- Numerele seriei și inventarului folosesc `tabular-nums`.
+
+### Profil și social
+
+- Profilul este o identitate de jucător: avatar/nivel/XP, statistici, alfabet,
+  `FriendsSection`, apoi atelierul de cont.
+- Nu reintroduce „Prieteni” în sidebar și nu crea `FriendsPage`.
 
 ## Reguli fixe
 

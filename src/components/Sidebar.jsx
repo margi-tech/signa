@@ -7,7 +7,9 @@ import {
 const EASE = 'cubic-bezier(.22,1,.36,1)';
 
 /** Poziția fiecărui ecran în meniu — dă și direcția tranziției. */
-export const PAGE_ORDER = { home: 0, lessons: 1, camera: 2, leaderboard: 3, profile: 4 };
+export const PAGE_ORDER = {
+  home: 0, lessons: 1, camera: 2, leaderboard: 3, profile: 4,
+};
 
 const NAV_STEP = 52; // 48px înălțime item + 4px gap
 

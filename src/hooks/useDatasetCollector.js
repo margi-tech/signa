@@ -25,7 +25,7 @@ function loadStored() {
 /**
  * Gestionează colectarea și exportul vectorilor de landmarks per literă.
  *
- * Dataset-ul e un obiect { 'A': [[...63 val...], ...], 'B': [...], ... }
+ * Dataset-ul e un obiect { 'A': [[...199 val...], ...], 'B': [...], ... }
  * unde fiecare vector e deja normalizat cu normalize() — identic cu predicția.
  *
  * Persistență: fiecare modificare se salvează automat în localStorage,
@@ -120,7 +120,7 @@ export function useDatasetCollector() {
         // import, ca dataseturile deja colectate de echipă să se vindece singure.
         const label = String(rawLabel).trim();
         if (!label) continue;
-        // Fiecare exemplu e static (63 valori) sau secvență (film) — determinat din formă
+        // Fiecare exemplu e static (199 valori) sau secvență (film) — determinat din formă
         const valid = (samples ?? []).filter((s) => isVec(s) || isSeq(s));
         if (!valid.length) continue;
         next[label] = [...(next[label] ?? []), ...valid];

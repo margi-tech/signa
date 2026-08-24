@@ -245,3 +245,81 @@ grant select on public.profiles to anon;
 revoke all on public.progress from anon;
 revoke delete on public.profiles from anon, authenticated;
 revoke delete on public.progress from anon, authenticated;
+
+-- ─── social: follows / prieteni ─────────────────────────────────────────────
+-- Prietenia nu se stochează: e derivată din urmăriri reciproce (view-ul
+-- `friendships`). Așa nu există stare de „cerere în așteptare" de întreținut.
+
+create table if not exists public.follows (
+  id bigserial primary key,
+  follower_id uuid not null references auth.users(id) on delete cascade,
+  following_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  unique (follower_id, following_id),
+  constraint no_self_follow check (follower_id <> following_id)
+);
+
+create index if not exists idx_follows_follower on public.follows(follower_id);
+create index if not exists idx_follows_following on public.follows(following_id);
+
+alter table public.follows enable row level security;
+
+drop policy if exists "Toți pot vedea urmăririle" on public.follows;
+create policy "Toți pot vedea urmăririle"
+  on public.follows for select using (true);
+
+drop policy if exists "Urmărești doar în numele tău" on public.follows;
+create policy "Urmărești doar în numele tău"
+  on public.follows for insert with check (auth.uid() = follower_id);
+
+drop policy if exists "Anulezi doar propria urmărire" on public.follows;
+create policy "Anulezi doar propria urmărire"
+  on public.follows for delete using (auth.uid() = follower_id);
+
+-- Directorul public de utilizatori — pentru căutare și listele de prieteni.
+-- Filtrează pe `visibility`, la fel ca `leaderboard`: un profil privat nu apare
+-- în căutare. Fără email, fără nume real, fără date de progres în afară de streak.
+drop view if exists public.user_directory;
+create view public.user_directory as
+  select
+    p.id,
+    coalesce(
+      nullif(trim(p.display_name), ''),
+      nullif(trim(p.first_name), ''),
+      p.username,
+      'Jucător'
+    ) as display_name,
+    p.avatar_url,
+    p.created_at,
+    coalesce(pr.streak, 0) as streak
+  from public.profiles p
+  left join public.progress pr on pr.user_id = p.id
+  where p.visibility = 'public';
+
+comment on view public.user_directory is
+  'Director public pentru căutare/prieteni. Doar profile publice.';
+
+-- Prietenie = urmărire reciprocă. Perechea e normalizată (least/greatest),
+-- deci fiecare relație apare o singură dată, nu de două ori.
+drop view if exists public.friendships;
+create view public.friendships as
+  select
+    least(f1.follower_id, f1.following_id)    as user_id_1,
+    greatest(f1.follower_id, f1.following_id) as user_id_2,
+    min(f1.created_at)                        as since
+  from public.follows f1
+  join public.follows f2
+    on f1.follower_id = f2.following_id
+   and f1.following_id = f2.follower_id
+  group by 1, 2;
+
+comment on view public.friendships is
+  'Prietenii = urmăriri reciproce. Derivat, nu stocat.';
+
+grant select on public.user_directory to anon, authenticated;
+grant select on public.friendships to authenticated;
+grant select, insert, delete on public.follows to authenticated;
+revoke update on public.follows from anon, authenticated;
+-- bigserial își ia id-ul din secvență; fără USAGE, insert-ul pică cu
+-- „permission denied for sequence follows_id_seq" deși tabela e permisă.
+grant usage, select on sequence public.follows_id_seq to authenticated;
