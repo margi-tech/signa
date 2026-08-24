@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { useHolisticLandmarker } from '../../hooks/useHolisticLandmarker';
+import { assessFaceFrame } from '../../utils/faceFrame';
 import HandCanvas from './HandCanvas';
 
 // 3 modele (mâini + față + trunchi) pe cadru sunt costisitoare — limităm
@@ -16,26 +17,33 @@ const DETECT_INTERVAL_MS = 66;
  *
  * @param {Function} [onLandmarks]  callback opțional, apelat la fiecare detecție cu
  *   subiectul complet { hands, handedness, faceBlendshapes, headMatrix, pose }
- *   (sau null dacă nu e nicio mână în cadru)
+ *   (sau null dacă nu e nicio mână în cadru, sau dacă fața nu e în cadran)
+ * @param {boolean} [requireFaceFrame=true]  fără față în cadran, onLandmarks primește
+ *   null — captura și recunoașterea stau. onTracking continuă să raporteze tot.
  */
 export default function HandTracker({
   onLandmarks,
   onTracking,
   videoFit = 'cover',
   showStatus = true,
+  requireFaceFrame = true,
 }) {
   const videoRef       = useRef(null);
   const loopRef        = useRef(null);
   const lastTickRef    = useRef(0);
   const onLandmarksRef = useRef(onLandmarks); // ref stabil — evită re-render la schimbare
   const onTrackingRef  = useRef(onTracking);
+  const requireFrameRef = useRef(requireFaceFrame);
+  const framedRef      = useRef(false);
 
   const [subject,      setSubject]      = useState(null);
   const [cameraError,  setCameraError]  = useState(null);
+  const [faceFrame,    setFaceFrame]    = useState(() => assessFaceFrame(null));
 
   // Sincronizează ref-ul cu prop-ul fără a reporni bucla
   useEffect(() => { onLandmarksRef.current = onLandmarks; }, [onLandmarks]);
   useEffect(() => { onTrackingRef.current = onTracking; }, [onTracking]);
+  useEffect(() => { requireFrameRef.current = requireFaceFrame; }, [requireFaceFrame]);
 
   const { isReady, error: landmarkerError, detect } = useHolisticLandmarker();
 
@@ -76,14 +84,22 @@ export default function HandTracker({
         lastTickRef.current = now;
         const result = detect(video, performance.now());
         const hasHand = result?.hands?.length > 0;
+        const faceFrameNow = assessFaceFrame(result?.faceLandmarks, { wasOk: framedRef.current });
+        framedRef.current = faceFrameNow.ok;
+        setFaceFrame(faceFrameNow);
+
         // Canvas: arată față/corp chiar și fără mână; callback-ul de colectare/predicție
-        // rămâne null fără mână (semnul LSR cere cel puțin o mână).
+        // rămâne null fără mână (semnul LSR cere cel puțin o mână) sau fără cadran.
         const forDraw = result && (
           hasHand || result.faceLandmarks || result.pose
         ) ? result : null;
         setSubject(forDraw);
-        onLandmarksRef.current?.(hasHand ? result : null);
-        onTrackingRef.current?.(result);
+
+        const usable = hasHand && (!requireFrameRef.current || faceFrameNow.ok);
+        onLandmarksRef.current?.(usable ? result : null);
+        onTrackingRef.current?.(result
+          ? { ...result, faceFrame: faceFrameNow }
+          : { faceFrame: faceFrameNow });
       }
 
       loopRef.current = requestAnimationFrame(loop);
@@ -149,6 +165,8 @@ export default function HandTracker({
           pose={subject?.pose ?? null}
           videoRef={videoRef}
           videoFit={videoFit}
+          faceFrame={faceFrame}
+          showFaceFrame
         />
       </div>
 
@@ -166,19 +184,23 @@ export default function HandTracker({
           <span
             className={`
               text-xs font-medium px-3 py-1 rounded-full transition-all duration-300
-              ${subject?.hands?.length
+            ${requireFaceFrame && !faceFrame.ok
+              ? 'bg-amber-500/85 text-white'
+              : subject?.hands?.length
                 ? 'bg-signa-500/80 text-white'
                 : 'bg-slate-800/60 text-slate-400'}
-            `}
-          >
-            {subject?.hands?.length ? '✓ Mână detectată' : 'Ridică mâna în față camerei'}
-          </span>
+          `}
+        >
+          {requireFaceFrame && !faceFrame.ok
+            ? faceFrame.hint
+            : subject?.hands?.length ? '✓ Mână detectată' : 'Ridică mâna în față camerei'}
+        </span>
 
           {subject && (
             <div className="flex gap-1.5">
               <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full
-                ${subject.faceLandmarks ? 'bg-sky-500/80 text-white' : 'bg-slate-800/50 text-slate-500'}`}>
-                {subject.faceLandmarks ? '✓ Față' : 'Fără față'}
+                ${faceFrame.ok ? 'bg-sky-500/80 text-white' : 'bg-slate-800/50 text-slate-500'}`}>
+                {faceFrame.ok ? '✓ Cadran' : 'Cadran'}
               </span>
               <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full
                 ${subject.pose ? 'bg-amber-500/80 text-white' : 'bg-slate-800/50 text-slate-500'}`}>

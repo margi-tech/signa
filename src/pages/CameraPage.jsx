@@ -126,6 +126,7 @@ export default function CameraPage() {
   const [live,       setLive]       = useState(null); // top3 + mișcare, mereu
   const [cameraOn,   setCameraOn]   = useState(false);
   const [session,    setSession]    = useState([]);   // semnele din sesiune
+  const [guide,      setGuide]      = useState({ framed: false, hasHand: false });
 
   const { isReady, isDynReady, predict, predictSequence } = useClassifier();
   // Refs stabili — nu recreează handleLandmarks la fiecare schimbare
@@ -220,6 +221,13 @@ export default function CameraPage() {
     }
   }, []); // referință stabilă — HandTracker îl primește o singură dată
 
+  const handleTracking = useCallback((subject) => {
+    setGuide({
+      framed: Boolean(subject?.faceFrame?.ok),
+      hasHand: (subject?.hands?.length ?? 0) > 0,
+    });
+  }, []);
+
   // Oprirea camerei demontează HandTracker (care își oprește stream-ul) și
   // golește tot ce ținea de cadrul curent.
   useEffect(() => {
@@ -231,6 +239,7 @@ export default function CameraPage() {
     lastLoggedRef.current = null;
     setPrediction(null);
     setLive(null);
+    setGuide({ framed: false, hasHand: false });
   }, [cameraOn]);
 
   const motionPct = live ? Math.min(100, (live.motion / MOTION_FULL) * 100) : 0;
@@ -308,7 +317,7 @@ export default function CameraPage() {
           {/* Feed real — umple cardul; landmark-urile se desenează în HandCanvas */}
           {cameraOn && (
             <div className="absolute inset-0">
-              <HandTracker onLandmarks={handleLandmarks} />
+              <HandTracker onLandmarks={handleLandmarks} onTracking={handleTracking} />
             </div>
           )}
 
@@ -342,8 +351,8 @@ export default function CameraPage() {
             }}
           />
 
-          {/* Fără mână în cadru: scheletul-fantomă */}
-          {cameraOn && !live && <GhostHand />}
+          {/* Fantomă doar după ce fața e în cadran — altfel ovalul e ghidul. */}
+          {cameraOn && guide.framed && !guide.hasHand && <GhostHand />}
 
           {cameraOn && (
             <span
@@ -505,7 +514,9 @@ export default function CameraPage() {
               })}
               {!live?.top3 && (
                 <p className="text-[13px] font-semibold text-ink-400 py-2">
-                  {cameraOn ? 'Arată o mână în cadru.' : 'Camera e oprită.'}
+                  {cameraOn
+                    ? (guide.framed ? 'Arată o mână în cadru.' : 'Pune fața în cadran.')
+                    : 'Camera e oprită.'}
                 </p>
               )}
             </div>

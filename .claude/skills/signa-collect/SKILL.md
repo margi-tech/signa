@@ -18,6 +18,10 @@ description: Modifică fluxul de colectare a datasetului Signa — cameră holis
 
 - `HandTracker` urmărește mâini + față + trunchi și trimite subiectul complet.
 - Colectarea cere cel puțin o mână; fața și trunchiul îmbogățesc vectorul.
+- Fața trebuie să umple cadranul oval (treimea de sus). Fără față în cadran,
+  `onLandmarks` e `null` — captura și recunoașterea stau. Seria automată
+  poate porni oricum; countdown-ul dă timp de așezare. Diagnosticul folosește
+  `requireFaceFrame={false}`.
 - În `CollectPage`, vizorul folosește `videoFit="cover"`: utilizatorul a cerut
   explicit zero benzi/margini în jurul camerei.
 - `HandCanvas` trebuie să primească același `videoFit` ca video-ul, altfel
@@ -34,7 +38,7 @@ description: Modifică fluxul de colectare a datasetului Signa — cameră holis
 - Prima captură are countdown de 3 secunde. `Escape`, schimbarea etichetei/modului
   și butonul Oprește trebuie să anuleze seria și timer-ele.
 - Dacă tracking-ul mâinii lipsește 1,5 secunde, oprește seria; nu reutiliza
-  coordonate vechi.
+  coordonate vechi. Același timeout se aplică dacă fața iese din cadran.
 
 ## UI
 
@@ -43,7 +47,8 @@ description: Modifică fluxul de colectare a datasetului Signa — cameră holis
 - Inventarul afișează mereu numărul per literă/cuvânt și pragul recomandat:
   50 foto statice / 30 secvențe dinamice.
 - Butonul seriei rămâne accesibil fără mână detectată; countdown-ul oferă timp
-  pentru intrarea în cadru. Captura manuală statică poate rămâne dezactivată.
+  pentru cadran + mâini. Captura manuală statică stă dezactivată până când
+  fața e în cadran și o mână e vizibilă.
 
 ## Verificare
 

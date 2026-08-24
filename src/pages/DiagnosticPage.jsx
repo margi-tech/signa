@@ -68,7 +68,7 @@ export default function DiagnosticPage({ onBack }) {
         </div>
 
         <div className="h-48 rounded-2xl overflow-hidden shadow-card relative bg-ink-900">
-          <HandTracker onLandmarks={onLandmarks} />
+          <HandTracker onLandmarks={onLandmarks} requireFaceFrame={false} />
         </div>
 
         <p className="text-ink-400 text-[11px] leading-relaxed text-center px-2">
