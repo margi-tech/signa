@@ -78,6 +78,12 @@ create policy "Utilizatorul poate urma/nu urmări"
 create policy "Utilizatorul poate anula urmare"
   on public.follows for delete using (auth.uid() = follower_id);
 
+create or replace view public.user_directory as
+  select p.id, p.display_name, p.avatar_url, p.created_at,
+    coalesce(pr.streak, 0) as streak
+  from public.profiles p
+  left join public.progress pr on pr.user_id = p.id;
+
 -- Compute friendships: reciprocal follows
 create or replace view public.friendships as
   select

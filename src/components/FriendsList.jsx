@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { getFriends, isSupabaseConfigured } from '../lib/supabase';
 import FollowButton from './FollowButton';
 
-export default function FriendsList({ userId, compact = false }) {
+export default function FriendsList({ userId, compact = false, onSelect }) {
   const [friends, setFriends] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -64,25 +64,35 @@ export default function FriendsList({ userId, compact = false }) {
       {friends.map((friend) => (
         <div
           key={friend.id}
-          className="flex items-center justify-between p-3 bg-cream-50 rounded-lg border border-cream-200 hover:border-signa-300 transition"
+          className="flex items-center justify-between gap-3 p-3 bg-cream-50 rounded-lg border border-cream-200 hover:border-signa-300 transition"
         >
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            {friend.avatar_url && (
+          <button
+            type="button"
+            onClick={() => onSelect?.(friend.id)}
+            className="flex items-center gap-3 flex-1 min-w-0 text-left"
+          >
+            {friend.avatar_url ? (
               <img
                 src={friend.avatar_url}
-                alt={friend.display_name}
+                alt=""
                 className="w-10 h-10 rounded-full object-cover"
               />
+            ) : (
+              <span className="w-10 h-10 rounded-full bg-signa-200 text-signa-900 flex items-center justify-center font-bold">
+                {(friend.display_name || '?').charAt(0).toUpperCase()}
+              </span>
             )}
             <div className="min-w-0">
-              <p className="font-medium text-ink-900 truncate">{friend.display_name}</p>
-              {friend.since && (
-                <p className="text-xs text-ink-600">
-                  Prieten din {new Date(friend.since).toLocaleDateString('ro-RO')}
-                </p>
-              )}
+              <p className="font-medium text-ink-900 truncate">{friend.display_name || 'Utilizator'}</p>
+              <p className="text-xs text-ink-600">
+                🔥 {friend.streak || 0} zile · înscris din{' '}
+                {friend.created_at
+                  ? new Date(friend.created_at).toLocaleDateString('ro-RO')
+                  : '—'}
+              </p>
             </div>
-          </div>
+          </button>
+          <FollowButton userId={friend.id} onStatusChange={loadFriends} />
         </div>
       ))}
     </div>

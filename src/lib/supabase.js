@@ -64,8 +64,8 @@ export async function getFollowing(userId) {
 
   const userIds = follows.map(f => f.following_id);
   const { data: profiles, error: err2 } = await supabase
-    .from('profiles')
-    .select('id, display_name, avatar_url')
+    .from('user_directory')
+    .select('id, display_name, avatar_url, created_at, streak')
     .in('id', userIds);
 
   if (err2) throw err2;
@@ -85,8 +85,8 @@ export async function getFollowers(userId) {
 
   const userIds = follows.map(f => f.follower_id);
   const { data: profiles, error: err2 } = await supabase
-    .from('profiles')
-    .select('id, display_name, avatar_url')
+    .from('user_directory')
+    .select('id, display_name, avatar_url, created_at, streak')
     .in('id', userIds);
 
   if (err2) throw err2;
@@ -145,8 +145,8 @@ export async function getFriends(userId) {
   );
 
   const { data: profiles, error: err2 } = await supabase
-    .from('profiles')
-    .select('id, display_name, avatar_url')
+    .from('user_directory')
+    .select('id, display_name, avatar_url, created_at, streak')
     .in('id', friendIds);
 
   if (err2) throw err2;

@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { searchUsers, isSupabaseConfigured } from '../lib/supabase';
 import FollowButton from './FollowButton';
 
-export default function UserSearch() {
+export default function UserSearch({ onSelect }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -71,16 +71,27 @@ export default function UserSearch() {
             key={user.id}
             className="flex items-center justify-between p-3 bg-cream-50 rounded-lg border border-cream-200 hover:border-signa-300 transition"
           >
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              {user.avatar_url && (
+            <button
+              type="button"
+              onClick={() => onSelect?.(user.id)}
+              className="flex items-center gap-3 flex-1 min-w-0 text-left"
+            >
+              {user.avatar_url ? (
                 <img
                   src={user.avatar_url}
-                  alt={user.display_name}
+                  alt=""
                   className="w-10 h-10 rounded-full object-cover"
                 />
+              ) : (
+                <span className="w-10 h-10 rounded-full bg-signa-200 text-signa-900 flex items-center justify-center font-bold">
+                  {(user.display_name || '?').charAt(0).toUpperCase()}
+                </span>
               )}
-              <p className="font-medium text-ink-900 truncate">{user.display_name}</p>
-            </div>
+              <div className="min-w-0">
+                <p className="font-medium text-ink-900 truncate">{user.display_name || 'Utilizator'}</p>
+                <p className="text-xs text-ink-600">🔥 {user.streak || 0} zile</p>
+              </div>
+              </button>
             <FollowButton userId={user.id} />
           </div>
         ))}

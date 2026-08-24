@@ -19,7 +19,7 @@ export default function UserProfile({ userId }) {
     setIsLoading(true);
     try {
       const { data, error } = await supabase
-        .from('profiles')
+        .from('user_directory')
         .select('*')
         .eq('id', userId)
         .single();
@@ -64,10 +64,11 @@ export default function UserProfile({ userId }) {
             )}
             <div>
               <h1 className="text-2xl font-bold text-ink-900">
-                {profile.display_name}
+                {profile.display_name || 'Utilizator'}
               </h1>
               <p className="text-sm text-ink-600 mt-1">
-                Utilizator din {new Date(profile.created_at).toLocaleDateString('ro-RO')}
+                🔥 {profile.streak || 0} zile · înscris din{' '}
+                {new Date(profile.created_at).toLocaleDateString('ro-RO')}
               </p>
             </div>
           </div>

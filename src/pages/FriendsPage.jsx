@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import UserSearch from '../components/UserSearch';
 import FriendsList from '../components/FriendsList';
+import UserProfile from '../components/UserProfile';
 
 export default function FriendsPage({ onBack }) {
   const [currentUserId, setCurrentUserId] = useState(null);
   const [tab, setTab] = useState('search'); // 'search' | 'friends'
+  const [selectedUserId, setSelectedUserId] = useState(null);
 
   useEffect(() => {
     if (isSupabaseConfigured) {
@@ -68,18 +70,34 @@ export default function FriendsPage({ onBack }) {
                   <p className="text-sm text-ink-600 mb-4">
                     Caută și urmărește utilizatori. Când vă urmăriți reciproc, deveniti prieteni! 🤝
                   </p>
-                  <UserSearch />
+                  <UserSearch onSelect={setSelectedUserId} />
                 </div>
               ) : (
                 <div>
                   {currentUserId ? (
-                    <FriendsList userId={currentUserId} />
+                    <FriendsList userId={currentUserId} onSelect={setSelectedUserId} />
                   ) : (
                     <p className="text-center text-ink-600">Se încarcă...</p>
                   )}
                 </div>
               )}
             </div>
+
+            {selectedUserId && (
+              <div className="mt-6 bg-white p-6 rounded-lg border border-cream-200 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-semibold text-ink-900">Profil public</h2>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedUserId(null)}
+                    className="text-sm text-ink-600 hover:text-ink-900"
+                  >
+                    Închide
+                  </button>
+                </div>
+                <UserProfile userId={selectedUserId} />
+              </div>
+            )}
           </>
         )}
       </div>
