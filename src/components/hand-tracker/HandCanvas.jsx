@@ -1,4 +1,5 @@
 import { useRef, useEffect } from 'react';
+import { FACE_FRAME } from '../../utils/faceFrame';
 
 // Topologia standard MediaPipe Hand — 21 landmarks, 21 conexiuni
 export const HAND_CONNECTIONS = [
@@ -134,10 +135,77 @@ function drawSkeleton(ctx, points, connections, colors, tipSet, opts = {}) {
   }
 }
 
+function drawFaceGuide(ctx, px, py, faceFrame) {
+  const cx = px({ x: FACE_FRAME.cx, y: FACE_FRAME.cy });
+  const cy = py({ x: FACE_FRAME.cx, y: FACE_FRAME.cy });
+  const rx = Math.abs(px({ x: FACE_FRAME.cx + FACE_FRAME.rx, y: FACE_FRAME.cy }) - cx);
+  const ry = Math.abs(py({ x: FACE_FRAME.cx, y: FACE_FRAME.cy + FACE_FRAME.ry }) - cy);
+  const ok = Boolean(faceFrame?.ok);
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+  ctx.strokeStyle = ok ? 'rgba(52, 211, 153, 0.95)' : 'rgba(255, 255, 255, 0.82)';
+  ctx.lineWidth = 2.5;
+  if (!ok) ctx.setLineDash([8, 6]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Colțuri de vizor — cadranul, nu o ramă grea peste corp.
+  const tick = Math.max(10, Math.min(rx, ry) * 0.22);
+  const gap = 8;
+  const left = cx - rx - gap;
+  const right = cx + rx + gap;
+  const top = cy - ry - gap;
+  const bottom = cy + ry + gap;
+  ctx.strokeStyle = ok ? 'rgba(52, 211, 153, 0.75)' : 'rgba(255, 255, 255, 0.55)';
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  const corners = [
+    [left, top + tick, left, top, left + tick, top],
+    [right - tick, top, right, top, right, top + tick],
+    [left, bottom - tick, left, bottom, left + tick, bottom],
+    [right - tick, bottom, right, bottom, right, bottom - tick],
+  ];
+  for (const [x1, y1, x2, y2, x3, y3] of corners) {
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.lineTo(x3, y3);
+    ctx.stroke();
+  }
+
+  if (!ok && faceFrame?.hint) {
+    const label = faceFrame.hint;
+    ctx.translate(cx, cy + ry + 18);
+    ctx.scale(-1, 1); // textul să rămână citibil în div-ul oglindă
+    ctx.font = '700 13px Nunito, ui-rounded, system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    const tw = ctx.measureText(label).width;
+    const padX = 12;
+    const h = 26;
+    ctx.beginPath();
+    ctx.moveTo(-tw / 2 - padX + 13, 0);
+    ctx.arcTo(tw / 2 + padX, 0, tw / 2 + padX, h, 13);
+    ctx.arcTo(tw / 2 + padX, h, -tw / 2 - padX, h, 13);
+    ctx.arcTo(-tw / 2 - padX, h, -tw / 2 - padX, 0, 13);
+    ctx.arcTo(-tw / 2 - padX, 0, tw / 2 + padX, 0, 13);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+    ctx.fillText(label, 0, 6);
+  }
+  ctx.restore();
+}
+
 /**
- * Canvas transparent: schelet mâini + față + trunchi (object-cover aware).
+ * Canvas transparent: cadran față + schelet mâini / față / trunchi (object-cover aware).
  */
-export default function HandCanvas({ landmarks, face, pose, videoRef, videoFit = 'cover' }) {
+export default function HandCanvas({
+  landmarks, face, pose, videoRef, videoFit = 'cover', faceFrame = null, showFaceFrame = true,
+}) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -160,14 +228,17 @@ export default function HandCanvas({ landmarks, face, pose, videoRef, videoFit =
 
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (canvas.width === 0 || canvas.height === 0) return;
+
+    const { px, py } = mapVideo(videoRef?.current, canvas.width, canvas.height, videoFit);
+    const map = { px, py };
+
+    if (showFaceFrame) drawFaceGuide(ctx, px, py, faceFrame);
 
     const hasHands = landmarks?.length > 0;
     const hasFace = face?.length > 0;
     const hasPose = pose?.length > 0;
     if (!hasHands && !hasFace && !hasPose) return;
-
-    const { px, py } = mapVideo(videoRef?.current, canvas.width, canvas.height, videoFit);
-    const map = { px, py };
 
     // Pose (amber) — sub mâini/față
     if (hasPose) {
@@ -203,7 +274,7 @@ export default function HandCanvas({ landmarks, face, pose, videoRef, videoFit =
         );
       }
     }
-  }, [landmarks, face, pose, videoRef, videoFit]);
+  }, [landmarks, face, pose, videoRef, videoFit, faceFrame, showFaceFrame]);
 
   return (
     <canvas

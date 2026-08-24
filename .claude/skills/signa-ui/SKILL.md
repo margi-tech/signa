@@ -114,8 +114,8 @@ aplică oricărei animații care suprascrie o stare vizuală purtătoare de info
   persistent. Nu o muta în `AppShell`.
 - Camera folosește `videoFit="cover"`: fără benzi sau margini în jurul fluxului.
   `HandCanvas` trebuie să folosească același fit.
-- Nu acoperi fața/corpul cu rame decorative sau panouri mari. Păstrează doar
-  indicatorii necesari, countdown-ul și starea REC.
+- Cadranul de față e un oval subțire în treimea de sus (funcțional, nu decorativ).
+  Nu adăuga o mască întunecată peste corp sau mâini.
 - Numerele seriei și inventarului folosesc `tabular-nums`.
 
 ### Profil și social
