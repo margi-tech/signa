@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   isUsernameTaken,
   supabase,
@@ -9,6 +9,9 @@ import {
   validateUsername,
 } from '../../utils/username';
 import { useCountUp } from '../../hooks/useCountUp';
+import { LESSONS } from '../../data/lessons';
+import { FlameIcon, HandIcon } from '../icons';
+import FriendsSection from '../FriendsSection';
 import {
   AuthField,
   AuthInput,
@@ -17,6 +20,23 @@ import {
 } from './AuthUi';
 
 const EASE = 'cubic-bezier(.22,1,.36,1)';
+const motion = (name, dur, delay = 0, fill = 'both') =>
+  ({ animation: `${name} ${dur}s ${EASE} ${delay}s ${fill}` });
+
+/** Același inel ca obiectivul zilei de pe Acasă — `sg-ring-draw` e calibrat pe r=34. */
+const RING_R = 34;
+const RING_LEN = 2 * Math.PI * RING_R;
+
+const LEVEL_NAMES = ['Începător', 'Explorator', 'Vorbitor', 'Fluent', 'Maestru'];
+const LEVEL_LINES = [
+  'Primul semn e cel mai greu. Urmează restul.',
+  'Alfabetul începe să stea în mână.',
+  'Vorbești deja cu mâinile — ține ritmul.',
+  'Ești aproape fluent. Cercul se uită la tine.',
+  'Maestru. Semnele tale au greutate.',
+];
+
+const ALPHABET = LESSONS.filter((l) => l.id < 3).flatMap((l) => l.letters);
 
 function formatMemberSince(iso) {
   if (!iso) return null;
@@ -27,10 +47,12 @@ function formatMemberSince(iso) {
   }
 }
 
-const LEVEL_NAMES = ['Începător', 'Explorator', 'Vorbitor', 'Fluent', 'Maestru'];
-
 function levelName(level) {
   return LEVEL_NAMES[Math.min(Math.max(level - 1, 0), LEVEL_NAMES.length - 1)];
+}
+
+function levelLine(level) {
+  return LEVEL_LINES[Math.min(Math.max(level - 1, 0), LEVEL_LINES.length - 1)];
 }
 
 function initialsOf(firstName, lastName, username) {
@@ -42,27 +64,6 @@ function initialsOf(firstName, lastName, username) {
     .slice(0, 2) || (username || '?')[0].toUpperCase();
 }
 
-/** Un tile din rândul de statistici — cifra mare (contor animat), eticheta mică dedesubt. */
-function StatTile({
-  value, sub, label, shortLabel, tone,
-  countDelay = 300, countDuration = 1000, className = '', style,
-}) {
-  const shown = useCountUp(value, { delay: countDelay, duration: countDuration });
-  return (
-    <div style={style} className={`rounded-2xl border p-[14px_16px] text-center lg:text-left ${tone} ${className}`}>
-      <p className="font-black text-[19px] lg:text-[24px] leading-none tabular-nums">
-        {shown}
-        {sub && <span className="text-ink-400 text-[13px] lg:text-[16px] font-black">{sub}</span>}
-      </p>
-      <p className="text-[9.5px] lg:text-[10.5px] font-extrabold uppercase tracking-[.1em] opacity-60 mt-1.5 whitespace-nowrap">
-        <span className="lg:hidden">{shortLabel || label}</span>
-        <span className="hidden lg:inline">{label}</span>
-      </p>
-    </div>
-  );
-}
-
-/** Icon inline generic pentru cardurile din coloana dreaptă. */
 function CloudIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="w-[19px] h-[19px]">
@@ -80,8 +81,21 @@ function CameraIcon({ className = 'w-[14px] h-[14px]' }) {
   );
 }
 
+function MosaicCard({ delay, tone, className = '', children }) {
+  return (
+    <div
+      style={motion('sg-fade-up', 0.65, delay, 'backwards')}
+      className={`relative overflow-hidden rounded-[22px] border p-5 md:p-6
+        transition-transform duration-[160ms] ease-out hover:-translate-y-px
+        ${tone} ${className}`}
+    >
+      {children}
+    </div>
+  );
+}
+
 /**
- * Profil conectat: identitate, setări, sync, logout.
+ * Profil conectat: carte de jucător, alfabet, prieteni, setări.
  */
 export default function ProfileDashboard({
   user,
@@ -93,6 +107,7 @@ export default function ProfileDashboard({
   totalLessonsCount = 0,
   xpIntoLevel = 0,
   xpNeeded = 0,
+  letterMastery = {},
   firstName,
   lastName,
   username,
@@ -112,19 +127,32 @@ export default function ProfileDashboard({
   const [lastSynced, setLastSynced] = useState(null);
   const [syncing, setSyncing] = useState(false);
 
-  // Bara pornește goală la fiecare intrare pe profil, ca umplerea să se rejoace.
   const [barOn, setBarOn] = useState(false);
   useEffect(() => {
     const id = setTimeout(() => setBarOn(true), 90);
     return () => clearTimeout(id);
   }, []);
+
   const memberSince = formatMemberSince(profile?.created_at);
   const levelPct = xpNeeded > 0 ? Math.min(xpIntoLevel / xpNeeded, 1) : 0;
   const isAdmin = profile?.role === 'admin';
   const displayName = [firstName, lastName].filter(Boolean).join(' ') || username || 'Jucător';
+  const givenName = (firstName || '').trim() || displayName.split(/\s+/)[0];
   const initials = initialsOf(firstName, lastName, username);
   const isPublic = visibility === 'public';
   const xpIntoLevelShown = useCountUp(xpIntoLevel, { duration: 850, delay: 260 });
+  const xpShown = useCountUp(xp, { duration: 950, delay: 280 });
+  const streakShown = useCountUp(streak, { duration: 700, delay: 340 });
+  const lessonsShown = useCountUp(completedLessonsCount, { duration: 800, delay: 400 });
+
+  const mastered = useMemo(() => {
+    const set = new Set();
+    Object.entries(letterMastery ?? {}).forEach(([letter, entry]) => {
+      if ((entry?.correct ?? 0) >= 1) set.add(letter);
+    });
+    return set;
+  }, [letterMastery]);
+  const masteredCount = ALPHABET.filter((ch) => mastered.has(ch)).length;
 
   const run = async (fn) => {
     onBusy(true);
@@ -181,207 +209,329 @@ export default function ProfileDashboard({
     onSignOut();
   });
 
+  const pickAvatar = (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !onAvatarChange) return;
+    run(async () => {
+      await onAvatarChange(file);
+      onMessage({ tone: 'success', text: 'Poză de profil actualizată.' });
+    });
+  };
+
   return (
-    <div className="space-y-[18px]">
-      {/* Banner profil */}
+    <div className="flex flex-col gap-[22px]">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-6">
+        <div className="min-w-0">
+          <p
+            style={motion('sg-fade-right', 0.6, 0.06)}
+            className="text-[10.5px] lg:text-xs font-extrabold uppercase tracking-[.14em] lg:tracking-[.22em] text-ink-400"
+          >
+            Profil · Nivelul {level} · {levelName(level)}
+          </p>
+          <h1
+            style={motion('sg-fade-up', 0.7, 0.14)}
+            className="mt-1.5 lg:mt-2 text-[29px] lg:text-[2.6rem] font-black text-ink-900
+              tracking-[-.02em] lg:tracking-[-.025em] leading-tight lg:leading-[1.1] text-pretty"
+          >
+            <span className="relative inline-block">
+              {givenName}.
+              <span
+                aria-hidden
+                className="absolute left-0 right-1.5 bottom-1 h-2 rounded sg-underline bg-signa-400/[.32]"
+              />
+            </span>
+            {' '}Asta ești tu.
+          </h1>
+          <p
+            style={motion('sg-fade-up', 0.65, 0.22)}
+            className="mt-1.5 text-[13.5px] font-semibold text-ink-500"
+          >
+            {levelLine(level)}
+          </p>
+        </div>
+
+        {streak > 0 && (
+          <span
+            style={motion('sg-scale-in', 0.5, 0.24, 'backwards')}
+            className="self-start lg:self-auto flex items-center gap-[7px] bg-[#FFF7E8] border border-amber-500/[.18]
+              text-amber-700 rounded-full px-[15px] py-[9px] text-[13px] font-extrabold tabular-nums"
+          >
+            <FlameIcon
+              className="w-[13px] h-[13px]"
+              style={{ animation: 'sg-flame 1.9s ease-in-out infinite' }}
+            />
+            {streak} {streak === 1 ? 'zi la rând' : 'zile la rând'}
+          </span>
+        )}
+      </div>
+
       <div
-        style={{ animation: `sg-fade-up .7s ${EASE} .12s both` }}
-        className="rounded-[20px] bg-white border border-ink-900/[0.06] shadow-[0_1px_2px_rgba(46,42,36,.04),0_8px_24px_rgba(46,42,36,.045)] overflow-hidden"
+        style={motion('sg-fade-up', 0.75, 0.2)}
+        className="relative overflow-hidden rounded-[26px]
+          bg-[linear-gradient(125deg,#0f7d59_0%,#0b6446_58%,#075237_100%)]
+          shadow-[0_20px_48px_rgba(8,74,52,.24)]"
       >
-        <div
-          data-sg-banner
-          className="relative overflow-hidden bg-[linear-gradient(120deg,#064e3b,#065f46_55%,#047857)] px-5 pt-[22px] pb-[60px] md:px-[30px] md:pt-[26px] md:pb-[74px]"
+        <span aria-hidden data-sg-banner className="absolute inset-0 pointer-events-none" />
+        <span
+          aria-hidden
+          data-sg-glow
+          className="absolute -top-[120px] -right-[70px] w-[300px] h-[300px] rounded-full pointer-events-none sg-aurora-a"
+          style={{
+            background: 'radial-gradient(circle, rgba(52,211,153,.5), transparent 70%)',
+            filter: 'blur(46px)',
+          }}
+        />
+        <span
+          aria-hidden
+          className="absolute -bottom-[110px] left-[18%] w-[280px] h-[280px] rounded-full pointer-events-none sg-aurora-b"
+          style={{
+            background: 'radial-gradient(circle, rgba(255,255,255,.18), transparent 72%)',
+            filter: 'blur(50px)',
+          }}
+        />
+        <span
+          aria-hidden
+          className="absolute inset-y-0 left-0 w-[34%] pointer-events-none"
+          style={{
+            background: 'linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent)',
+            animation: 'sg-sheen 6.5s cubic-bezier(.4,0,.2,1) 1.4s infinite',
+          }}
+        />
+        <span
+          aria-hidden
+          className="hidden lg:flex absolute top-8 right-[36%] text-white/10 pointer-events-none"
+          style={{ animation: 'sg-float-y 4.6s ease-in-out infinite' }}
         >
-          <span
-            aria-hidden
-            data-sg-glow
-            className="absolute -top-[140px] -right-[60px] w-[340px] h-[340px] rounded-full pointer-events-none sg-aurora-a"
-            style={{
-              background: 'radial-gradient(circle, rgba(52,211,153,.5), transparent 70%)',
-              filter: 'blur(48px)',
-            }}
-          />
-          <span
-            aria-hidden
-            className="absolute -bottom-[120px] left-[24%] w-[260px] h-[260px] rounded-full pointer-events-none sg-aurora-b"
-            style={{
-              background: 'radial-gradient(circle, rgba(255,255,255,.16), transparent 72%)',
-              filter: 'blur(52px)',
-            }}
-          />
-          <span
-            aria-hidden
-            className="absolute inset-y-0 left-0 w-[34%] pointer-events-none"
-            style={{
-              background: 'linear-gradient(90deg,transparent,rgba(255,255,255,.13),transparent)',
-              animation: 'sg-sheen 6.5s cubic-bezier(.4,0,.2,1) 1.4s infinite',
-            }}
-          />
-          <div className="relative flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <p
-                style={{ animation: `sg-fade-right .6s ${EASE} .26s both` }}
-                className="text-[10.5px] font-extrabold uppercase tracking-[.13em] text-emerald-100/70 mb-1.5 md:mb-2"
+          <HandIcon className="w-16 h-16" />
+        </span>
+
+        <div className="relative px-5 pt-6 pb-6 md:px-8 md:pt-8 md:pb-8
+          grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6 lg:gap-10 items-center">
+          <div className="flex items-center gap-4 md:gap-6 min-w-0">
+            <label className="relative flex-shrink-0 cursor-pointer group" title="Schimbă poza de profil">
+              <span
+                aria-hidden
+                className="absolute -inset-1.5 rounded-full border-2 border-white/40 pointer-events-none sg-pulse-ring"
+              />
+              <span className="sg-popin relative block">
+                <span className="relative w-[88px] h-[88px] md:w-[108px] md:h-[108px] rounded-full
+                  bg-signa-400 text-signa-900 flex items-center justify-center overflow-hidden
+                  shadow-[0_12px_28px_rgba(4,44,32,.28)]
+                  transition-transform duration-[220ms] ease-out
+                  group-hover:scale-[1.04] group-hover:-rotate-[4deg]">
+                  {avatarUrl
+                    ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+                    : <span className="text-[28px] md:text-[34px] font-black">{initials}</span>}
+                </span>
+              </span>
+              <span
+                aria-hidden
+                className="absolute -bottom-0.5 -right-0.5 w-8 h-8 rounded-full bg-white text-ink-700
+                  shadow-[0_4px_12px_rgba(4,44,32,.22)] flex items-center justify-center
+                  group-hover:bg-signa-500 group-hover:text-white transition-colors"
               >
-                Nivelul {level} · {levelName(level)}
-              </p>
-              <h1
-                style={{ animation: `sg-fade-up .7s ${EASE} .32s both` }}
-                className="text-[22px] md:text-[30px] font-black text-white tracking-[-.02em] leading-tight truncate"
+                <CameraIcon />
+              </span>
+              <span className="sr-only">Schimbă poza de profil</span>
+              <input
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                disabled={busy || !onAvatarChange}
+                onChange={pickAvatar}
+              />
+            </label>
+
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  style={motion('sg-scale-in', 0.5, 0.32, 'backwards')}
+                  className="rounded-full bg-white/[.14] border border-white/20 text-emerald-50
+                    text-[10.5px] font-extrabold px-2.5 py-1 uppercase tracking-[.08em]"
+                >
+                  {levelName(level)}
+                </span>
+                <span
+                  style={motion('sg-scale-in', 0.5, 0.38, 'backwards')}
+                  className="rounded-full bg-white/[.1] border border-white/15 text-emerald-100/85
+                    text-[10.5px] font-extrabold px-2.5 py-1 uppercase tracking-[.06em]"
+                >
+                  {isPublic ? 'În clasament' : 'Profil privat'}
+                  {isAdmin ? ' · Admin' : ''}
+                </span>
+              </div>
+              <h2
+                style={motion('sg-fade-up', 0.65, 0.34)}
+                className="mt-2 text-[24px] md:text-[32px] font-black text-white tracking-[-.02em] leading-tight truncate"
               >
                 {displayName}
-              </h1>
+              </h2>
               <p
-                style={{ animation: `sg-fade-up .7s ${EASE} .38s both` }}
-                className="mt-1 md:mt-1.5 text-cream/[.66] text-[12.5px] md:text-[14px] font-semibold truncate"
+                style={motion('sg-fade-up', 0.6, 0.4)}
+                className="mt-1 text-[13px] md:text-[14.5px] font-semibold text-cream/70 truncate"
               >
-                @{username}
-                <span className="hidden md:inline"> · {user.email}</span>
+                {username ? `@${username}` : user.email}
+                {memberSince ? ` · din ${memberSince}` : ''}
               </p>
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <span
-                style={{ animation: `sg-scale-in .5s ${EASE} .42s both` }}
-                className="rounded-full bg-white/[.14] border border-white/20 text-emerald-100 text-[10.5px] md:text-[11.5px] font-extrabold px-2.5 md:px-3 py-[5px] md:py-[7px] uppercase tracking-[.04em]"
-                title={isPublic ? 'Apari în clasament' : 'Profil ascuns din clasament'}
-              >
-                {isPublic ? 'Public' : 'Privat'}
-                {isAdmin ? ' · Admin' : ''}
+          </div>
+
+          <div
+            style={motion('sg-scale-in', 0.6, 0.42, 'backwards')}
+            className="relative w-[88px] h-[88px] md:w-[104px] md:h-[104px] flex-none mx-auto lg:mx-0"
+          >
+            <div
+              aria-hidden
+              className="absolute -inset-1.5 rounded-full"
+              style={{
+                background: 'rgba(52,211,153,.35)',
+                filter: 'blur(14px)',
+                animation: 'sg-ring-glow 3.4s ease-in-out infinite',
+              }}
+            />
+            <svg
+              width="100%"
+              height="100%"
+              viewBox="0 0 88 88"
+              className="relative block"
+              style={{ transform: 'rotate(-90deg)' }}
+              aria-hidden
+            >
+              <circle cx="44" cy="44" r={RING_R} fill="none" stroke="rgba(255,255,255,.16)" strokeWidth="7" />
+              <circle
+                cx="44" cy="44" r={RING_R} fill="none" stroke="#34d399" strokeWidth="7" strokeLinecap="round"
+                strokeDasharray={RING_LEN}
+                style={{
+                  '--sg-ring-to': String(RING_LEN * (1 - (barOn ? levelPct : 0))),
+                  animation: `sg-ring-draw 1.5s ${EASE} .7s both`,
+                }}
+              />
+            </svg>
+            <span className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-[22px] md:text-[26px] font-black text-white leading-none tabular-nums">
+                {level}
               </span>
-              <label
-                style={{ animation: `sg-fade-up .6s ${EASE} .48s both` }}
-                className="hidden md:flex cursor-pointer items-center gap-2 rounded-xl border bg-white/[.12] border-white/[.22] text-white px-[14px] py-2 text-[12.5px] font-bold transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:shadow-soft active:scale-[.96]"
-                title="Schimbă poza de profil"
-              >
-                Schimbă poza
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="sr-only"
-                  disabled={busy || !onAvatarChange}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    e.target.value = '';
-                    if (!file || !onAvatarChange) return;
-                    run(async () => {
-                      await onAvatarChange(file);
-                      onMessage({ tone: 'success', text: 'Poză de profil actualizată.' });
-                    });
-                  }}
-                />
-              </label>
-            </div>
+              <span className="text-[9px] font-extrabold uppercase tracking-[.14em] text-emerald-100/70">
+                nivel
+              </span>
+            </span>
           </div>
         </div>
 
-        <div className="px-5 pb-5 md:px-[30px] md:pb-6 grid grid-cols-[auto_1fr] gap-4 md:gap-[26px] items-end">
-          <label
-            style={{ animation: 'sg-pop .7s cubic-bezier(.34,1.5,.64,1) .5s both' }}
-            className="relative -mt-[38px] md:-mt-[46px] flex-shrink-0 cursor-pointer group"
-            title="Schimbă poza de profil"
-          >
-            <span
-              aria-hidden
-              className="absolute -inset-[6px] rounded-[34px] border-2 border-signa-500/30 pointer-events-none"
-              style={{ animation: `sg-pulse-ring 3.6s ${EASE} 1.4s infinite` }}
-            />
-            <div className="w-20 h-20 md:w-[104px] md:h-[104px] rounded-[24px] md:rounded-[28px] bg-signa-100 border-4 border-white shadow-[0_10px_24px_rgba(46,42,36,.16)] md:shadow-[0_12px_30px_rgba(46,42,36,.16)] flex items-center justify-center overflow-hidden transition-transform duration-200 hover:scale-[1.035] hover:-rotate-[1.5deg]">
-              {avatarUrl ? (
-                <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-[24px] md:text-[30px] font-black text-signa-900">{initials}</span>
-              )}
-            </div>
-            <span
-              aria-hidden
-              className="absolute -bottom-1 -right-1 w-7 h-7 md:w-[30px] md:h-[30px] rounded-full bg-white shadow-[0_3px_10px_rgba(46,42,36,.18)] flex items-center justify-center text-ink-700 group-hover:bg-signa-500 group-hover:text-white transition-colors"
-            >
-              <CameraIcon />
+        <div className="relative px-5 pb-5 md:px-8 md:pb-7">
+          <div className="flex items-baseline justify-between mb-2">
+            <span className="text-[12.5px] font-extrabold text-emerald-50/90">
+              Spre nivelul {level + 1}
             </span>
-            <span className="sr-only">Schimbă poza de profil</span>
-            <input
-              type="file"
-              accept="image/*"
-              className="sr-only md:hidden"
-              disabled={busy || !onAvatarChange}
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                e.target.value = '';
-                if (!file || !onAvatarChange) return;
-                run(async () => {
-                  await onAvatarChange(file);
-                  onMessage({ tone: 'success', text: 'Poză de profil actualizată.' });
-                });
+            <span className="text-[11.5px] font-extrabold text-emerald-100/70 tabular-nums">
+              {xpIntoLevelShown} / {xpNeeded} XP
+            </span>
+          </div>
+          <div className="relative h-[10px] rounded-full bg-black/20 overflow-hidden">
+            <div
+              className="h-full rounded-full bg-[linear-gradient(90deg,#6ee7b7,#34d399)]"
+              style={{
+                width: `${(barOn ? levelPct : 0) * 100}%`,
+                transition: `width 1.2s ${EASE} .5s`,
               }}
             />
-          </label>
-
-          <div className="pt-3 md:pt-5 min-w-0">
-            <div className="flex items-baseline justify-between mb-1.5 md:mb-2">
-              <span className="text-[12.5px] md:text-[13px] font-extrabold text-ink-900">
-                Progres spre Nivelul {level + 1}
-              </span>
-              <span className="text-[11px] md:text-[12px] font-extrabold text-ink-500 tabular-nums">
-                {xpIntoLevelShown} / {xpNeeded} XP
-              </span>
-            </div>
-            <div className="relative h-[10px] rounded-full bg-ink-900/[.07] overflow-hidden">
-              <div
-                className="h-full rounded-full bg-[linear-gradient(90deg,#34d399,#059669)]"
-                style={{
-                  width: `${(barOn ? levelPct : 0) * 100}%`,
-                  transition: `width 1.2s ${EASE} .5s`,
-                }}
-              />
-              <div
-                aria-hidden
-                className="absolute inset-y-0 left-0 w-[34%] pointer-events-none"
-                style={{
-                  background: 'linear-gradient(90deg,transparent,rgba(255,255,255,.85),transparent)',
-                  animation: 'sg-sheen 4.2s cubic-bezier(.4,0,.2,1) 1.8s infinite',
-                }}
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-[9px] md:gap-3 mt-4 md:mt-5">
-              <StatTile
-                value={xp}
-                label="XP total"
-                shortLabel="XP"
-                tone="bg-signa-50 border-signa-500/[.14] text-signa-900"
-                countDelay={260}
-                countDuration={950}
-                style={{ animation: `sg-fade-up .6s ${EASE} .66s both` }}
-              />
-              <StatTile
-                value={streak}
-                label="Zile la rând"
-                shortLabel="Zile"
-                tone="bg-amber-50 border-amber-600/[.14] text-amber-700"
-                countDelay={320}
-                countDuration={700}
-                style={{ animation: `sg-fade-up .6s ${EASE} .73s both` }}
-              />
-              <StatTile
-                value={completedLessonsCount}
-                sub={totalLessonsCount > 0 ? `/${totalLessonsCount}` : ''}
-                label="Lecții"
-                shortLabel="Lecții"
-                tone="bg-[#FAF8F4] border-ink-900/[.07] text-ink-900"
-                countDelay={360}
-                style={{ animation: `sg-fade-up .6s ${EASE} .8s both` }}
-              />
-            </div>
+            <div
+              aria-hidden
+              className="absolute inset-y-0 left-0 w-[34%] pointer-events-none"
+              style={{
+                background: 'linear-gradient(90deg,transparent,rgba(255,255,255,.75),transparent)',
+                animation: 'sg-sheen 4.2s cubic-bezier(.4,0,.2,1) 1.8s infinite',
+              }}
+            />
           </div>
         </div>
       </div>
 
-      {/* Grid principal */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[.9fr_.9fr_1.3fr] gap-3.5">
+        <MosaicCard delay={0.36} tone="bg-[#FFF7E8] border-amber-600/[.14]">
+          <p className="text-[10.5px] font-extrabold uppercase tracking-[.14em] text-amber-800/70">Focul tău</p>
+          <p className="mt-2 flex items-end gap-2">
+            <span className="text-[36px] font-black leading-none tabular-nums text-amber-800">{streakShown}</span>
+            <FlameIcon
+              className="w-6 h-6 text-amber-600 mb-1"
+              style={{ animation: 'sg-flame 1.9s ease-in-out infinite' }}
+            />
+          </p>
+          <p className="mt-1.5 text-[13px] font-semibold text-amber-800/70">
+            {streak === 0
+              ? 'Aprinde-l cu o lecție azi.'
+              : streak === 1
+                ? 'Prima zi. Mâine contează dublu.'
+                : 'Zile la rând — nu-l stinge.'}
+          </p>
+        </MosaicCard>
+
+        <MosaicCard delay={0.44} tone="bg-signa-50 border-signa-500/[.16]">
+          <p className="text-[10.5px] font-extrabold uppercase tracking-[.14em] text-signa-900/70">Drumul</p>
+          <p className="mt-2 text-[36px] font-black leading-none tabular-nums text-signa-900">
+            {lessonsShown}
+            <span className="text-[16px] font-bold text-signa-900/50">/{totalLessonsCount}</span>
+          </p>
+          <p className="mt-1.5 text-[13px] font-semibold text-signa-900/65">
+            {xpShown} XP adunați
+          </p>
+          <div className="mt-3 h-1.5 rounded-full bg-signa-900/[.08] overflow-hidden">
+            <div
+              className="h-full rounded-full bg-signa-500"
+              style={{
+                width: `${totalLessonsCount ? (completedLessonsCount / totalLessonsCount) * 100 : 0}%`,
+                transition: `width 1.1s ${EASE} .6s`,
+              }}
+            />
+          </div>
+        </MosaicCard>
+
+        <MosaicCard delay={0.52} tone="bg-white border-ink-900/[.06]" className="md:col-span-2 lg:col-span-1">
+          <div className="flex items-baseline justify-between gap-3 mb-3">
+            <p className="text-[10.5px] font-extrabold uppercase tracking-[.14em] text-ink-400">Alfabetul tău</p>
+            <p className="text-[12px] font-extrabold tabular-nums text-ink-500">
+              {masteredCount}/{ALPHABET.length}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-[5px]">
+            {ALPHABET.map((ch, i) => {
+              const on = mastered.has(ch);
+              return (
+                <span
+                  key={ch}
+                  style={motion('sg-pop', 0.4, 0.55 + i * 0.025, 'backwards')}
+                  title={on ? `${ch} — validat` : `${ch} — încă nevalidat`}
+                  className={`w-8 h-8 rounded-[10px] text-[12.5px] font-black flex items-center justify-center border
+                    ${on
+                      ? 'bg-signa-50 border-signa-500/25 text-signa-900'
+                      : 'bg-[#FBF7F0] border-ink-900/[.06] text-ink-400/70'}`}
+                >
+                  {ch}
+                </span>
+              );
+            })}
+          </div>
+        </MosaicCard>
+      </div>
+
+      <FriendsSection userId={user.id} />
+
       <div className="grid gap-[18px] items-start lg:grid-cols-[1.55fr_1fr]">
-        {/* Date profil */}
-        <div style={{ animation: `sg-fade-up .7s ${EASE} .5s both` }} className="rounded-[20px] bg-white border border-ink-900/[0.06] shadow-[0_1px_2px_rgba(46,42,36,.04),0_8px_24px_rgba(46,42,36,.045)] p-5 md:p-[26px_28px]">
-          <p className="text-[17px] font-black text-ink-900">Date profil</p>
-          <p className="text-[13px] text-ink-500 mt-1">Numele apare în clasament și pe certificate.</p>
+        <div
+          style={motion('sg-fade-up', 0.7, 0.48)}
+          className="rounded-[22px] bg-white border border-ink-900/[0.06]
+            shadow-[0_1px_2px_rgba(46,42,36,.04),0_8px_24px_rgba(46,42,36,.045)]
+            p-5 md:p-[26px_28px]"
+        >
+          <p
+            style={motion('sg-fade-right', 0.5, 0.52)}
+            className="text-[10.5px] font-extrabold uppercase tracking-[.14em] text-ink-400"
+          >
+            Atelier
+          </p>
+          <p className="mt-1 text-[17px] font-black text-ink-900">Cum apari în Signa</p>
+          <p className="text-[13px] text-ink-500 mt-1">Numele ăsta e pe clasament și pe certificate.</p>
 
           <div className="mt-5 flex flex-col gap-[14px] md:grid md:grid-cols-2 md:gap-4">
             <AuthField label="Prenume">
@@ -429,7 +579,10 @@ export default function ProfileDashboard({
               type="button"
               disabled={busy}
               onClick={save}
-              className="relative overflow-hidden w-full md:w-auto rounded-2xl px-[26px] py-[15px] md:py-[13px] text-[14.5px] font-extrabold text-white bg-gradient-to-b from-signa-500 to-signa-600 shadow-[0_8px_20px_rgba(16,185,129,.26)] transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:shadow-[0_14px_28px_rgba(16,185,129,.34)] disabled:opacity-50 disabled:translate-y-0"
+              className="relative overflow-hidden w-full md:w-auto rounded-2xl px-[26px] py-[15px] md:py-[13px]
+                text-[14.5px] font-extrabold text-white bg-gradient-to-b from-signa-500 to-signa-600
+                shadow-[0_8px_20px_rgba(16,185,129,.26)] transition-[transform,box-shadow] duration-150
+                hover:-translate-y-0.5 hover:shadow-[0_14px_28px_rgba(16,185,129,.34)] disabled:opacity-50 disabled:translate-y-0"
             >
               <span
                 aria-hidden
@@ -444,9 +597,12 @@ export default function ProfileDashboard({
           </div>
         </div>
 
-        {/* Coloana dreapta */}
         <div className="flex flex-col gap-[18px]">
-          <div style={{ animation: `sg-fade-up .7s ${EASE} .58s both` }} className="rounded-[20px] bg-white border border-ink-900/[0.06] shadow-[0_1px_2px_rgba(46,42,36,.04),0_8px_24px_rgba(46,42,36,.045)] p-5 md:p-6">
+          <div
+            style={motion('sg-fade-up', 0.7, 0.56)}
+            className="rounded-[22px] bg-white border border-ink-900/[0.06]
+              shadow-[0_1px_2px_rgba(46,42,36,.04),0_8px_24px_rgba(46,42,36,.045)] p-5 md:p-6"
+          >
             <div className="group flex items-start gap-3">
               <span
                 className="w-[38px] h-[38px] flex-shrink-0 rounded-xl bg-signa-50 text-signa-600 flex items-center justify-center
@@ -468,19 +624,23 @@ export default function ProfileDashboard({
                   <span className="absolute inset-0 rounded-full bg-signa-500" />
                   <span className="absolute -inset-1 rounded-full border-[1.5px] border-signa-500/55 sg-dot-ring" />
                 </span>
-                {lastSynced ? `Acum ${Math.max(0, Math.round((Date.now() - lastSynced.getTime()) / 60000))} min` : 'Nesincronizat'}
+                {lastSynced
+                  ? `Acum ${Math.max(0, Math.round((Date.now() - lastSynced.getTime()) / 60000))} min`
+                  : 'Nesincronizat'}
               </span>
               <RippleButton
                 type="button"
                 disabled={busy}
                 onClick={sync}
-                className="flex items-center gap-2 rounded-xl border border-ink-900/10 bg-white px-4 py-2 text-[12.5px] font-bold text-ink-700 transition-[transform,box-shadow] duration-150 hover:-translate-y-px hover:shadow-soft disabled:opacity-50"
+                className="flex items-center gap-2 rounded-xl border border-ink-900/10 bg-white px-4 py-2
+                  text-[12.5px] font-bold text-ink-700 transition-[transform,box-shadow] duration-150
+                  hover:-translate-y-px hover:shadow-soft disabled:opacity-50"
               >
                 {syncing && (
                   <span
                     aria-hidden
-                    className="w-[13px] h-[13px] rounded-full border-2 border-ink-900/15 flex-shrink-0"
-                    style={{ borderTopColor: '#10b981', animation: 'sg-spin .7s linear infinite' }}
+                    className="w-[13px] h-[13px] rounded-full border-2 border-ink-900/15 flex-shrink-0 sg-spin"
+                    style={{ borderTopColor: '#10b981' }}
                   />
                 )}
                 {syncing ? 'Se sincronizează…' : (
@@ -493,16 +653,23 @@ export default function ProfileDashboard({
             </div>
           </div>
 
-          <div style={{ animation: `sg-fade-up .7s ${EASE} .66s both` }} className="rounded-[20px] bg-white border border-ink-900/[0.06] shadow-[0_1px_2px_rgba(46,42,36,.04),0_8px_24px_rgba(46,42,36,.045)] p-5 md:p-6">
+          <div
+            style={motion('sg-fade-up', 0.7, 0.64)}
+            className="rounded-[22px] bg-white border border-ink-900/[0.06]
+              shadow-[0_1px_2px_rgba(46,42,36,.04),0_8px_24px_rgba(46,42,36,.045)] p-5 md:p-6"
+          >
             <p className="text-[15px] font-black text-ink-900">
               {memberSince ? `Membru din ${memberSince}` : 'Membru Signa'}
             </p>
             <p className="text-[12.5px] text-ink-500 mt-1 leading-relaxed">
-              Camera și semnele rămân pe dispozitiv.
+              Camera și semnele rămân pe dispozitiv. Cloud-ul ține doar progresul.
             </p>
           </div>
 
-          <div style={{ animation: `sg-fade-up .7s ${EASE} .74s both` }} className="rounded-[20px] border border-red-600/[.16] bg-red-600/[.03] p-[18px_20px] md:p-[22px_24px]">
+          <div
+            style={motion('sg-fade-up', 0.7, 0.72)}
+            className="rounded-[22px] border border-red-600/[.16] bg-red-600/[.03] p-[18px_20px] md:p-[22px_24px]"
+          >
             <p className="text-[10.5px] font-extrabold uppercase tracking-[.13em] text-red-600/[.65] mb-2.5">
               Zonă sensibilă
             </p>
@@ -514,7 +681,10 @@ export default function ProfileDashboard({
                 type="button"
                 disabled={busy}
                 onClick={signOut}
-                className="flex-shrink-0 rounded-2xl border border-red-600/[.22] text-red-600 bg-transparent px-5 py-[11px] font-bold text-[13.5px] transition-[color,background-color,border-color,transform] duration-150 hover:bg-red-600 hover:border-red-600 hover:text-white hover:-translate-y-0.5 disabled:opacity-50"
+                className="flex-shrink-0 rounded-2xl border border-red-600/[.22] text-red-600 bg-transparent
+                  px-5 py-[11px] font-bold text-[13.5px]
+                  transition-[color,background-color,border-color,transform] duration-150
+                  hover:bg-red-600 hover:border-red-600 hover:text-white hover:-translate-y-0.5 disabled:opacity-50"
               >
                 <span className="md:hidden">Ieși</span>
                 <span className="hidden md:inline">Deconectare</span>

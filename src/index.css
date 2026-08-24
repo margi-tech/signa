@@ -123,6 +123,7 @@ body {
 .sg-aurora-b { animation: sg-aurora-b 21s ease-in-out infinite; }
 .sg-aurora-c { animation: sg-aurora-c 26s ease-in-out infinite; }
 .sg-float       { animation: sg-float ease-in-out infinite; }
+.sg-drift       { animation: sg-drift 16s ease-in-out infinite; }
 .sg-fade-up     { animation: sg-fade-up    .8s cubic-bezier(.22,1,.36,1) both; }
 .sg-fade-right  { animation: sg-fade-right .7s cubic-bezier(.22,1,.36,1) both; }
 .sg-sheen       { animation: sg-sheen 3.6s cubic-bezier(.4,0,.2,1) infinite; }

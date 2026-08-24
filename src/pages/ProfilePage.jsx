@@ -18,7 +18,7 @@ import { MessageBanner, SectionCard } from '../components/auth/AuthUi';
 export default function ProfilePage({ onProfileUpdated }) {
   const {
     xp, streak, level, xpIntoLevel, xpNeeded,
-    completedLessonsCount, totalLessonsCount, persist, syncNow,
+    completedLessonsCount, totalLessonsCount, letterMastery, persist, syncNow,
   } = useProgress();
   const [authMode, setAuthMode] = useState('login');
   const [firstName, setFirstName] = useState('');
@@ -165,18 +165,29 @@ export default function ProfilePage({ onProfileUpdated }) {
           pe mobil containerul e lățimea ecranului. */}
       <div ref={scrollRef} className="flex-1 relative z-10">
         <div className="max-w-[1180px] mx-auto px-4 pt-4 pb-8 md:px-8 md:pt-6 md:pb-10">
-        <div className="flex items-center justify-center mb-4 md:mb-[22px]">
-          <span className="text-[10.5px] font-extrabold uppercase tracking-[.13em] text-ink-400">Profil</span>
-        </div>
-
-        <div className="space-y-3">
         {!user && (
-          <div className="bg-signa-50 rounded-2xl p-4 border border-signa-200/60">
-            <p className="text-signa-700 text-xs font-bold uppercase tracking-wider mb-1">Progres local</p>
-            <p className="text-ink-900 font-black text-lg">Nivel {level} · {xp} XP</p>
-            {streak > 0 && <p className="text-ink-500 text-sm mt-0.5">{streak} zile consecutive</p>}
+          <div className="mb-5">
+            <p className="text-[10.5px] lg:text-xs font-extrabold uppercase tracking-[.14em] lg:tracking-[.22em] text-ink-400">
+              Profil · Pe dispozitiv
+            </p>
+            <h1 className="mt-1.5 text-[29px] lg:text-[2.4rem] font-black text-ink-900 tracking-[-.02em] leading-tight text-pretty">
+              Identitatea ta în Signa.
+            </h1>
+            <p className="mt-1.5 text-[13.5px] font-semibold text-ink-500">
+              Conectează-te ca să apari în clasament. Progresul de aici rămâne pe telefon.
+            </p>
+            <div className="mt-5 relative overflow-hidden rounded-[22px] border border-signa-500/20
+              bg-[linear-gradient(135deg,#ecfdf5,#fff7e8)] px-5 py-4">
+              <p className="text-[10.5px] font-extrabold uppercase tracking-[.14em] text-signa-800/70">Progres local</p>
+              <p className="mt-1 text-ink-900 font-black text-[22px] tabular-nums">Nivel {level} · {xp} XP</p>
+              {streak > 0 && (
+                <p className="text-amber-700 text-sm mt-1 font-bold">{streak} zile consecutive</p>
+              )}
+            </div>
           </div>
         )}
+
+        <div className="space-y-3">
 
         {banner && (
           <MessageBanner tone={banner.tone}>{banner.text}</MessageBanner>
@@ -203,6 +214,7 @@ export default function ProfilePage({ onProfileUpdated }) {
             totalLessonsCount={totalLessonsCount}
             xpIntoLevel={xpIntoLevel}
             xpNeeded={xpNeeded}
+            letterMastery={letterMastery}
             firstName={firstName}
             lastName={lastName}
             username={username}

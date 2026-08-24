@@ -45,38 +45,48 @@ Bariera e profundă: înainte de recunoașterea legală, peste 20 de ani, sub 1%
 
 ### 4.2. Extensii (opțional)
 - 5–10 semne uzuale (bună, mulțumesc, da, nu, ajutor).
-- Clasament între prieteni / pe școală.
+- Provocări și activitate între prieteni.
 - Mod „antrenament rapid”.
+
+### 4.2.1. Extensii deja implementate
+- Tracking holistic: două mâini, expresie facială, orientarea capului și trunchi.
+- Litere dinamice prin secvențe + clasificator GRU.
+- Conturi Supabase, progres sincronizat, clasament și profil public/privat.
+- Follow reciproc și prieteni integrați în pagina Profil.
+- Colectare asistată: inventar permanent și serii automate foto/video.
 
 ### 4.3. Non-goals (asumate explicit)
 - Traducere completă, în timp real, a propozițiilor.
-- Recunoașterea expresiei faciale și a semnelor cu mișcare complexă (etapă ulterioară).
+- Stocarea imaginilor/video în cloud.
 - Fluență — Signa e primul pas, nu un substitut pentru cursuri cu profesori surzi.
 
 ---
 
 ## 5. Arhitectura tehnică
 
-Aplicație web mobile-first (PWA) cu trei zone separate.
+Aplicație web PWA cu shell desktop-first pentru navigarea principală și ecrane
+de lucru full-screen responsive/mobile-first, împărțită în trei zone.
 
 ### Zona 1 — Pe dispozitiv (timp real)
-Inima aplicației, rulează integral în browser, fără server. La fiecare cadru video:
+Inima aplicației rulează integral în browser. La fiecare cadru video:
 1. **Camera** (getUserMedia) — captează imaginea.
-2. **MediaPipe Hand Landmarker** — detectează mâna, extrage 21 de puncte (landmarks) 3D.
-3. **Normalizare** — punctele sunt aduse la o formă standard (relativ la încheietură + scalare).
-4. **Clasificator (TensorFlow.js)** — primește punctele normalizate, prezice litera/semnul.
+2. **MediaPipe holistic** — Hand + Face + Pose Landmarker rulează simultan.
+3. **Normalizare v2** — produce un vector fix de 199 valori: mâini 126,
+   față 52, orientare cap 3 și trunchi 18.
+4. **Clasificator TensorFlow.js** — MLP pentru static sau GRU pentru secvențe.
 5. **Feedback live** — UI: „corect”, ghidare, scor.
 
 ### Zona 2 — Pregătirea modelului (înainte de lansare, o singură dată)
-1. **Dataset propriu** — echipa se înregistrează făcând fiecare semn de zeci de ori; se salvează vectorii de landmark-uri.
-2. **Antrenare** — un clasificator mic în TensorFlow.js.
-3. **model.json** — exportat și încărcat o singură dată în aplicație.
+1. **Dataset propriu** — se salvează local doar vectorii numerici; imagini/video nu
+   sunt persistate. `CollectPage` oferă serii automate 300 foto / 50 video.
+2. **Antrenare în browser** — MLP static + GRU dinamic, cu test set separat.
+3. **Modele TF.js** — exportate în `public/models/` și încărcate local de PWA.
 
 ### Zona 3 — Cloud (progres & social)
 Singura parte care comunică în rețea, și doar pentru date non-sensibile (progres, scoruri) — niciodată imagini.
-- **Backend API** — Node + Express sau Supabase.
-- **Bază de date** — utilizatori, progres, scoruri.
-- **Gamificare** — streak, niveluri, badge-uri, clasament.
+- **Backend** — Supabase Auth + PostgreSQL + RLS.
+- **Date** — profil, progres, scoruri și relații follow.
+- **Gamificare/social** — streak, niveluri, clasament și prietenii reciproce.
 
 ### De ce pe dispozitiv
 Recunoașterea locală = confidențialitate (camera nu pleacă de pe telefon) + viteză (fără întârziere de rețea) + funcționare offline + cost zero.
@@ -89,54 +99,60 @@ Recunoașterea locală = confidențialitate (camera nu pleacă de pe telefon) + 
 |---|---|---|
 | Interfață | React + Tailwind (PWA) | Ecrane, lecții, feedback; rulează pe orice telefon |
 | Cameră | getUserMedia (Web API) | Acces la fluxul video, în browser |
-| Detecție mână | MediaPipe Hand Landmarker (`@mediapipe/tasks-vision`) | 21 de puncte 3D pe mână, în timp real |
-| Clasificare | TensorFlow.js | Modelul care prezice semnul, pe dispozitiv |
-| Backend | Node + Express / Supabase | Conturi, progres, API |
-| Bază de date | PostgreSQL | Utilizatori, progres, scoruri, lecții |
+| Tracking holistic | MediaPipe Hand + Face + Pose Landmarker | Mâini, expresie/cap și trunchi |
+| Clasificare | TensorFlow.js | MLP static + GRU dinamic, pe dispozitiv |
+| Backend | Supabase | Auth, profil, progres și social |
+| Bază de date | PostgreSQL + RLS | `profiles`, `progress`, `follows` și view-uri |
 | Notificări | Web Push API | Reamintiri pentru streak (opțional) |
 
 ---
 
 ## 7. Modelul de date
 
-### utilizatori
-| Câmp | Tip | Descriere |
-|---|---|---|
-| id | UUID | Identificator unic |
-| nume | text | Numele afișat |
-| email | text | Autentificare (opțional la MVP) |
-| nivel | întreg | Nivelul curent |
-| streak | întreg | Zile consecutive de practică |
-| creat_la | dată | Data înregistrării |
+Sursa exactă este `supabase/schema.sql`.
 
-### semne
+### profiles
 | Câmp | Tip | Descriere |
 |---|---|---|
 | id | UUID | Identificator unic |
-| eticheta | text | Litera sau semnul (ex. „A”, „mulțumesc”) |
-| tip | text | „litera” sau „semn” |
-| referinta | text | Link către imaginea/clipul de referință |
-| dificultate | întreg | Ordinea în care apare în lecții |
+| display_name / first_name / last_name | text | Identitatea afișată |
+| username | text unic | Nume public de utilizator |
+| avatar_url | text | Avatar public opțional |
+| role | text | `user` sau `admin` |
+| visibility | text | `public` sau `private` |
+| created_at | timestamptz | Data înscrierii |
 
 ### progres
 | Câmp | Tip | Descriere |
 |---|---|---|
-| id | UUID | Identificator unic |
-| utilizator_id | UUID | Referință către utilizatori |
-| semn_id | UUID | Referință către semne |
-| stapanit | boolean | Dacă semnul a fost învățat |
-| scor | întreg | Punctaj acumulat pentru semn |
-| actualizat_la | dată | Ultima practică |
+| user_id | UUID | Referință la `auth.users` |
+| xp / streak | întreg | Progres agregat |
+| lessons | JSONB | Stele și lecții finalizate |
+| letter_mastery | JSONB | Stăpânire per literă |
+| updated_at | timestamptz | Ultima sincronizare |
+
+### follows
+| Câmp | Tip | Descriere |
+|---|---|---|
+| follower_id | UUID | Cine urmărește |
+| following_id | UUID | Cine este urmărit |
+| created_at | timestamptz | Începutul relației |
+
+`friendships` derivă perechile reciproce, `user_directory` expune profilurile
+publice, iar `leaderboard` combină profilul public cu progresul.
 
 ---
 
 ## 8. Cum funcționează recunoașterea
 
-Trei etape: imagine → puncte → literă.
+Trei etape: imagine → subiect holistic → semn.
 
-1. **Extragerea punctelor:** MediaPipe întoarce 21 de puncte (x, y, z) pentru mână.
-2. **Normalizarea:** mutăm originea în încheietură (translatare) și împărțim la o distanță de referință (scalare), ca semnul să arate la fel indiferent de poziția față de cameră.
-3. **Clasificarea:** vectorul normalizat (63 de valori = 21 × 3) intră în clasificatorul TensorFlow.js, care întoarce semnul cel mai probabil + un nivel de încredere. Dacă încrederea e prea mică, cere o reîncercare.
+1. **Extragere:** MediaPipe întoarce până la două mâini, blendshape-uri faciale,
+   matricea capului și punctele de trunchi.
+2. **Normalizare:** `normalize()` aplică același contract la colectare și predicție
+   și produce exact **199 valori**.
+3. **Clasificare:** MLP primește un vector static; GRU primește o secvență de
+   vectori. Rezultatul este acceptat numai peste pragurile de confidence și margin.
 
 > **Regulă critică:** funcția de normalizare trebuie să fie IDENTICĂ la colectarea datelor și la predicția live, altfel modelul nu recunoaște nimic.
 
@@ -144,24 +160,20 @@ Trei etape: imagine → puncte → literă.
 
 ```
 funcție recunoașteSemn(cadru_video):
-    mâini = MediaPipe.detecteazăMâini(cadru_video)
-    dacă mâini este gol:
+    subiect = MediaPipe.detecteazăHolistic(cadru_video)
+    dacă subiect.mâini este gol:
         întoarce "nicio mână detectată"
 
-    puncte = mâini[0].landmarks          # 21 de puncte (x, y, z)
-    vector = normalizează(puncte)
-    predicție, încredere = clasificator.prezice(vector)
+    vector = normalize(subiect)          # contract v2: 199 valori
+    predicție, încredere = MLP.prezice(vector)
 
     dacă încredere < PRAG:
         întoarce "semn neclar - încearcă din nou"
     întoarce predicție
 
-funcție normalizează(puncte):
-    origine = puncte[0]                   # încheietura
-    puncte = puncte - origine             # translatare la origine
-    scară   = distanță(puncte[0], puncte[9])
-    puncte  = puncte / scară              # invariant la scară
-    întoarce aplatizează(puncte)          # vector de 63 de valori
+funcție recunoașteMișcare(cadre):
+    secvență = cadre.map(normalize)       # fiecare cadru are 199 valori
+    întoarce GRU.prezice(secvență)
 ```
 
 ---
@@ -195,8 +207,9 @@ Pe faze. Fiecare fază are obiectiv, sarcini și un rezultat verificabil. Nu tre
 - **Rezultat:** o lecție completă, jucabilă cap-coadă.
 
 ### Faza 5 — Backend, conturi și clasament
-- Backend (Node + Express sau Supabase), salvarea progresului, clasament.
-- **Rezultat:** progresul persistă; utilizatorii se pot compara (opțional pentru MVP).
+- Supabase Auth, profil public/privat, progres sincronizat, clasament și follow reciproc.
+- **Rezultat curent:** conturile, progresul și socialul sunt implementate; deploy-ul
+  public este blocat de contul Vercel al echipei.
 
 ### Faza 6 — Finisare, testare și pregătirea demo-ului
 - Curățarea UI, testare pe mai multe telefoane/condiții de lumină, repetarea demo-ului, variantă de rezervă.

@@ -12,8 +12,10 @@ Aplicație web PWA care recunoaște semnele **pe dispozitiv** — fără cloud, 
 - **Tracking holistic** — mâini, față și trunchi (MediaPipe), nu doar o mână
 - **Predicție live** — litere statice (MLP) + semne cu mișcare (GRU), în browser
 - **Lecții + XP** — progres, stele, streak, nivel
-- **Colectare & antrenare** — dataset în browser, export JSON, antrenare TensorFlow.js
+- **Colectare & antrenare** — cameră holistică, inventar permanent, serii automate
+  (300 foto / 50 video), export JSON și antrenare TensorFlow.js
 - **Scrie cuvântul** — dactilare literă cu literă
+- **Profil social** — identitate de jucător, clasament, follow reciproc și prieteni
 - **PWA** — instalabilă, temă cream/friendly, mobile-first
 
 ## Stack
@@ -23,7 +25,7 @@ Aplicație web PWA care recunoaște semnele **pe dispozitiv** — fără cloud, 
 | UI | React 18, Vite 6, Tailwind CSS v3 |
 | Tracking | MediaPipe Tasks Vision (Hand + Face + Pose) |
 | ML | TensorFlow.js (MLP static + GRU dinamic) |
-| Backend | Supabase (scaffold — auth / sync progres) |
+| Backend | Supabase (auth, profil, progres, clasament și relații sociale) |
 | Livrare | PWA (`vite-plugin-pwa`) |
 
 Contract critic: `normalize()` → vector de **199** valori. Nu se modifică fără acordul echipei — invalidează datele și modelele.
@@ -80,7 +82,7 @@ Colectare (Foto/Video) → Export JSON → Import (unire) → Antrenare → publ
 ```
 src/
 ├── components/     # AppShell + Sidebar (shell persistent), icons,
-│                   # camera, lecții, predicție, auth, UI
+│                   # camera, lecții, predicție, auth, social, UI
 ├── hooks/          # landmarker, colectare, clasificator, progres, profil
 ├── pages/          # Home, Camera, Collect, Train, Lessons, Lesson, Spell,
 │                   # Review, Diagnostic, Profile, Leaderboard, Referințe
@@ -90,11 +92,12 @@ src/
 └── lib/supabase.js
 public/models/      # modele active (TF.js)
 docs/               # ghiduri echipă
-.claude/skills/     # skill-uri de lucru (UI, verificare, git)
+.claude/skills/     # skill-uri de lucru (UI, colectare, social, verificare, git)
 ```
 
-**Acasă / Lecții / Profil** stau într-un shell comun (`AppShell` + `Sidebar`), cu
-tranziție între ele. Restul ecranelor sunt full-screen, randate din `App.jsx`.
+**Acasă / Lecții / Cameră / Clasament / Profil** stau într-un shell comun
+(`AppShell` + `Sidebar`), cu tranziție între ele. Prietenii sunt o secțiune din
+Profil. Lecția, Colectarea, Train, Diagnostic și Referințe rămân full-screen.
 
 ## Documentație
 
@@ -106,6 +109,7 @@ tranziție între ele. Restul ecranelor sunt full-screen, randate din `App.jsx`.
 | [`docs/retrain.md`](docs/retrain.md) | Checklist reantrenare |
 | [`docs/mvp-baza-de-date.md`](docs/mvp-baza-de-date.md) | Plan MVP Supabase + Vercel (US #22) |
 | [`docs/supabase-setup.md`](docs/supabase-setup.md) | Setup proiect Supabase + chei + Vercel |
+| [`FRIENDS.md`](FRIENDS.md) | Modelul follow/prietenie și integrarea socială în Profil |
 | [`ROADMAP.md`](ROADMAP.md) | Stare proiect & priorități |
 | [`docs/tutorial-incepatori.md`](docs/tutorial-incepatori.md) | Onboarding fără experiență de cod |
 | [`ARHITECTURA.md`](ARHITECTURA.md) | Viziune de produs, model de date, faze |
@@ -118,6 +122,8 @@ tranziție între ele. Restul ecranelor sunt full-screen, randate din `App.jsx`.
 | `signa-ui` | Ecrane, layout, animații, tokeni, shell |
 | `signa-verify` | Verificare, preview, capcane, siguranța datelor de progres |
 | `signa-git` | Branch per task, commit, PR, merge |
+| `signa-collect` | Cameră holistică, serii automate, dataset, import/export |
+| `signa-social` | Follow reciproc, prieteni în Profil, Supabase/RLS |
 
 ## Git (echipă)
 

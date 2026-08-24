@@ -1,6 +1,7 @@
 # Signa — Setup Supabase (US #22)
 
-Pași pentru un coleg. Recunoașterea semnelor rămâne pe dispozitiv — pe server ajung doar profil + XP.
+Pași pentru un coleg. Recunoașterea semnelor rămâne pe dispozitiv — pe server
+ajung doar profilul, progresul și relațiile sociale, niciodată camera/landmarks.
 
 Ghidul de produs: [`docs/mvp-baza-de-date.md`](./mvp-baza-de-date.md). Schema: `supabase/schema.sql`.
 
@@ -21,9 +22,12 @@ Deploy-ul public (Vercel) poate fi blocat pe planul Hobby când autorul commitul
 
 ## 2. Schema
 
+Pentru proiectele configurate înainte de funcția socială, re-rulează **tot**
+`supabase/schema.sql`; scriptul este idempotent și adaugă tabelele/view-urile lipsă.
+
 1. SQL Editor → New query
 2. Copiază tot `supabase/schema.sql` → Run
-3. Table Editor: trebuie să vezi `profiles`, `progress` și view-ul `leaderboard`
+3. Table Editor: trebuie să vezi `profiles`, `progress`, `follows` și view-urile `leaderboard`, `friendships`, `user_directory`
 4. Nu există coloană `parola` pe `profiles` — e corect. Parola stă în Auth.
 
 ## 3. Chei locale
@@ -43,6 +47,9 @@ Deploy-ul public (Vercel) poate fi blocat pe planul Hobby când autorul commitul
 3. Termină o lecție logat → `progress.xp` crește
 4. Alt browser, același cont → același XP după login
 5. Profil privat → nu mai apari în Clasament
+6. Cu două conturi publice: A îl urmărește pe B, apoi B pe A → ambele afișează
+   „Prieteni” în secțiunea din Profil
+7. Profil privat → dispare și din căutarea socială/lista celorlalți
 
 ## 5. Admin + profil public
 

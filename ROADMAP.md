@@ -1,6 +1,6 @@
 # Signa — Foaie de parcurs către o aplicație funcțională
 
-Document de lucru, actualizat 22 aug 2026.
+Document de lucru, actualizat 24 aug 2026.
 Organizat pe priorități, nu pe faze cronologice — unele lucruri se pot face în paralel.
 
 ---
@@ -9,7 +9,8 @@ Organizat pe priorități, nu pe faze cronologice — unele lucruri se pot face 
 
 - **Tracking**: Hand + Face + Pose Landmarker (MediaPipe), rulează simultan, holistic
 - **normalize() v2**: vector de 199 valori (mâini 126 + față 52 + cap 3 + trunchi 18) + prag visibility 0.5
-- **Colectare**: `CollectPage` — orice etichetă, foto/video, overview dataset, import/export
+- **Colectare**: `CollectPage` — cameră holistică full-bleed, inventar permanent,
+  orice etichetă, serii automate 300 foto / 50 video, import/export
 - **Antrenare**: `TrainPage` — MLP + GRU, held-out test set, litere slabe pe test
 - **Predicție live**: `CameraPage` — static + dinamic, confidence + margin
 - **Lecții**: 6 lecții (5 static + 1 dinamic), hold-to-validate, XP + stele + streak + nivel
@@ -43,7 +44,8 @@ Organizat pe priorități, nu pe faze cronologice — unele lucruri se pot face 
 - [x] Brand verde `signa` păstrat pe fundal luminos
 - [x] PWA icons + theme-color cream
 - [x] Refacere desktop Acasă („continuă unde ai rămas") + Lecții (capitole în sidebar)
-- [x] Refacere Profil după mockup (banner, date, sync, zonă sensibilă)
+- [x] Refacere Profil ca identitate de jucător (nivel, XP, streak, alfabet, social)
+- [x] Refacere Colectare: corp/față/mâini vizibile, inventar permanent și serii automate
 - [x] Shell persistent: `AppShell` + `Sidebar` care nu se remontează la navigare
 - [x] Tranziții între ecrane (`sg-page-*`) + strat de animații `sg-*` pe toate trei
 - [ ] Verificare manuală pe desktop real a fluenței tranziției — panoul de preview
@@ -68,6 +70,8 @@ Organizat pe priorități, nu pe faze cronologice — unele lucruri se pot face 
 - [x] UI Profil (login/register) + Clasament (live când e configurat)
 - [x] Sync progres cu merge max(XP/stele) — `useProgressSync.js`
 - [x] Proiect Supabase live (`signa`, EU) + sync automat după lecție și la login
+- [x] Profil social: follow reciproc, prieteni, cereri derivate și căutare publică
+- [x] Prietenii integrați în Profil; fără pagină sau intrare separată în sidebar
 - [ ] Deploy public Vercel — blocat: check-ul Vercel pică cu „Account is blocked"
       pe contul ownerului echipei (billing/suspendare), nu din cauza codului
 
@@ -78,7 +82,7 @@ Organizat pe priorități, nu pe faze cronologice — unele lucruri se pot face 
 - [x] Erori cameră / CDN MediaPipe cu mesaje acționabile + reload
 - [x] Pagină Diagnostic (FPS, modele, UA)
 - [x] Teste automate: `normalize`, validatori dataset, levels (`npm test`)
-- [x] Skill-uri de lucru în `.claude/skills/` (UI, verificare, git)
+- [x] Skill-uri de lucru în `.claude/skills/` (UI, colectare, social, verificare, git)
 - [ ] Lint/typecheck — proiectul n-are nici `eslint`, nici `tsc` configurate
 - [ ] Profilare pe telefon real (necesită dispozitiv)
 - [ ] Testare mobil Safari/Chrome pe teren
@@ -106,4 +110,4 @@ Organizat pe priorități, nu pe faze cronologice — unele lucruri se pot face 
 1. **David/echipa**: 1.2 recolectare (blocant)
 2. **După date**: 1.3 + 1.4 (reantrenare + referințe)
 3. **Oricând**: Supabase live, deploy Vercel, teste pe telefon
-4. **Mai târziu**: lecții cuvinte-semn, clasament social
+4. **Mai târziu**: lecții cuvinte-semn, provocări între prieteni

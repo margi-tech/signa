@@ -106,11 +106,16 @@ Stabiliți pe canal cine face ce, ca să nu dublați inutil și să nu rămână
 2. Alege litera (sau scrie o etichetă)
 3. **Foto** = litere fără mișcare
   **Video** = litere cu mișcare (J, Z, X, Î, Ș, Ț)
-4. Ridică mâna → capturează (sau `Spațiu` pe desktop)
-5. Ținte:
+4. Alege manual sau **Serie automată**:
+  - Foto: 300 capturi, fiecare pe un rezultat MediaPipe nou (~75 ms minim)
+  - Video: 50 secvențe, cu pauză de 1 secundă
+  - Prima captură are countdown de 3 secunde; `Escape` oprește seria
+5. Ține corpul și mâinile în vizorul fără margini; dacă tracking-ul se pierde,
+   seria automată se oprește în loc să repete coordonate vechi
+6. Ținte minime:
   - static: **≥ 50** exemple / literă
   - dinamic: **≥ 30** înregistrări video / literă
-6. Diversifică: unghi, distanță, lumină, poziție
+7. Diversifică: unghi, distanță, lumină, poziție și expresie
 
 Fiecare exemplu salvează **un vector de 199 valori** (mâini + față + cap + trunchi) în același dataset — nu sunt fișiere separate pe parte a corpului.
 
@@ -141,7 +146,7 @@ Uneirea se face pe pagina **Colectare**, nu pe Antrenare.
 2. **Import** → alege JSON-ul persoanei 1
 3. **Import** → JSON persoana 2
 4. Repetă pentru toți
-5. Verifică overview-ul: fiecare literă are suficiente exemple
+5. Verifică inventarul permanent: fiecare literă are suficiente exemple
 6. **Export** → salvează un fișier master, ex.:
 
 ```text

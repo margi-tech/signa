@@ -18,17 +18,24 @@ const DETECT_INTERVAL_MS = 66;
  *   subiectul complet { hands, handedness, faceBlendshapes, headMatrix, pose }
  *   (sau null dacă nu e nicio mână în cadru)
  */
-export default function HandTracker({ onLandmarks }) {
+export default function HandTracker({
+  onLandmarks,
+  onTracking,
+  videoFit = 'cover',
+  showStatus = true,
+}) {
   const videoRef       = useRef(null);
   const loopRef        = useRef(null);
   const lastTickRef    = useRef(0);
   const onLandmarksRef = useRef(onLandmarks); // ref stabil — evită re-render la schimbare
+  const onTrackingRef  = useRef(onTracking);
 
   const [subject,      setSubject]      = useState(null);
   const [cameraError,  setCameraError]  = useState(null);
 
   // Sincronizează ref-ul cu prop-ul fără a reporni bucla
   useEffect(() => { onLandmarksRef.current = onLandmarks; }, [onLandmarks]);
+  useEffect(() => { onTrackingRef.current = onTracking; }, [onTracking]);
 
   const { isReady, error: landmarkerError, detect } = useHolisticLandmarker();
 
@@ -76,6 +83,7 @@ export default function HandTracker({ onLandmarks }) {
         ) ? result : null;
         setSubject(forDraw);
         onLandmarksRef.current?.(hasHand ? result : null);
+        onTrackingRef.current?.(result);
       }
 
       loopRef.current = requestAnimationFrame(loop);
@@ -133,13 +141,14 @@ export default function HandTracker({ onLandmarks }) {
           autoPlay
           playsInline
           muted
-          className="w-full h-full object-cover"
+          className={`relative h-full w-full ${videoFit === 'contain' ? 'object-contain' : 'object-cover'}`}
         />
         <HandCanvas
           landmarks={subject?.hands ?? null}
           face={subject?.faceLandmarks ?? null}
           pose={subject?.pose ?? null}
           videoRef={videoRef}
+          videoFit={videoFit}
         />
       </div>
 
@@ -152,7 +161,7 @@ export default function HandTracker({ onLandmarks }) {
       )}
 
       {/* Indicator discret: ce e detectat */}
-      {isReady && (
+      {isReady && showStatus && (
         <div className="absolute bottom-20 left-0 right-0 flex flex-col items-center gap-1.5">
           <span
             className={`

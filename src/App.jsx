@@ -70,11 +70,13 @@ export default function App() {
     );
   }
 
-  if (isSupabaseConfigured && !user) {
+  const preview = window.location.search.includes('previewShell');
+
+  if (isSupabaseConfigured && !user && !preview) {
     return <AuthGate onAuth={() => {}} />;
   }
 
-  if (!onboardingDone) {
+  if (!onboardingDone && !preview) {
     return <Onboarding onDone={finishOnboarding} />;
   }
 

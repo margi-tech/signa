@@ -72,3 +72,12 @@ export function BookmarkIcon({ filled, size = 13 }) {
     </svg>
   );
 }
+
+export const UsersIcon = (p) => (
+  <svg {...stroke} {...p}>
+    <circle cx="9" cy="8" r="3.2" />
+    <path d="M2.5 20c1.2-3.2 3.6-4.7 6.5-4.7s5.3 1.5 6.5 4.7" />
+    <path d="M16 5.4a3.2 3.2 0 0 1 0 5.6" />
+    <path d="M18.5 14.6c1.6.7 2.7 1.9 3.4 3.6" />
+  </svg>
+);

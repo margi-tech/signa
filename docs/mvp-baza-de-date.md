@@ -1,6 +1,6 @@
 # Signa — MVP bază de date (US #22)
 
-Plan de execuție pe branch-ul `feat/22-supabase-schema`.
+Document istoric pentru US #22, actualizat cu starea curentă a backendului.
 
 **Scop:** conturi reale, progres în cloud, clasament, aplicație publică pe Vercel.
 
@@ -47,6 +47,8 @@ Auth MVP: **doar email + parolă**. Google OAuth rămâne după MVP.
 | rol admin/user | `profiles.role`, default `user` | Gata; admin doar din dashboard |
 | data înscrierii | `profiles.created_at` | Deja în schema |
 | profile mode | `profiles.visibility` (`public` / `private`) | Gata în schema + UI |
+| avatar | `profiles.avatar_url` + Storage `avatars` | Gata în Profil |
+| follow/prieteni | `follows` + view `friendships` | Gata în Profil |
 
 ---
 
@@ -59,6 +61,7 @@ Auth MVP: **doar email + parolă**. Google OAuth rămâne după MVP.
 | Login / register / edit profil | `src/pages/ProfilePage.jsx` | Nume, prenume, username, vizibilitate |
 | Sync progres (merge max XP) | `src/hooks/useProgressSync.js` | Automat după lecție + la login; buton backup |
 | Clasament (view) | `src/pages/LeaderboardPage.jsx` | Doar profile public; mesaj dacă ești privat |
+| Social | `FriendsSection.jsx` + `src/lib/supabase.js` | Follow reciproc, cereri derivate, căutare |
 | Config Vercel SPA | `vercel.json` | Gata, fără proiect live |
 | Setup uman | `docs/supabase-setup.md` | Pași dashboard + Vercel |
 
@@ -92,7 +95,8 @@ Fișiere: `.env.example`, `.env.local` (gitignored).
 
 ### Faza 2 — Schema SQL de MVP
 
-Două tabele reale (`profiles`, `progress`), un view (`leaderboard`), un trigger la signup.
+Tabelele `profiles`, `progress`, `follows`; view-urile `leaderboard`,
+`friendships`, `user_directory`; trigger la signup și politici RLS.
 
 Fișier: `supabase/schema.sql`. Rulezi totul în SQL Editor.
 
@@ -103,7 +107,7 @@ Fișier: `supabase/schema.sql`. Rulezi totul în SQL Editor.
 - [x] RLS `profiles`: public vizibil tuturor; private doar owner; update doar owner
 - [x] View `leaderboard`: doar `visibility = public`, fără email, fără parolă
 - [x] Păstrează `progress` (xp, streak, lessons, letter_mastery) + RLS doar own row
-- [x] Rulează SQL-ul în SQL Editor și verifică Table Editor: 2 tabele + 1 view
+- [x] Rulează SQL-ul în SQL Editor și verifică tabelele + view-urile de mai sus
 - [ ] Cont de test + un admin — rulează `supabase/ops-mvp.sql` (`davidutz` → admin + public)
 
 ### Faza 3 — Legătura cu aplicația
@@ -149,7 +153,6 @@ Fișier: `vercel.json` (deja gata).
 |---|---|
 | Tabel custom `users` cu `parola` | Duplicat nesigur al Auth; hash-ul e treaba Supabase |
 | Google / Apple login | Complică Auth redirect-urile; email e suficient pentru demo |
-| Upload avatar | Storage + politici extra; display_name ajunge |
 | Panou admin în UI | Rolul se setează din Table Editor pentru 1–2 admini |
 | Clasament săptămânal | View extra; all-time e destul |
 | Railway / server propriu | Nu avem API Node; totul e SPA + Supabase |
