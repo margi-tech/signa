@@ -32,8 +32,8 @@ src/
 │   ├── useDatasetCollector.js
 │   ├── useClassifier.js
 │   ├── useProgress.js         # XP, stele, streak, nivel, mastery
-│   ├── useProgressSync.js     # merge max(XP/stele) cu Supabase
-│   ├── useProfileSummary.js   # nume, inițiale, avatar, rang — chemat o dată din shell
+│   ├── useProgressSync.js     # progres server-authoritative + coadă offline per user
+│   ├── useProfileSummary.js   # nume, avatar, rang, rol admin — chemat o dată din shell
 │   └── useCountUp.js          # contoare animate
 ├── pages/                     # Home, Camera, Collect, Train, Lessons, Lesson, Spell,
 │                              # Review, Diagnostic, Profile, Leaderboard, ReferinteCatalog
@@ -41,6 +41,8 @@ src/
 ├── lib/supabase.js
 └── utils/
     ├── normalize.js           # ⚠ CRITICĂ — VECTOR_SIZE 199
+    ├── datasetValidation.js   # vectori finiți + secvențe SEQ_FRAMES
+    ├── readJsonFile.js        # import JSON cu limită de dimensiune
     └── playerMeta.js          # nivel/rang/metadate vizuale comune socialului
 ```
 
@@ -62,19 +64,24 @@ direct din `App.jsx`.
 5. Literele dinamice (J, Z, X, Î, Ș, Ț) = secvențe `SEQ_FRAMES`.
 6. Animațiile sunt CSS pur, cu keyframes `sg-*` din `src/index.css`. **Fără
    librării de animație.** Refolosește keyframe-urile existente.
-7. ⚠ **Nu scrie în `localStorage` cheia `signa-progress-v2` pe o origine cu
-   sesiune Supabase activă.** Sync-ul face `max()` și urcă datele în contul real,
-   fără cale de întoarcere. Vezi skill-ul `signa-verify`.
+7. ⚠ **Nu scrie în `localStorage` cheile de progres pe o origine cu sesiune
+   Supabase activă.** XP/streak/lecțiile sunt acordate de
+   `record_lesson_completion`; evenimentele offline sunt legate de `userId`.
+   Vezi skill-ul `signa-verify`.
 8. Colectare: 300 foto / 50 filmări per serie automată; foto așteaptă un cadru
    MediaPipe nou (~75 ms minim), video are pauză 1 s. Camera folosește `cover`.
 9. Prietenii sunt integrați în `ProfileDashboard` prin `FriendsSection`; fără
    rută/sidebar `friends`.
+10. Colectare, Train și Diagnostic sunt unelte interne: cu Supabase configurat,
+    rutele și sidebarul le permit numai profilurilor cu `role = 'admin'`.
+11. Clientul nu poate scrie rolul, XP-ul sau streak-ul direct. Nu slăbi trigger-ele,
+    RPC-urile ori granturile din `supabase/schema.sql`.
 
 ## Verificare
 ```bash
 npm install
 npm run dev
-npm test          # vitest — 34 teste
+npm test          # vitest — 47 teste
 npx vite build
 ```
 **Nu există `npm run lint` și nici `tsc`** — proiectul e JS curat. Dacă o cerință

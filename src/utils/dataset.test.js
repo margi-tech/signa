@@ -2,14 +2,13 @@ import { describe, it, expect } from 'vitest';
 import { VECTOR_SIZE } from './normalize.js';
 import { SEQ_FRAMES, minFor, DYNAMIC_LETTERS } from '../data/lsr-alphabet.js';
 import { levelFromXp, xpForLevel } from '../data/lessons.js';
-
-const isVec = (v) => Array.isArray(v) && v.length === VECTOR_SIZE && typeof v[0] === 'number';
-const isSeq = (v) => Array.isArray(v) && v.length === SEQ_FRAMES && v.every(isVec);
+import { isDatasetSequence as isSeq, isDatasetVector as isVec } from './datasetValidation.js';
 
 describe('dataset validators', () => {
   it('accepts static vector', () => {
     expect(isVec(Array(VECTOR_SIZE).fill(0))).toBe(true);
     expect(isVec(Array(63).fill(0))).toBe(false);
+    expect(isVec([NaN, ...Array(VECTOR_SIZE - 1).fill(0)])).toBe(false);
   });
 
   it('accepts sequence', () => {

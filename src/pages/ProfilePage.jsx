@@ -101,9 +101,9 @@ export default function ProfilePage({ onProfileUpdated }) {
   }, [user]);
 
   const afterAuth = async () => {
+    await pushProgress();
     const merged = await pullAndMergeProgress();
     if (merged) persist(merged);
-    await pushProgress(merged ?? undefined);
     const p = await getOwnProfile();
     if (p) setProfile(p);
   };

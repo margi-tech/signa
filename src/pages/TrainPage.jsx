@@ -1,12 +1,13 @@
 import { useState, useRef, useCallback } from 'react';
-import { SEQ_FRAMES } from '../data/lsr-alphabet';
 import { VECTOR_SIZE } from '../utils/normalize';
 import { PRESETS, trainModel } from '../utils/trainModel';
+import {
+  isDatasetSequence as isSeq,
+  isDatasetVector as isVec,
+} from '../utils/datasetValidation';
+import { MAX_TRAIN_IMPORT_BYTES, readJsonObject } from '../utils/readJsonFile';
 
 const PHASE = { IDLE: 'idle', TRAIN: 'train', DONE: 'done' };
-
-const isVec = (v) => Array.isArray(v) && v.length === VECTOR_SIZE && typeof v[0] === 'number';
-const isSeq = (v) => Array.isArray(v) && v.length === SEQ_FRAMES && v.every(isVec);
 
 /* ── Grafic loss + accuracy ───────────────────────────────────── */
 function TrainChart({ history, accent = '#34d399', testAcc, earlyStopped, epochsRan }) {
@@ -263,7 +264,7 @@ export default function TrainPage({ onBack }) {
     if (!file) return;
     setError('');
     try {
-      const raw = JSON.parse(await file.text());
+      const raw = await readJsonObject(file, MAX_TRAIN_IMPORT_BYTES);
       const all = Object.entries(raw).filter(([k]) => k !== '_meta');
 
       const parse = (check) => {

@@ -16,6 +16,7 @@ Aplicație web PWA care recunoaște semnele **pe dispozitiv** — fără cloud, 
   (300 foto / 50 video), export JSON și antrenare TensorFlow.js
 - **Scrie cuvântul** — dactilare literă cu literă
 - **Profil social** — identitate de jucător, clasament, follow reciproc și prieteni
+- **Cont securizat** — recuperare parolă, ștergere cont și avataruri validate
 - **PWA** — instalabilă, temă cream/friendly, mobile-first
 
 ## Stack
@@ -137,9 +138,10 @@ Profil. Lecția, Colectarea, Train, Diagnostic și Referințe rămân full-scree
 
 Recunoașterea rulează **local pe dispozitiv**. Nu trimitem imagini/video în cloud — doar vectori numerici în dataset-urile exportate (JSON), dacă le partajați în echipă.
 
-⚠ Progresul (`signa-progress-v2` din `localStorage`) se sincronizează cu Supabase
-prin `max()` pe XP/stele. Datele de test scrise local pe o origine autentificată
-ajung în contul real și **nu pot fi coborâte** ulterior.
+XP-ul, streak-ul și lecțiile sunt validate și acordate în Supabase prin
+`record_lesson_completion`; clientul nu poate suprascrie direct scorurile.
+Finalizările offline sunt păstrate într-o coadă locală legată de utilizator.
+Nu injecta totuși date de test în cheile `signa-progress-*` ale unei sesiuni reale.
 
 ## Licență
 

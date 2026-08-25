@@ -89,7 +89,7 @@ create policy "Profil public sau propriu"
 
 create policy "Utilizatorul își creează profilul"
   on public.profiles for insert
-  with check (auth.uid() = id);
+  with check (auth.uid() = id and role = 'user');
 
 create policy "Utilizatorul își editează profilul"
   on public.profiles for update
@@ -109,6 +109,160 @@ create policy "Progresul e privat (update own)"
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
+-- Câmpurile care alimentează clasamentul se schimbă numai din funcția
+-- `record_lesson_completion`, nu din payload-uri construite în browser.
+create or replace function public.protect_progress_scores()
+returns trigger
+language plpgsql
+as $$
+begin
+  if current_setting('signa.server_progress', true) is distinct from 'on' then
+    if tg_op = 'INSERT' then
+      new.xp := 0;
+      new.streak := 0;
+      new.last_practice_date := null;
+      new.lessons := '{}'::jsonb;
+    else
+      new.xp := old.xp;
+      new.streak := old.streak;
+      new.last_practice_date := old.last_practice_date;
+      new.lessons := old.lessons;
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists protect_progress_scores on public.progress;
+create trigger protect_progress_scores
+  before insert or update on public.progress
+  for each row execute function public.protect_progress_scores();
+
+create table if not exists public.lesson_completions (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  lesson_id text not null,
+  practice_date date not null default current_date,
+  stars int not null check (stars between 0 and 3),
+  xp_awarded int not null check (xp_awarded >= 0),
+  completed_at timestamptz not null default now(),
+  primary key (user_id, lesson_id, practice_date)
+);
+
+alter table public.lesson_completions enable row level security;
+
+drop policy if exists "Completările sunt private" on public.lesson_completions;
+create policy "Completările sunt private"
+  on public.lesson_completions for select
+  using (auth.uid() = user_id);
+
+revoke all on public.lesson_completions from anon, authenticated;
+grant select on public.lesson_completions to authenticated;
+
+create or replace function public.record_lesson_completion(
+  p_lesson_id text,
+  p_stars int,
+  p_xp int
+)
+returns public.progress
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user_id uuid := auth.uid();
+  v_max_xp int;
+  v_award int := 0;
+  v_exists boolean;
+  v_old_stars int := 0;
+  v_result public.progress;
+begin
+  if v_user_id is null then
+    raise exception 'Authentication required';
+  end if;
+  if p_stars not between 0 and 3 then
+    raise exception 'Invalid stars';
+  end if;
+
+  v_max_xp := case p_lesson_id
+    when '1.1' then 60 when '1.2' then 60 when '1.3' then 60
+    when '1.4' then 60 when '1.5' then 60 when '2.1' then 70
+    when '3.1' then 110 when '3.2' then 110 when '3.3' then 40
+    when '4.1' then 60 when '4.2' then 60
+    when '5.1' then 60 when '5.2' then 70 when '6.1' then 60
+    when '7.1' then 60 when '8.1' then 60 when '8.2' then 60
+    when 'review' then 90
+    else null
+  end;
+  if v_max_xp is null or p_xp < 0 or p_xp > v_max_xp then
+    raise exception 'Invalid lesson reward';
+  end if;
+
+  perform pg_advisory_xact_lock(
+    hashtextextended(v_user_id::text || ':' || p_lesson_id || ':' || current_date::text, 0)
+  );
+
+  select exists (
+    select 1 from public.lesson_completions
+    where user_id = v_user_id
+      and lesson_id = p_lesson_id
+      and practice_date = current_date
+  ) into v_exists;
+
+  if not v_exists then
+    v_award := p_xp;
+    insert into public.lesson_completions (
+      user_id, lesson_id, practice_date, stars, xp_awarded
+    ) values (
+      v_user_id, p_lesson_id, current_date, p_stars, v_award
+    );
+  else
+    update public.lesson_completions
+    set stars = greatest(stars, p_stars), completed_at = now()
+    where user_id = v_user_id
+      and lesson_id = p_lesson_id
+      and practice_date = current_date;
+  end if;
+
+  perform set_config('signa.server_progress', 'on', true);
+  insert into public.progress (user_id)
+  values (v_user_id)
+  on conflict (user_id) do nothing;
+
+  select coalesce((lessons -> p_lesson_id ->> 'stars')::int, 0)
+  into v_old_stars
+  from public.progress
+  where user_id = v_user_id;
+
+  update public.progress
+  set
+    xp = xp + v_award,
+    streak = case
+      when last_practice_date = current_date then streak
+      when last_practice_date = current_date - 1 then streak + 1
+      else 1
+    end,
+    last_practice_date = current_date,
+    lessons = jsonb_set(
+      lessons,
+      array[p_lesson_id],
+      jsonb_build_object(
+        'stars', greatest(v_old_stars, p_stars),
+        'completedAt', now(),
+        'lastAwardDate', current_date
+      ),
+      true
+    ),
+    updated_at = now()
+  where user_id = v_user_id
+  returning * into v_result;
+
+  return v_result;
+end;
+$$;
+
+revoke all on function public.record_lesson_completion(text, int, int) from public;
+grant execute on function public.record_lesson_completion(text, int, int) to authenticated;
+
 -- ─── Protecție role / id din client ─────────────────────────────────────────
 -- Table Editor (rol postgres) poate schimba role. Clientul authenticated nu.
 create or replace function public.protect_profile_role()
@@ -117,8 +271,20 @@ language plpgsql
 as $$
 begin
   if auth.role() = 'authenticated' then
-    new.role := old.role;
-    new.id := old.id;
+    if tg_op = 'INSERT' then
+      new.role := 'user';
+      new.id := auth.uid();
+    else
+      new.role := old.role;
+      new.id := old.id;
+    end if;
+    if new.avatar_url is not null and new.avatar_url !~ (
+      '^https://[a-z0-9-]+\.supabase\.co/storage/v1/object/public/avatars/'
+      || new.id::text
+      || '/avatar\.(jpg|png|webp)(\?v=[0-9]+)?$'
+    ) then
+      raise exception 'Invalid avatar URL';
+    end if;
   end if;
   return new;
 end;
@@ -126,7 +292,7 @@ $$;
 
 drop trigger if exists protect_profile_role on public.profiles;
 create trigger protect_profile_role
-  before update on public.profiles
+  before insert or update on public.profiles
   for each row execute function public.protect_profile_role();
 
 -- ─── Username ocupat (trece peste RLS — nu expune altceva) ──────────────────
@@ -147,6 +313,39 @@ $$;
 
 revoke all on function public.username_taken(text) from public;
 grant execute on function public.username_taken(text) to anon, authenticated;
+
+-- Profilul complet (nume real + rol) este disponibil numai proprietarului.
+-- Tabela `profiles` nu mai este citibilă direct din client.
+create or replace function public.get_own_profile()
+returns setof public.profiles
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select *
+  from public.profiles
+  where id = auth.uid();
+$$;
+
+revoke all on function public.get_own_profile() from public;
+grant execute on function public.get_own_profile() to authenticated;
+
+create or replace function public.profile_is_public(p_user_id uuid)
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists (
+    select 1 from public.profiles
+    where id = p_user_id and visibility = 'public'
+  );
+$$;
+
+revoke all on function public.profile_is_public(uuid) from public;
+grant execute on function public.profile_is_public(uuid) to authenticated;
 
 -- ─── Trigger signup: profil + progress gol ──────────────────────────────────
 create or replace function public.handle_new_user()
@@ -215,7 +414,7 @@ create trigger on_auth_user_created
 -- profile public. security_invoker ar aplica RLS pe progress ⇒ anon/alții
 -- n-ar vedea XP-ul (progress e privat). Coloanele din view sunt allowlist-ul.
 drop view if exists public.leaderboard;
-create view public.leaderboard as
+create view public.leaderboard with (security_invoker = false) as
   select
     p.id,
     coalesce(
@@ -236,14 +435,21 @@ comment on view public.leaderboard is
 
 grant usage on schema public to anon, authenticated;
 grant select on public.leaderboard to anon, authenticated;
-grant select, insert, update on public.profiles to authenticated;
-grant select, insert, update on public.progress to authenticated;
-grant select on public.profiles to anon;
+grant select, insert on public.progress to authenticated;
+revoke update on public.progress from authenticated;
+grant update (user_id, letter_mastery, updated_at)
+  on public.progress to authenticated;
 
--- Anon citește profilele publice (RLS) ca să poată randa clasamentul;
--- progress rămâne inaccesibil direct (doar prin view-ul definer).
+-- Profilurile publice se citesc numai prin view-urile cu allowlist de coloane.
+-- Profilul complet propriu se citește prin `get_own_profile()`.
+revoke all on public.profiles from anon, authenticated;
+grant select (id) on public.profiles to authenticated;
+grant update (
+  first_name, last_name, username, display_name, avatar_url, visibility
+) on public.profiles to authenticated;
+
+-- Anon vede doar view-urile publice; progress rămâne inaccesibil direct.
 revoke all on public.progress from anon;
-revoke delete on public.profiles from anon, authenticated;
 revoke delete on public.progress from anon, authenticated;
 
 -- ─── social: follows / prieteni ─────────────────────────────────────────────
@@ -265,12 +471,25 @@ create index if not exists idx_follows_following on public.follows(following_id)
 alter table public.follows enable row level security;
 
 drop policy if exists "Toți pot vedea urmăririle" on public.follows;
-create policy "Toți pot vedea urmăririle"
-  on public.follows for select using (true);
+drop policy if exists "Relații proprii sau între profile publice" on public.follows;
+create policy "Relații proprii sau între profile publice"
+  on public.follows for select
+  using (
+    auth.uid() = follower_id
+    or auth.uid() = following_id
+    or (
+      public.profile_is_public(follower_id)
+      and public.profile_is_public(following_id)
+    )
+  );
 
 drop policy if exists "Urmărești doar în numele tău" on public.follows;
 create policy "Urmărești doar în numele tău"
-  on public.follows for insert with check (auth.uid() = follower_id);
+  on public.follows for insert
+  with check (
+    auth.uid() = follower_id
+    and public.profile_is_public(following_id)
+  );
 
 drop policy if exists "Anulezi doar propria urmărire" on public.follows;
 create policy "Anulezi doar propria urmărire"
@@ -280,7 +499,7 @@ create policy "Anulezi doar propria urmărire"
 -- Filtrează pe `visibility`, la fel ca `leaderboard`: un profil privat nu apare
 -- în căutare. Fără email, fără nume real, fără date de progres în afară de streak.
 drop view if exists public.user_directory;
-create view public.user_directory as
+create view public.user_directory with (security_invoker = false) as
   select
     p.id,
     coalesce(
@@ -302,7 +521,7 @@ comment on view public.user_directory is
 -- Prietenie = urmărire reciprocă. Perechea e normalizată (least/greatest),
 -- deci fiecare relație apare o singură dată, nu de două ori.
 drop view if exists public.friendships;
-create view public.friendships as
+create view public.friendships with (security_invoker = false) as
   select
     least(f1.follower_id, f1.following_id)    as user_id_1,
     greatest(f1.follower_id, f1.following_id) as user_id_2,
@@ -311,6 +530,11 @@ create view public.friendships as
   join public.follows f2
     on f1.follower_id = f2.following_id
    and f1.following_id = f2.follower_id
+  join public.profiles p1 on p1.id = f1.follower_id
+  join public.profiles p2 on p2.id = f1.following_id
+  where
+    auth.uid() in (f1.follower_id, f1.following_id)
+    or (p1.visibility = 'public' and p2.visibility = 'public')
   group by 1, 2;
 
 comment on view public.friendships is
@@ -323,3 +547,29 @@ revoke update on public.follows from anon, authenticated;
 -- bigserial își ia id-ul din secvență; fără USAGE, insert-ul pică cu
 -- „permission denied for sequence follows_id_seq" deși tabela e permisă.
 grant usage, select on sequence public.follows_id_seq to authenticated;
+
+-- Ștergere GDPR: funcția poate șterge exclusiv utilizatorul sesiunii curente.
+-- Cascade-urile curăță profile/progress/follows; avatarul se șterge explicit.
+create or replace function public.delete_own_account()
+returns void
+language plpgsql
+security definer
+set search_path = public, auth, storage
+as $$
+declare
+  v_user_id uuid := auth.uid();
+begin
+  if v_user_id is null then
+    raise exception 'Authentication required';
+  end if;
+
+  delete from storage.objects
+  where bucket_id = 'avatars'
+    and (storage.foldername(name))[1] = v_user_id::text;
+
+  delete from auth.users where id = v_user_id;
+end;
+$$;
+
+revoke all on function public.delete_own_account() from public;
+grant execute on function public.delete_own_account() to authenticated;

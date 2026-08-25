@@ -8,7 +8,7 @@ description: Verifică o modificare în Signa — ce comenzi există de fapt, cu
 ## Comenzile care există de fapt
 
 ```bash
-npm test          # vitest run — 34 teste
+npm test          # vitest run — 47 teste
 npx vite build    # verificarea de compilare
 npm run dev       # server de dev
 ```
@@ -34,16 +34,10 @@ Apoi `preview_start` cu `{url: "http://localhost:5199/"}`.
 ### Aplicația cere login
 
 `App.jsx` randează `AuthGate` când Supabase e configurat și nu ai sesiune, apoi
-`Onboarding` dacă `onboardingDone` e fals. Ca să ajungi la un ecran fără să te
-autentifici, adaugă **temporar** un bypass și **scoate-l după**:
-
-```jsx
-const preview = window.location.search.includes('previewShell');
-if (isSupabaseConfigured && !user && !preview) return <AuthGate … />;
-if (!onboardingDone && !preview) return <Onboarding … />;
-```
-
-Verifică cu `grep -rn "preview" src/App.jsx` că l-ai scos înainte de commit.
+`Onboarding` dacă `onboardingDone` e fals. **Nu adăuga parametri URL care sar
+peste autentificare** — un astfel de bypass ajunge ușor în build-ul de producție.
+Pentru verificări vizuale, randează componenta cu props stub într-un harness
+temporar izolat și scoate harness-ul înainte de commit.
 
 ### Capcană: panoul raportează tab-ul ca ascuns
 
@@ -85,11 +79,15 @@ robust decât valoarea de retur a `javascript_tool`.
 **Nu scrie niciodată în `localStorage` cheia `signa-progress-v2` pe o origine cu
 sesiune Supabase activă.**
 
-`ProgressProvider` ascultă `onAuthStateChange` și, la `SIGNED_IN`/`INITIAL_SESSION`,
-face `pullAndMergeProgress()` → `pushProgress()`. Merge-ul e `max(xp)`, `max(streak)`,
-`max(stars)` per lecție și uniune pe `letterMastery` cu localul câștigător. Deci
-orice date de test injectate local **se urcă în contul real și nu se pot coborî**
-— o valoare mai mare rămâne câștigătoare la fiecare sincronizare ulterioară.
+`ProgressProvider` ascultă `onAuthStateChange`. XP, streak-ul și lecțiile sunt
+autoritative pe server și se modifică numai prin RPC-ul
+`record_lesson_completion`; clientul trimite direct doar `letter_mastery`.
+Finalizările offline stau în `signa-progress-pending-v1`, fiecare legată de
+`userId`, apoi sunt retrimise la sincronizare.
+
+Datele locale fabricate nu mai pot umfla XP-ul live după aplicarea schemei noi,
+dar pot strica afișarea locală și coada de sincronizare. Nu le injecta într-o
+sesiune reală și nu testa împotriva unui proiect Supabase rămas pe schema veche.
 
 Asta s-a întâmplat deja o dată: un seed de test cu 420 XP a înlocuit 60 XP reali
 și a adăugat ~30 de intrări `letterMastery` fabricate.
@@ -105,10 +103,9 @@ Alternativa sigură și preferată: randează componenta cu **props stub**, prin
 bypass temporar în `App.jsx`, fără să atingi `localStorage`. Majoritatea
 componentelor (ProfileDashboard, LessonsPage) primesc tot ce le trebuie prin props.
 
-Dacă totuși ai scris local pe o origine autentificată, curăță imediat:
-`localStorage.removeItem('signa-progress-v2')` — și ține minte că trebuie curățat
-pe **fiecare** origine (localhost și Vercel au storage separat), altfel una stale
-re-umflă cloud-ul la următoarea sincronizare.
+Dacă totuși ai scris local pe o origine autentificată, curăță imediat ambele:
+`signa-progress-v2` și `signa-progress-pending-v1`. Fiecare origine (localhost,
+preview și producție) are storage separat.
 
 ## Siguranța datasetului
 
@@ -133,12 +130,23 @@ Pentru schimbări la prieteni/Supabase:
 Dacă API-ul social întoarce 404/permission errors pe un proiect existent,
 re-rulează tot `supabase/schema.sql` înainte să modifici clientul.
 
+## Smoke test securitate Supabase
+
+După o migrare de schemă:
+
+1. un utilizator obișnuit nu poate seta `role = 'admin'`;
+2. un update direct de XP/streak nu schimbă scorul;
+3. `record_lesson_completion` acordă XP o singură dată per lecție/zi;
+4. `profiles` complet este disponibil numai prin `get_own_profile()`;
+5. avatarurile SVG sau peste 2 MB sunt respinse;
+6. ștergerea contului elimină sesiunea și datele locale de progres.
+
 ## Lista de verificat înainte de „gata"
 
 - [ ] `npm test` trece
 - [ ] `npx vite build` fără erori
 - [ ] zero erori în consola browserului
-- [ ] bypass-urile temporare de preview scoase din `App.jsx`
+- [ ] niciun bypass de autentificare bazat pe URL în `App.jsx`
 - [ ] fișierele temporare de preview șterse
 - [ ] `git status` arată doar fișierele pe care chiar voiai să le atingi
 - [ ] ce n-ai putut verifica (timing, mobil real, cameră) — spus explicit

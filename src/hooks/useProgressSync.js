@@ -7,6 +7,7 @@
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 
 const STORAGE_KEY = 'signa-progress-v2';
+const PENDING_KEY = 'signa-progress-pending-v1';
 
 function loadLocal() {
   try {
@@ -37,29 +38,73 @@ function mergeProgress(local, remote) {
     };
   }
 
-  const lessons = { ...remote.lessons, ...local.lessons };
-  for (const id of Object.keys(lessons)) {
-    const a = local.lessons?.[id];
-    const b = remote.lessons?.[id];
-    if (a && b) {
-      lessons[id] = {
-        stars: Math.max(a.stars ?? 0, b.stars ?? 0),
-        completedAt: (a.completedAt > b.completedAt ? a.completedAt : b.completedAt),
-      };
-    }
-  }
-
   return {
     ...local,
-    xp: Math.max(local.xp ?? 0, remote.xp ?? 0),
-    streak: Math.max(local.streak ?? 0, remote.streak ?? 0),
-    lastPracticeDate: [local.lastPracticeDate, remote.last_practice_date]
-      .filter(Boolean)
-      .sort()
-      .at(-1) ?? null,
-    lessons,
+    // Valorile care alimentează clasamentul sunt autoritative pe server.
+    xp: remote.xp ?? 0,
+    streak: remote.streak ?? 0,
+    lastPracticeDate: remote.last_practice_date ?? null,
+    lessons: remote.lessons ?? {},
     letterMastery: { ...(remote.letter_mastery ?? {}), ...(local.letterMastery ?? {}) },
   };
+}
+
+function loadPending() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(PENDING_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function savePending(events) {
+  try {
+    localStorage.setItem(PENDING_KEY, JSON.stringify(events));
+  } catch { /* evenimentul va fi retrimis doar dacă încape în storage */ }
+}
+
+export async function queueLessonCompletion(lessonId, stars, xp) {
+  if (!supabase) return;
+  const { data: { session } } = await supabase.auth.getSession();
+  const userId = session?.user?.id;
+  if (!userId) return;
+
+  const date = new Date().toISOString().slice(0, 10);
+  const key = `${date}:${lessonId}`;
+  const events = loadPending();
+  const existing = events.find(
+    (event) => event.key === key && event.userId === userId,
+  );
+  if (existing) {
+    existing.stars = Math.max(existing.stars ?? 0, stars ?? 0);
+    existing.xp = Math.max(existing.xp ?? 0, xp ?? 0);
+  } else {
+    events.push({ key, userId, lessonId: String(lessonId), stars, xp });
+  }
+  savePending(events);
+}
+
+export function clearPendingLessonCompletions() {
+  localStorage.removeItem(PENDING_KEY);
+}
+
+async function flushLessonCompletions() {
+  if (!supabase) return;
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const pending = loadPending().filter((event) => event.userId === user.id);
+  const failed = [];
+  for (const event of pending) {
+    const { error } = await supabase.rpc('record_lesson_completion', {
+      p_lesson_id: event.lessonId,
+      p_stars: event.stars,
+      p_xp: event.xp,
+    });
+    if (error) failed.push(event);
+  }
+  savePending(failed);
 }
 
 /** Trage de pe server și unește cu local. Returnează progresul merge-uit. */
@@ -88,16 +133,13 @@ export async function pushProgress(progress = loadLocal()) {
 
   const payload = {
     user_id: user.id,
-    xp: progress.xp ?? 0,
-    streak: progress.streak ?? 0,
-    last_practice_date: progress.lastPracticeDate ?? null,
-    lessons: progress.lessons ?? {},
     letter_mastery: progress.letterMastery ?? {},
     updated_at: new Date().toISOString(),
   };
 
   const { error } = await supabase.from('progress').upsert(payload);
   if (error) throw error;
+  await flushLessonCompletions();
 }
 
 export async function pushProgressBestEffort(progress) {

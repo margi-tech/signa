@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  deleteOwnAccount,
   isUsernameTaken,
   supabase,
   updateOwnProfile,
@@ -9,6 +10,7 @@ import {
   validateUsername,
 } from '../../utils/username';
 import { useCountUp } from '../../hooks/useCountUp';
+import { clearPendingLessonCompletions } from '../../hooks/useProgressSync';
 import { LESSONS } from '../../data/lessons';
 import { FlameIcon, HandIcon } from '../icons';
 import FriendsSection from '../FriendsSection';
@@ -126,6 +128,8 @@ export default function ProfileDashboard({
 }) {
   const [lastSynced, setLastSynced] = useState(null);
   const [syncing, setSyncing] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState('');
 
   const [barOn, setBarOn] = useState(false);
   useEffect(() => {
@@ -204,8 +208,17 @@ export default function ProfileDashboard({
   };
 
   const signOut = () => run(async () => {
+    clearPendingLessonCompletions();
     await supabase.auth.signOut();
     onMessage({ tone: 'info', text: 'Te-ai deconectat.' });
+    onSignOut();
+  });
+
+  const deleteAccount = () => run(async () => {
+    if (deleteConfirm.trim() !== username) {
+      throw new Error('Scrie username-ul exact pentru a confirma ștergerea.');
+    }
+    await deleteOwnAccount();
     onSignOut();
   });
 
@@ -336,7 +349,7 @@ export default function ProfileDashboard({
               <span className="sr-only">Schimbă poza de profil</span>
               <input
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/webp"
                 className="sr-only"
                 disabled={busy || !onAvatarChange}
                 onChange={pickAvatar}
@@ -689,6 +702,56 @@ export default function ProfileDashboard({
                 <span className="md:hidden">Ieși</span>
                 <span className="hidden md:inline">Deconectare</span>
               </RippleButton>
+            </div>
+
+            <div className="mt-4 border-t border-red-600/[.12] pt-4">
+              {!deleteOpen ? (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => setDeleteOpen(true)}
+                  className="text-[12.5px] font-bold text-red-600/75 hover:text-red-600 disabled:opacity-50"
+                >
+                  Șterge definitiv contul
+                </button>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-[12.5px] text-ink-600 leading-relaxed">
+                    Se șterg profilul, progresul, relațiile sociale și avatarul din cont.
+                    Datasetul local nu este șters. Scrie <strong>{username}</strong> pentru confirmare.
+                  </p>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <input
+                      value={deleteConfirm}
+                      onChange={(e) => setDeleteConfirm(e.target.value)}
+                      autoComplete="off"
+                      placeholder={username}
+                      className="min-w-0 flex-1 rounded-xl border border-red-600/20 bg-white px-3 py-2
+                        text-[13px] font-semibold text-ink-900 outline-none focus:border-red-600/50"
+                    />
+                    <RippleButton
+                      type="button"
+                      disabled={busy || deleteConfirm.trim() !== username}
+                      onClick={deleteAccount}
+                      className="rounded-xl bg-red-600 px-4 py-2 text-[12.5px] font-bold text-white
+                        disabled:opacity-40"
+                    >
+                      Șterge contul
+                    </RippleButton>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => {
+                        setDeleteOpen(false);
+                        setDeleteConfirm('');
+                      }}
+                      className="px-3 py-2 text-[12.5px] font-bold text-ink-500"
+                    >
+                      Renunță
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

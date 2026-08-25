@@ -31,13 +31,21 @@ export async function getOwnProfile() {
   if (!supabase) return null;
   const user = await getSessionUser();
   if (!user) return null;
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('id, first_name, last_name, username, display_name, avatar_url, visibility, role, created_at')
-    .eq('id', user.id)
-    .maybeSingle();
-  if (error) throw error;
-  return data;
+  const { data, error } = await supabase.rpc('get_own_profile');
+  if (!error) return data?.[0] ?? null;
+
+  // Permite deploy-ul clientului înaintea migrării SQL; după ce funcția există,
+  // profilul complet nu mai este citibil direct.
+  if (error.code === 'PGRST202' || error.code === '42883') {
+    const fallback = await supabase
+      .from('profiles')
+      .select('id, first_name, last_name, username, display_name, avatar_url, visibility, role, created_at')
+      .eq('id', user.id)
+      .maybeSingle();
+    if (fallback.error) throw fallback.error;
+    return fallback.data;
+  }
+  throw error;
 }
 
 /** Nu trimite `role` — trigger-ul SQL îl protejează oricum. */
@@ -65,6 +73,27 @@ export async function updateOwnProfile({ firstName, lastName, username, visibili
 const AVATAR_BUCKET = 'avatars';
 /** Poze mici — un profil nu are nevoie de mai mult, și limitează abuzul de storage. */
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
+const AVATAR_TYPES = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+};
+
+export async function hasValidImageSignature(file) {
+  const bytes = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+  if (file.type === 'image/jpeg') {
+    return bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  }
+  if (file.type === 'image/png') {
+    return [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]
+      .every((value, index) => bytes[index] === value);
+  }
+  if (file.type === 'image/webp') {
+    return String.fromCharCode(...bytes.slice(0, 4)) === 'RIFF'
+      && String.fromCharCode(...bytes.slice(8, 12)) === 'WEBP';
+  }
+  return false;
+}
 
 /**
  * Încarcă poza de profil în Storage și salvează URL-ul public pe `profiles.avatar_url`.
@@ -73,18 +102,25 @@ const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
 export async function uploadAvatar(file) {
   if (!supabase) throw new Error('Supabase nu e configurat.');
   if (!file) throw new Error('Alege o imagine.');
-  if (!file.type?.startsWith('image/')) throw new Error('Fișierul trebuie să fie o imagine.');
+  const ext = AVATAR_TYPES[file.type];
+  if (!ext) throw new Error('Folosește o imagine JPEG, PNG sau WebP.');
   if (file.size > MAX_AVATAR_BYTES) throw new Error('Imaginea trebuie să fie sub 2 MB.');
+  if (!(await hasValidImageSignature(file))) {
+    throw new Error('Conținutul fișierului nu corespunde unei imagini valide.');
+  }
 
   const user = await getSessionUser();
   if (!user) throw new Error('Nu ești conectat.');
 
-  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().slice(0, 4);
   const path = `${user.id}/avatar.${ext}`;
 
   const { error: uploadError } = await supabase.storage
     .from(AVATAR_BUCKET)
-    .upload(path, file, { upsert: true, cacheControl: '3600' });
+    .upload(path, file, {
+      upsert: true,
+      cacheControl: '3600',
+      contentType: file.type,
+    });
   if (uploadError) throw uploadError;
 
   const { data: pub } = supabase.storage.from(AVATAR_BUCKET).getPublicUrl(path);
@@ -108,12 +144,11 @@ export async function isUsernameTaken(username, exceptUserId = null) {
   if (error) throw error;
   if (!data) return false;
   if (!exceptUserId) return Boolean(data);
-  const { data: own } = await supabase
-    .from('profiles')
-    .select('username')
-    .eq('id', exceptUserId)
-    .maybeSingle();
-  if (own?.username && own.username.toLowerCase() === String(username).toLowerCase()) {
+  const own = await getOwnProfile();
+  if (
+    own?.id === exceptUserId
+    && own.username?.toLowerCase() === String(username).toLowerCase()
+  ) {
     return false;
   }
   return Boolean(data);
@@ -126,6 +161,19 @@ export async function requestPasswordReset(email) {
     redirectTo: window.location.origin,
   });
   if (error) throw error;
+}
+
+export async function deleteOwnAccount() {
+  if (!supabase) throw new Error('Supabase nu e configurat.');
+  const user = await getSessionUser();
+  if (!user) throw new Error('Nu ești conectat.');
+
+  const { error } = await supabase.rpc('delete_own_account');
+  if (error) throw error;
+  localStorage.removeItem('signa-progress-v2');
+  localStorage.removeItem('signa-progress-v1');
+  localStorage.removeItem('signa-progress-pending-v1');
+  await supabase.auth.signOut({ scope: 'local' });
 }
 
 /* ── Social: follow / prieteni ─────────────────────────────────────

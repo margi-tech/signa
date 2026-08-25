@@ -7,7 +7,6 @@ import CameraPage from '../pages/CameraPage.jsx';
 import LeaderboardPage from '../pages/LeaderboardPage.jsx';
 import { buildChaptersWithLessons } from '../data/lessons.js';
 import { useProgress } from '../hooks/useProgress.js';
-import { useProfileSummary } from '../hooks/useProfileSummary.js';
 
 const EASE = 'cubic-bezier(.22,1,.36,1)';
 
@@ -35,13 +34,15 @@ function findActiveChapterId(chapters, starsFor) {
 export default function AppShell({
   page, onNavigate,
   onOpenLesson, onCollect, onTrain, onDiagnostic, onSpell, onReview, onReferinte,
+  profileSummary,
+  canUseInternalTools = false,
 }) {
   const {
-    xp, streak, level, xpIntoLevel, xpNeeded, totalLessonsCount, starsFor,
+    streak, level, xpIntoLevel, xpNeeded, totalLessonsCount, starsFor,
   } = useProgress();
   const {
     firstName, initials, avatarUrl, rank, refresh: refreshProfile,
-  } = useProfileSummary(xp);
+  } = profileSummary;
 
   const chapters = buildChaptersWithLessons();
   const [selectedChapterId, setSelectedChapterId] = useState(
@@ -132,6 +133,7 @@ export default function AppShell({
           onTrain={onTrain}
           onDiagnostic={onDiagnostic}
           onReferinte={onReferinte}
+          isAdmin={canUseInternalTools}
         />
 
         <div className="relative min-w-0 flex-1 min-h-0 overflow-hidden">
