@@ -33,8 +33,9 @@ create table if not exists public.follows (
   constraint no_self_follow check (follower_id <> following_id)
 );
 ```
-RLS: oricine citește urmăririle; inserezi/ștergi doar cu `auth.uid() = follower_id`.
-`update` e revocat — o urmărire se creează sau se șterge, nu se modifică.
+RLS: citesc participanții sau utilizatorii implicați în relații între două
+profiluri publice. Inserezi/ștergi doar cu `auth.uid() = follower_id`, iar o
+țintă nouă trebuie să fie publică. `update` este revocat.
 
 ### `friendships` view
 Computed view care calculează prietenii (urmăriri reciproce):
@@ -155,11 +156,18 @@ Nu există `FriendsPage`, rută `friends`, handler `onFriends` sau element
 
 ### `follows` tabel
 ```sql
--- Toți pot vedea urmăriri publice
-SELECT: using (true)
+-- Participant sau relație între două profiluri publice
+SELECT: using (
+  auth.uid() = follower_id
+  or auth.uid() = following_id
+  or (profile_is_public(follower_id) and profile_is_public(following_id))
+)
 
--- Utilizator poate urma/urmări
-INSERT: with check (auth.uid() = follower_id)
+-- Utilizatorul poate urmări numai un profil public
+INSERT: with check (
+  auth.uid() = follower_id
+  and profile_is_public(following_id)
+)
 
 -- Utilizator poate anula urmărire
 DELETE: using (auth.uid() = follower_id)

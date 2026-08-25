@@ -131,8 +131,11 @@ aplică oricărei animații care suprascrie o stare vizuală purtătoare de info
 2. Fără librării de animație (framer-motion etc.). Doar CSS + state React.
 3. Iconițele sunt SVG inline din `src/components/icons.jsx`. Nu duplica seturi
    locale de iconițe în pagini — au fost deja deduplicate o dată.
-4. Datele de profil/rang vin din `useProfileSummary()`, chemat o singură dată în
-   shell și pasat mai departe. Nu re-interoga Supabase din fiecare pagină.
+4. Datele de profil/rang/rol vin din `useProfileSummary()`, chemat o singură dată
+   în shell și pasat mai departe. Nu re-interoga Supabase din fiecare pagină.
+5. Colectare, Train și Diagnostic se afișează în sidebar numai pentru admin.
+   Ascunderea vizuală nu este suficientă: păstrează și guard-ul de rută din
+   `App.jsx`.
 
 ## Înainte să spui că e gata
 

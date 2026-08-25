@@ -64,7 +64,15 @@ function Collapsible({ open, maxHeight, children }) {
 /**
  * Panou autentificare: login, signup, reset parolă.
  */
-export default function AuthPanel({ mode, onModeChange, busy, onBusy, onMessage, afterAuth }) {
+export default function AuthPanel({
+  mode,
+  onModeChange,
+  busy,
+  onBusy,
+  onMessage,
+  afterAuth,
+  onRecoveryComplete,
+}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -165,6 +173,60 @@ export default function AuthPanel({ mode, onModeChange, busy, onBusy, onMessage,
         >
           ← Înapoi
         </button>
+      </div>
+    );
+  }
+
+  if (mode === 'reset') {
+    return (
+      <div className="space-y-5">
+        <div>
+          <h2 className="text-[29px] font-black text-ink-900 tracking-[-.02em] leading-tight">
+            Alege o parolă nouă
+          </h2>
+          <p className="text-ink-500 text-[14.5px] mt-1.5 leading-relaxed">
+            Linkul de recuperare a fost verificat. Salvează parola nouă pentru contul tău.
+          </p>
+        </div>
+
+        <PasswordInput
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="••••••••"
+          autoComplete="new-password"
+          error={fieldErrors.password}
+        />
+        <PasswordStrength password={password} />
+        <PasswordInput
+          label="Confirmă parola"
+          value={passwordConfirm}
+          onChange={(e) => setPasswordConfirm(e.target.value)}
+          placeholder="••••••••"
+          autoComplete="new-password"
+          error={fieldErrors.passwordConfirm}
+        />
+
+        <PrimaryButton
+          disabled={busy}
+          busy={busy}
+          onClick={() => run(async () => {
+            const passwordError = validatePassword(password);
+            const confirmError = validatePasswordConfirm(password, passwordConfirm);
+            if (passwordError || confirmError) {
+              setFieldErrors({
+                password: passwordError,
+                passwordConfirm: confirmError,
+              });
+              throw new Error('Verifică parola nouă.');
+            }
+            const { error } = await supabase.auth.updateUser({ password });
+            if (error) throw error;
+            onMessage({ tone: 'success', text: 'Parola a fost schimbată.' });
+            onRecoveryComplete?.();
+          })}
+        >
+          {busy ? 'Se salvează…' : 'Salvează parola nouă'}
+        </PrimaryButton>
       </div>
     );
   }

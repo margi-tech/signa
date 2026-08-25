@@ -62,6 +62,12 @@ export function useClassifier() {
       const res = await fetch(`${labelsPath}?t=${Date.now()}`);
       if (!res.ok) return null;
       const meta = await res.json();
+      if (meta.vectorSize !== VECTOR_SIZE) {
+        console.error(
+          `Model incompatibil: vectorSize=${meta.vectorSize}, așteptat ${VECTOR_SIZE}.`,
+        );
+        return null;
+      }
       const labels = cleanLabels(meta.labels ?? []);
       if (!labels.length) return null;
 

@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { mergeProgress } from '../hooks/useProgressSync.js';
 
 describe('mergeProgress', () => {
-  it('takes max xp and stars', () => {
+  it('folosește serverul ca sursă pentru XP, streak și lecții', () => {
     const local = {
       xp: 100,
       streak: 2,
@@ -20,7 +20,7 @@ describe('mergeProgress', () => {
       letter_mastery: { B: { correct: 2, attempts: 2 } },
     };
     const m = mergeProgress(local, remote);
-    expect(m.xp).toBe(100);
+    expect(m.xp).toBe(80);
     expect(m.streak).toBe(5);
     expect(m.lessons[1].stars).toBe(3);
     expect(m.lessons[2].stars).toBe(1);
@@ -44,7 +44,7 @@ describe('mergeProgress', () => {
     expect(m.onboardingDone).toBe(true);
   });
 
-  it('două browsere: ține XP-ul mai mare și unește lecțiile', () => {
+  it('două browsere: progresul serverului înlocuiește scorul local', () => {
     const browserA = {
       xp: 540,
       streak: 0,
@@ -62,7 +62,7 @@ describe('mergeProgress', () => {
     const m = mergeProgress(browserA, browserBRemote);
     expect(m.xp).toBe(580);
     expect(m.streak).toBe(1);
-    expect(m.lessons[1].stars).toBe(3);
+    expect(m.lessons[1].stars).toBe(2);
     expect(m.lessons[3].stars).toBe(1);
     expect(m.letterMastery.A).toBeTruthy();
     expect(m.letterMastery.B).toBeTruthy();

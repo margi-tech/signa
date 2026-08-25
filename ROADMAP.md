@@ -1,6 +1,6 @@
 # Signa — Foaie de parcurs către o aplicație funcțională
 
-Document de lucru, actualizat 24 aug 2026.
+Document de lucru, actualizat 25 aug 2026.
 Organizat pe priorități, nu pe faze cronologice — unele lucruri se pot face în paralel.
 
 ---
@@ -72,6 +72,11 @@ Organizat pe priorități, nu pe faze cronologice — unele lucruri se pot face 
 - [x] Proiect Supabase live (`signa`, EU) + sync automat după lecție și la login
 - [x] Profil social: follow reciproc, prieteni, cereri derivate și căutare publică
 - [x] Prietenii integrați în Profil; fără pagină sau intrare separată în sidebar
+- [x] Recuperare parolă prin link și ștergere proprie de cont
+- [x] Progres server-authoritative: XP/streak/lecții prin RPC + coadă offline per user
+- [x] RLS restrâns pentru profile/follows și rol admin protejat la insert/update
+- [x] Avataruri JPEG/PNG/WebP validate în client și Storage
+- [x] Colectare/Train/Diagnostic limitate la administratori
 - [ ] Deploy public Vercel — blocat: check-ul Vercel pică cu „Account is blocked"
       pe contul ownerului echipei (billing/suspendare), nu din cauza codului
 
@@ -82,6 +87,9 @@ Organizat pe priorități, nu pe faze cronologice — unele lucruri se pot face 
 - [x] Erori cameră / CDN MediaPipe cu mesaje acționabile + reload
 - [x] Pagină Diagnostic (FPS, modele, UA)
 - [x] Teste automate: `normalize`, validatori dataset, levels (`npm test`)
+- [x] Import JSON limitat ca dimensiune și validat strict; compatibilitate
+      `vectorSize` verificată la încărcarea modelului
+- [x] Headere de securitate Vercel: CSP, HSTS, anti-framing și Permissions-Policy
 - [x] Skill-uri de lucru în `.claude/skills/` (UI, colectare, social, verificare, git)
 - [ ] Lint/typecheck — proiectul n-are nici `eslint`, nici `tsc` configurate
 - [ ] Profilare pe telefon real (necesită dispozitiv)

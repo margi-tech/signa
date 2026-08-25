@@ -11,6 +11,7 @@ import Onboarding from './components/Onboarding.jsx';
 import AuthGate from './components/auth/AuthGate.jsx';
 import { LESSONS } from './data/lessons.js';
 import { useProgress } from './hooks/useProgress.js';
+import { useProfileSummary } from './hooks/useProfileSummary.js';
 import { isSupabaseConfigured, supabase } from './lib/supabase.js';
 
 function pageFromHash() {
@@ -21,7 +22,10 @@ export default function App() {
   const [page, setPage] = useState(() => pageFromHash() || 'home');
   const [lessonId, setLessonId] = useState(null);
   const [reviewLesson, setReviewLesson] = useState(null);
-  const { onboardingDone, finishOnboarding } = useProgress();
+  const [user, setUser] = useState(undefined);
+  const [passwordRecovery, setPasswordRecovery] = useState(false);
+  const { onboardingDone, finishOnboarding, xp } = useProgress();
+  const profileSummary = useProfileSummary(xp, user?.id);
 
   useEffect(() => {
     const onHash = () => {
@@ -43,16 +47,16 @@ export default function App() {
     setPage('home');
   };
 
-  const [user, setUser] = useState(undefined);
-
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) {
       setUser(null);
       return undefined;
     }
     supabase.auth.getUser().then(({ data }) => setUser(data.user ?? null));
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
+      if (event === 'PASSWORD_RECOVERY') setPasswordRecovery(true);
+      if (event === 'SIGNED_OUT') setPasswordRecovery(false);
     });
     return () => sub.subscription.unsubscribe();
   }, []);
@@ -70,14 +74,48 @@ export default function App() {
     );
   }
 
-  const preview = window.location.search.includes('previewShell');
+  if (passwordRecovery) {
+    return (
+      <AuthGate
+        initialMode="reset"
+        onRecoveryComplete={() => setPasswordRecovery(false)}
+      />
+    );
+  }
 
-  if (isSupabaseConfigured && !user && !preview) {
+  if (isSupabaseConfigured && !user) {
     return <AuthGate onAuth={() => {}} />;
   }
 
-  if (!onboardingDone && !preview) {
+  if (!onboardingDone) {
     return <Onboarding onDone={finishOnboarding} />;
+  }
+
+  const internalTool = ['collect', 'train', 'diagnostic'].includes(page);
+  const canUseInternalTools = !isSupabaseConfigured || profileSummary.role === 'admin';
+  if (internalTool && profileSummary.loading) {
+    return (
+      <div className="h-full bg-cream flex items-center justify-center">
+        <div className="w-7 h-7 rounded-full border-2 border-ink-900/10 border-t-signa-500 animate-spin" />
+      </div>
+    );
+  }
+  if (internalTool && !canUseInternalTools) {
+    return (
+      <div className="h-full bg-cream flex flex-col items-center justify-center gap-4 px-6 text-center">
+        <h1 className="text-xl font-black text-ink-900">Unealtă rezervată administratorilor</h1>
+        <p className="max-w-sm text-sm font-semibold text-ink-500">
+          Colectarea, antrenarea și diagnosticul modifică datele locale de lucru.
+        </p>
+        <button
+          type="button"
+          onClick={() => setPage('home')}
+          className="rounded-xl bg-signa-500 px-5 py-3 text-sm font-bold text-white"
+        >
+          Înapoi acasă
+        </button>
+      </div>
+    );
   }
 
   if (page === 'collect') return <CollectPage onBack={() => setPage('home')} />;
@@ -108,7 +146,7 @@ export default function App() {
     const lesson = reviewLesson ?? LESSONS.find((l) => l.id === lessonId);
     return (
       <LessonPage
-        key={reviewLesson ? `review-${reviewLesson.letters.join('')}` : lessonId}
+        key={reviewLesson ? `review-${reviewLesson.letters?.join('') ?? 'invalid'}` : lessonId}
         lesson={lesson}
         onExit={() => setPage(reviewLesson ? 'review' : 'lessons')}
       />
@@ -126,6 +164,8 @@ export default function App() {
       onReview={() => setPage('review')}
       onDiagnostic={() => setPage('diagnostic')}
       onReferinte={openReferinte}
+      profileSummary={profileSummary}
+      canUseInternalTools={canUseInternalTools}
     />
   );
 }

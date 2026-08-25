@@ -11,6 +11,9 @@ description: Modifică fluxul de colectare a datasetului Signa — cameră holis
   schimbarea invalidează toate dataseturile și modelele.
 - Capturile statice sunt vectori de 199 valori; filmările sunt secvențe de
   `SEQ_FRAMES`, fiecare cadru având 199 valori.
+- Importul trece prin `readJsonObject()` (limită de dimensiune + rădăcină obiect)
+  și prin `isDatasetVector()` / `isDatasetSequence()`. Fiecare valoare trebuie să
+  fie finită; nu relaxa validarea în `CollectPage` sau `TrainPage`.
 - Se salvează doar coordonate numerice în `signa-dataset-v1`. Imaginile și
   filmările nu se trimit și nu se stochează.
 

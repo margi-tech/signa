@@ -1,10 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { normalize, VECTOR_SIZE } from '../utils/normalize';
+import { normalize } from '../utils/normalize';
 import { LSR_ALPHABET, MIN_SAMPLES_PER_LETTER, MIN_SEQ_PER_LETTER } from '../data/lsr-alphabet';
-
-// Validatori pentru cele două tipuri de mostre
-const isVec = (v) => Array.isArray(v) && v.length === VECTOR_SIZE && typeof v[0] === 'number';
-const isSeq = (v) => Array.isArray(v) && v.length > 0 && v.every(isVec);
+import { isDatasetSequence, isDatasetVector } from '../utils/datasetValidation';
+import { MAX_DATASET_IMPORT_BYTES, readJsonObject } from '../utils/readJsonFile';
 
 // Rotunjire la 4 zecimale — reduce mult spațiul ocupat în localStorage,
 // eroarea (~1e-4) e cu mult sub zgomotul natural al detecției mâinii
@@ -108,7 +106,7 @@ export function useDatasetCollector() {
    * @returns {Promise<number>}  numărul de exemple importate
    */
   const importDataset = useCallback(async (file) => {
-    const raw = JSON.parse(await file.text());
+    const raw = await readJsonObject(file, MAX_DATASET_IMPORT_BYTES);
     let imported = 0;
 
     setDataset((prev) => {
@@ -121,7 +119,9 @@ export function useDatasetCollector() {
         const label = String(rawLabel).trim();
         if (!label) continue;
         // Fiecare exemplu e static (199 valori) sau secvență (film) — determinat din formă
-        const valid = (samples ?? []).filter((s) => isVec(s) || isSeq(s));
+        const valid = (samples ?? []).filter(
+          (sample) => isDatasetVector(sample) || isDatasetSequence(sample),
+        );
         if (!valid.length) continue;
         next[label] = [...(next[label] ?? []), ...valid];
         imported += valid.length;
@@ -142,7 +142,7 @@ export function useDatasetCollector() {
         created:       new Date().toISOString(),
         total_samples: totalSamples,
         labels,
-        video_labels: labels.filter((l) => dataset[l].some(isSeq)),
+        video_labels: labels.filter((l) => dataset[l].some(isDatasetSequence)),
         min_samples_per_letter: MIN_SAMPLES_PER_LETTER,
         min_seq_per_letter: MIN_SEQ_PER_LETTER,
       },

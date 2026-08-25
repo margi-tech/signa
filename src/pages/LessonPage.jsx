@@ -100,7 +100,7 @@ function ResultsScreen({ lesson, skipped, xpGained, stars, leveledUp, onExit, on
   );
 }
 
-export default function LessonPage({ lesson, onExit }) {
+function LessonSession({ lesson, onExit }) {
   const [idx, setIdx] = useState(0);
   const [holdPct, setHoldPct] = useState(0);
   const [phase, setPhase] = useState('active');
@@ -248,14 +248,6 @@ export default function LessonPage({ lesson, onExit }) {
     }
   }, [phase, level, soundEnabled]);
 
-  if (!lesson) {
-    return (
-      <div className="h-full bg-cream flex items-center justify-center">
-        <button onClick={onExit} className="text-ink-600">Lecție invalidă — înapoi</button>
-      </div>
-    );
-  }
-
   if (phase === 'results') {
     const done = lesson.letters.length - skipped.length;
     const stars = skipped.length === 0 ? 3 : skipped.length === 1 ? 2 : done === 0 ? 0 : 1;
@@ -380,4 +372,18 @@ export default function LessonPage({ lesson, onExit }) {
       </div>
     </div>
   );
+}
+
+export default function LessonPage({ lesson, onExit }) {
+  if (!lesson?.letters?.length) {
+    return (
+      <div className="h-full bg-cream flex items-center justify-center">
+        <button onClick={onExit} className="text-ink-600">
+          Lecție invalidă — înapoi
+        </button>
+      </div>
+    );
+  }
+
+  return <LessonSession lesson={lesson} onExit={onExit} />;
 }

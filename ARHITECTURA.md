@@ -54,6 +54,8 @@ Bariera e profundă: înainte de recunoașterea legală, peste 20 de ani, sub 1%
 - Conturi Supabase, progres sincronizat, clasament și profil public/privat.
 - Follow reciproc și prieteni integrați în pagina Profil.
 - Colectare asistată: inventar permanent și serii automate foto/video.
+- Recuperare parolă prin email, ștergere cont și avatar JPEG/PNG/WebP validat.
+- Uneltele interne Colectare/Train/Diagnostic sunt disponibile numai adminilor.
 
 ### 4.3. Non-goals (asumate explicit)
 - Traducere completă, în timp real, a propozițiilor.
@@ -87,6 +89,8 @@ Singura parte care comunică în rețea, și doar pentru date non-sensibile (pro
 - **Backend** — Supabase Auth + PostgreSQL + RLS.
 - **Date** — profil, progres, scoruri și relații follow.
 - **Gamificare/social** — streak, niveluri, clasament și prietenii reciproce.
+- **Securitate** — scoruri acordate prin RPC, rol protejat prin trigger, view-uri
+  publice cu coloane allowlist și ștergere proprie de cont.
 
 ### De ce pe dispozitiv
 Recunoașterea locală = confidențialitate (camera nu pleacă de pe telefon) + viteză (fără întârziere de rețea) + funcționare offline + cost zero.
@@ -138,8 +142,10 @@ Sursa exactă este `supabase/schema.sql`.
 | following_id | UUID | Cine este urmărit |
 | created_at | timestamptz | Începutul relației |
 
-`friendships` derivă perechile reciproce, `user_directory` expune profilurile
-publice, iar `leaderboard` combină profilul public cu progresul.
+`friendships` derivă perechile reciproce, `user_directory` expune numai câmpurile
+publice permise, iar `leaderboard` combină profilul public cu scorul. Profilul
+complet propriu se citește prin `get_own_profile()`. XP/streak/lecțiile sunt
+actualizate numai prin `record_lesson_completion`, cu deduplicare per lecție/zi.
 
 ---
 

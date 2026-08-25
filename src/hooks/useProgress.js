@@ -1,7 +1,12 @@
 import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { LESSONS, levelFromXp, xpForLevel } from '../data/lessons';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
-import { pullAndMergeProgress, pushProgress, pushProgressBestEffort } from './useProgressSync';
+import {
+  pullAndMergeProgress,
+  pushProgress,
+  pushProgressBestEffort,
+  queueLessonCompletion,
+} from './useProgressSync';
 
 const STORAGE_KEY = 'signa-progress-v2';
 const LEGACY_KEY  = 'signa-progress-v1';
@@ -123,6 +128,7 @@ function useProgressState() {
     update((prev) => {
       const prevStars = prev.lessons[lessonId]?.stars ?? 0;
       const today = todayKey();
+      const alreadyRewardedToday = prev.lessons[lessonId]?.lastAwardDate === today;
       let streak = prev.streak || 0;
       let lastPracticeDate = prev.lastPracticeDate;
 
@@ -137,7 +143,7 @@ function useProgressState() {
 
       return {
         ...prev,
-        xp: prev.xp + xpGained,
+        xp: prev.xp + (alreadyRewardedToday ? 0 : xpGained),
         streak,
         lastPracticeDate,
         lessons: {
@@ -145,15 +151,19 @@ function useProgressState() {
           [lessonId]: {
             stars: Math.max(prevStars, stars),
             completedAt: new Date().toISOString(),
+            lastAwardDate: today,
           },
         },
       };
     });
     queueMicrotask(() => {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) pushProgressBestEffort(JSON.parse(raw));
-      } catch { /* ignore */ }
+      queueLessonCompletion(lessonId, stars, xpGained)
+        .then(() => {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) return pushProgressBestEffort(JSON.parse(raw));
+          return undefined;
+        })
+        .catch(() => {});
     });
   }, [update]);
 
@@ -183,9 +193,9 @@ function useProgressState() {
   }, [update]);
 
   const syncNow = useCallback(async () => {
+    await pushProgress();
     const merged = await pullAndMergeProgress();
     if (merged) persist(merged);
-    await pushProgress(merged ?? undefined);
     return merged;
   }, [persist]);
 
@@ -193,10 +203,10 @@ function useProgressState() {
     if (!isSupabaseConfigured || !supabase) return undefined;
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
-        pullAndMergeProgress()
+        pushProgress()
+          .then(() => pullAndMergeProgress())
           .then((merged) => {
             if (merged) persist(merged);
-            return pushProgressBestEffort(merged);
           })
           .catch(() => {});
       }

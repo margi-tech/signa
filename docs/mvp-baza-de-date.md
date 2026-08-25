@@ -43,8 +43,8 @@ Auth MVP: **doar email + parolă**. Google OAuth rămâne după MVP.
 | email | `auth.users.email` | Deja în Auth — nu duplicăm |
 | username | `profiles.username` UNIQUE | Gata (index case-insensitive) |
 | parolă | Supabase Auth (hash intern) | Nu stocăm noi |
-| progress / XP | `progress.xp` (+ streak, stele, mastery) | Schema + sync automat |
-| rol admin/user | `profiles.role`, default `user` | Gata; admin doar din dashboard |
+| progress / XP | `progress` + `lesson_completions` | Acordat server-side prin RPC |
+| rol admin/user | `profiles.role`, default `user` | Protejat prin trigger; admin doar din SQL |
 | data înscrierii | `profiles.created_at` | Deja în schema |
 | profile mode | `profiles.visibility` (`public` / `private`) | Gata în schema + UI |
 | avatar | `profiles.avatar_url` + Storage `avatars` | Gata în Profil |
@@ -59,7 +59,7 @@ Auth MVP: **doar email + parolă**. Google OAuth rămâne după MVP.
 | Client + helper-e profil | `src/lib/supabase.js` | Gata; pornește doar cu chei în `.env` |
 | Schema + RLS + trigger | `supabase/schema.sql` | MVP complet — de rulat în SQL Editor |
 | Login / register / edit profil | `src/pages/ProfilePage.jsx` | Nume, prenume, username, vizibilitate |
-| Sync progres (merge max XP) | `src/hooks/useProgressSync.js` | Automat după lecție + la login; buton backup |
+| Sync progres | `src/hooks/useProgressSync.js` | Server-authoritative + coadă offline per user |
 | Clasament (view) | `src/pages/LeaderboardPage.jsx` | Doar profile public; mesaj dacă ești privat |
 | Social | `FriendsSection.jsx` + `src/lib/supabase.js` | Follow reciproc, cereri derivate, căutare |
 | Config Vercel SPA | `vercel.json` | Gata, fără proiect live |
@@ -104,9 +104,9 @@ Fișier: `supabase/schema.sql`. Rulezi totul în SQL Editor.
 - [x] UNIQUE(`username`) case-insensitive + CHECK `role IN ('user', 'admin')` default `user`
 - [x] CHECK `visibility IN ('public', 'private')` default `public`
 - [x] Trigger `handle_new_user` citește nume/prenume/username din `raw_user_meta_data`
-- [x] RLS `profiles`: public vizibil tuturor; private doar owner; update doar owner
+- [x] RLS `profiles`: tabela completă nu este publică; owner prin RPC, ceilalți prin view-uri allowlist
 - [x] View `leaderboard`: doar `visibility = public`, fără email, fără parolă
-- [x] Păstrează `progress` (xp, streak, lessons, letter_mastery) + RLS doar own row
+- [x] `progress` + `lesson_completions`: XP/streak/lecții numai prin RPC, mastery own row
 - [x] Rulează SQL-ul în SQL Editor și verifică tabelele + view-urile de mai sus
 - [ ] Cont de test + un admin — rulează `supabase/ops-mvp.sql` (`davidutz` → admin + public)
 
@@ -123,6 +123,7 @@ Fișiere: `ProfilePage.jsx`, `LeaderboardPage.jsx`, `useProgress.js`, `useProgre
 - [x] Sync automat după `completeLesson` + la login (butonul manual rămâne backup)
 - [x] Clasament: nume afișat din prenume/username; profilurile private nu apar
 - [x] Fără sesiune: aplicația rămâne blocată în ecranul de autentificare (auth obligatoriu)
+- [x] Resetare parolă prin link, ștergere proprie de cont și unelte interne admin-only
 
 ### Faza 4 — Aplicație publică (Vercel)
 

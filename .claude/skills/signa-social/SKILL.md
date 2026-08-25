@@ -11,6 +11,9 @@ description: Modifică funcțiile sociale Signa — profil public/privat, follow
 - O prietenie este derivată din două follow-uri reciproce prin view-ul
   `public.friendships`; nu crea tabel sau stare separată pentru cereri.
 - `user_directory` și listele sociale expun doar profiluri publice.
+- Tabela `profiles` nu este director public: profilul complet propriu se citește
+  prin RPC-ul `get_own_profile()`, iar ceilalți apar numai prin view-uri cu
+  coloane allowlist.
 - Nu trimite în cloud imagini, video sau landmarks. Supabase păstrează doar
   profil, progres și relații sociale.
 
@@ -29,9 +32,14 @@ description: Modifică funcțiile sociale Signa — profil public/privat, follow
   `getFollowers`, `searchUsers`.
 - Follow/unfollow cere sesiune activă. Listele fără Supabase sau fără `userId`
   întorc `[]` acolo unde helper-ul definește fallback.
-- RLS: citirea relațiilor este permisă; insert/delete numai când
-  `auth.uid() = follower_id`; update este revocat.
+- RLS: un follow este vizibil participanților sau când ambele profiluri sunt
+  publice. Insert/delete sunt permise numai când `auth.uid() = follower_id`,
+  iar ținta este publică; update este revocat.
 - Păstrează protecțiile `no_self_follow` și unicitatea perechii.
+- `leaderboard`, `user_directory` și `friendships` folosesc
+  `security_invoker = false` intenționat și expun doar coloanele declarate.
+- Rolul se promovează numai operațional, din SQL Editor; trigger-ul
+  `protect_profile_role` forțează clientul autentificat la `role = 'user'`.
 
 ## Verificare
 

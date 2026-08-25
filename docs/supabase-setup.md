@@ -15,20 +15,29 @@ Deploy-ul public (Vercel) poate fi blocat pe planul Hobby când autorul commitul
 
 1. Creează un proiect pe [supabase.com](https://supabase.com) — alege **EU** (GDPR).
 2. **Authentication → Providers → Email**: signup activ. Parolă minim 8 caractere.
-3. **Confirm email = OFF.** Ține-l oprit. SMTP-ul default Supabase permite ~2 emailuri/oră **pe tot proiectul**, deci cu el pornit nimeni nu își mai poate face cont. Simptom: API-ul întoarce `over_email_send_rate_limit`, dar UI-ul poate afișa înșelător „Folosește un email valid”. Reactivarea are sens doar împreună cu un SMTP propriu care poate livra către toți membrii echipei.
+3. **Confirm email = OFF pentru MVP.** Aplicația nu folosește coduri OTP. Fluxul
+   „Am uitat parola” folosește linkul de recovery Supabase. SMTP-ul implicit
+   permite aproximativ 2 emailuri/oră pe proiect și este doar pentru test;
+   pentru producție cu volum real ar trebui SMTP propriu.
 4. **Authentication → URL Configuration** (valorile live, aug 2026)
    - Site URL: `https://signa-flax.vercel.app`
    - Redirect URLs: `https://signa-flax.vercel.app/**`, `https://signa-*-signa-team.vercel.app/**` (preview-uri per branch) și `http://localhost:5173/**` (dev)
 
 ## 2. Schema
 
-Pentru proiectele configurate înainte de funcția socială, re-rulează **tot**
-`supabase/schema.sql`; scriptul este idempotent și adaugă tabelele/view-urile lipsă.
+Pentru proiectele existente, migrarea se aplică în această ordine:
 
 1. SQL Editor → New query
 2. Copiază tot `supabase/schema.sql` → Run
-3. Table Editor: trebuie să vezi `profiles`, `progress`, `follows` și view-urile `leaderboard`, `friendships`, `user_directory`
-4. Nu există coloană `parola` pe `profiles` — e corect. Parola stă în Auth.
+3. Rulează `supabase/storage-avatars.sql` după ce bucket-ul `avatars` există
+4. Table Editor: trebuie să vezi `profiles`, `progress`, `lesson_completions`,
+   `follows` și view-urile `leaderboard`, `friendships`, `user_directory`
+5. Nu există coloană `parola` pe `profiles` — e corect. Parola stă în Auth.
+
+Schema securizată mută XP/streak/lecțiile în RPC-ul
+`record_lesson_completion`, protejează rolul admin, limitează citirea profilurilor
+și oferă `get_own_profile()` plus `delete_own_account()`. Deploy-ul clientului
+trebuie făcut după această migrare.
 
 ## 3. Chei locale
 
@@ -50,6 +59,9 @@ Pentru proiectele configurate înainte de funcția socială, re-rulează **tot**
 6. Cu două conturi publice: A îl urmărește pe B, apoi B pe A → ambele afișează
    „Prieteni” în secțiunea din Profil
 7. Profil privat → dispare și din căutarea socială/lista celorlalți
+8. Utilizator obișnuit → Colectare, Train și Diagnostic nu apar și nu se deschid
+9. „Am uitat parola” → email cu link → ecran „Alege o parolă nouă”
+10. Ștergere cont → confirmare cu username, logout și dispariția datelor
 
 ## 5. Admin + profil public
 
@@ -67,9 +79,12 @@ where username = 'davidutz';
 
 ⚠️ **Verifică întâi că ești în proiectul corect.** Aplicația folosește `sdwbgooayrtjlnhqxcja` (proiectul **`signa`**), nu alt proiect din organizație. Bucket-ul creat în alt proiect nu ajută cu nimic — aplicația dă „Bucket not found" la upload, fără niciun indiciu că proiectul e de vină. Link direct: [Storage în proiectul signa](https://supabase.com/dashboard/project/sdwbgooayrtjlnhqxcja/storage/buckets).
 
-1. Storage → **New bucket** → nume `avatars`, **Public bucket: ON** (pozele de profil sunt publice, la fel ca restul profilului `visibility=public`).
-2. SQL Editor → rulează `supabase/storage-avatars.sql` — policy-urile RLS (citire publică, scriere doar în propriul folder `{user_id}/...`).
-3. Verificare: Profil → click pe avatar → alege o imagine → apare imediat, sub 2 MB.
+1. Storage → **New bucket** → nume `avatars`, **Public bucket: ON**.
+2. SQL Editor → rulează `supabase/storage-avatars.sql` — fără listare globală,
+   scriere doar în folderul propriu `{user_id}/...`.
+3. Sunt acceptate numai JPEG, PNG și WebP sub 2 MB. Clientul verifică și
+   semnătura magică; SVG-urile și fișierele cu MIME fals sunt respinse.
+4. Verificare: Profil → click pe avatar → alege o imagine validă → apare imediat.
 
 ## 6. Invită echipa
 
@@ -98,6 +113,9 @@ Fiecare își face `.env.local` din `.env.example` + URL + **anon** key. Fără 
 
 - Când Supabase este configurat, autentificarea este obligatorie.
 - Fără sesiune activă, utilizatorul vede doar ecranul de login/signup (auth gate).
+- Signup-ul nu cere cod OTP. Confirmarea emailului rămâne oprită în MVP.
+- Resetarea parolei folosește un link de recovery și apoi `updateUser`.
+- Rolul `admin` nu poate fi acordat din client; numai operațional, prin SQL.
 
 ## Ce să NU faci
 
