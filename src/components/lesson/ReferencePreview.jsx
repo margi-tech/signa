@@ -35,7 +35,7 @@ export default function ReferencePreview({ target, pose, className = '' }) {
           muted
           playsInline
           aria-label={`Demonstrație pentru semnul ${target}`}
-          className={`object-contain ${className}`}
+          className={`w-full h-full object-cover ${className}`}
           onError={() => setMediaFailed(true)}
         />
       );
