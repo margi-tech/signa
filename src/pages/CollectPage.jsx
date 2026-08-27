@@ -2,6 +2,8 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import HandTracker from '../components/hand-tracker';
 import LetterSelector from '../components/collect/LetterSelector';
 import { useDatasetCollector } from '../hooks/useDatasetCollector';
+import { useDatasetCloudSync } from '../hooks/useDatasetCloudSync';
+import { inventoryCountFor } from '../lib/dataset';
 import { DYNAMIC_LETTERS, SEQ_FRAMES, SEQ_INTERVAL_MS, minFor } from '../data/lsr-alphabet';
 
 const MODE = { FOTO: 'foto', VIDEO: 'video' };
@@ -122,8 +124,44 @@ function CaptureBtn({
   );
 }
 
+function ConsentBanner({ onAccept, busy, error }) {
+  return (
+    <div className="mx-auto max-w-[1540px] px-4 lg:px-7 pb-3">
+      <div className="rounded-2xl border border-signa-500/25 bg-signa-50 px-4 py-3 sm:px-5 sm:py-4">
+        <p className="text-[11px] font-extrabold uppercase tracking-[.14em] text-signa-800">
+          Consimțământ echipă
+        </p>
+        <p className="mt-1.5 text-[13px] font-semibold leading-relaxed text-ink-700">
+          În cloud ajung doar numere (vectori de 199 valori), nu poza ta și nu filmarea.
+          Echipa le folosește ca să antreneze modelul LSR. Poți șterge contul oricând.
+        </p>
+        {error && <p className="mt-2 text-[12px] font-bold text-rose-600">{error}</p>}
+        <button
+          type="button"
+          onClick={onAccept}
+          disabled={busy}
+          className="mt-3 rounded-full bg-signa-600 px-4 py-2 text-[12px] font-extrabold text-white
+            disabled:opacity-50"
+        >
+          {busy ? 'Se salvează…' : 'Accept și trimit în echipă'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function syncLabel({ enabled, consented, pendingCount, status, error }) {
+  if (!enabled) return null;
+  if (error) return { text: error, tone: 'rose' };
+  if (!consented) return { text: 'Local până accepți trimiterea', tone: 'amber' };
+  if (status === 'syncing') return { text: 'Se trimite către echipă…', tone: 'ink' };
+  if (pendingCount > 0) return { text: `${pendingCount} netrimise`, tone: 'amber' };
+  if (status === 'ok') return { text: 'Sincronizat cu echipa', tone: 'signa' };
+  return { text: 'Gata de trimis', tone: 'ink' };
+}
+
 /* ── Pagina ─────────────────────────────────────────────────────── */
-export default function CollectPage({ onBack }) {
+export default function CollectPage({ onBack, userId = null, datasetAccess = null }) {
   const latestLandmarksRef = useRef(null);
   const recTimerRef        = useRef(null);
   const countdownRef       = useRef(null);
@@ -149,13 +187,25 @@ export default function CollectPage({ onBack }) {
   const [autoNote,       setAutoNote]       = useState('');
 
   const [mode, setMode] = useState(MODE.FOTO);
+  const [consentBusy, setConsentBusy] = useState(false);
+  const [consentError, setConsentError] = useState('');
+  const [localPushMsg, setLocalPushMsg] = useState('');
+
+  const cloud = useDatasetCloudSync({
+    userId,
+    canCollect: Boolean(datasetAccess?.can_collect),
+    consented: Boolean(datasetAccess?.consented),
+  });
+  const onSample = useCallback((event) => {
+    cloud.enqueue(event);
+  }, [cloud.enqueue]);
 
   const {
     activeLabel, setActiveLabel,
     capture, captureSequence, clearActiveLabel,
     importDataset, exportDataset,
-    samplesFor, totalSamples, hasData, storageFull, labels,
-  } = useDatasetCollector();
+    samplesFor, totalSamples, hasData, storageFull, labels, dataset,
+  } = useDatasetCollector({ onSample });
 
   const isDynamic = mode === MODE.VIDEO;
   const autoBatchSize = isDynamic ? VIDEO_BATCH_SIZE : PHOTO_BATCH_SIZE;
@@ -165,6 +215,33 @@ export default function CollectPage({ onBack }) {
     setActiveLabel(letter);
     setMode(DYNAMIC_LETTERS.has(letter) ? MODE.VIDEO : MODE.FOTO);
   }, [setActiveLabel]);
+
+  useEffect(() => {
+    cloud.bumpSession();
+  }, [activeLabel, mode, cloud.bumpSession]);
+
+  const handleConsent = useCallback(async () => {
+    if (!datasetAccess?.consent) return;
+    setConsentBusy(true);
+    setConsentError('');
+    try {
+      await datasetAccess.consent();
+      await cloud.flush();
+    } catch (err) {
+      setConsentError(err.message || 'Nu am putut salva consimțământul.');
+    } finally {
+      setConsentBusy(false);
+    }
+  }, [cloud, datasetAccess]);
+
+  const handlePushLocal = useCallback(async () => {
+    const n = cloud.queueLocalDataset(dataset);
+    setLocalPushMsg(n > 0
+      ? `✓ ${n} exemple locale puse la coadă`
+      : 'Nimic de trimis din local');
+    if (n > 0) await cloud.flush();
+    setTimeout(() => setLocalPushMsg(''), 4000);
+  }, [cloud, dataset]);
 
   const handleImport = useCallback(async (e) => {
     const file = e.target.files?.[0];
@@ -337,6 +414,7 @@ export default function CollectPage({ onBack }) {
 
     const runId = autoRunRef.current + 1;
     autoRunRef.current = runId;
+    cloud.bumpSession();
     setAutoProgress(0);
     setAutoNote('');
     setAutoRunning(true);
@@ -388,9 +466,10 @@ export default function CollectPage({ onBack }) {
     if (autoRunRef.current === runId) {
       setAutoRunning(false);
       setAutoNote(`Seria de ${autoBatchSize} ${isDynamic ? 'filmări' : 'poze'} este gata.`);
+      cloud.flush();
     }
   }, [
-    autoBatchSize, autoRunning, capture, countdown, isDynamic, recording,
+    autoBatchSize, autoRunning, capture, cloud, countdown, isDynamic, recording,
     startCountdown, startPrepCountdown, startRecording, waitForFreshHandFrame,
   ]);
 
@@ -412,6 +491,21 @@ export default function CollectPage({ onBack }) {
 
   const count  = samplesFor(activeLabel);
   const isDone = count >= minFor(isDynamic);
+  const samplesForTiles = (label) => {
+    if (!cloud.enabled) return samplesFor(label);
+    return Math.max(inventoryCountFor(cloud.inventory, label), samplesFor(label));
+  };
+  const teamTotal = cloud.inventory.reduce(
+    (sum, row) => sum + Number(row.sample_count || 0),
+    0,
+  );
+  const sync = syncLabel({
+    enabled: cloud.enabled,
+    consented: Boolean(datasetAccess?.consented),
+    pendingCount: cloud.pendingCount,
+    status: cloud.status,
+    error: cloud.error,
+  });
 
   const trackingReady = tracking.hands > 0 && tracking.frame?.ok && tracking.pose;
   const idleHint = tracking.frame?.ok
@@ -444,8 +538,17 @@ export default function CollectPage({ onBack }) {
           <div className="hidden sm:flex items-center gap-2">
             <span className="rounded-full bg-white border border-ink-900/[.07] px-3 py-2
               text-[11.5px] font-extrabold text-ink-600 tabular-nums">
-              {totalSamples} exemple
+              {totalSamples} locale{cloud.enabled && teamTotal > 0 ? ` · ${teamTotal} echipă` : ''}
             </span>
+            {sync && (
+              <span className={`hidden lg:inline rounded-full border px-3 py-2 text-[11px] font-extrabold
+                ${sync.tone === 'rose' ? 'border-rose-200 bg-rose-50 text-rose-700'
+                  : sync.tone === 'amber' ? 'border-amber-200 bg-amber-50 text-amber-800'
+                    : sync.tone === 'signa' ? 'border-signa-200 bg-signa-50 text-signa-800'
+                      : 'border-ink-900/[.07] bg-white text-ink-600'}`}>
+                {sync.text}
+              </span>
+            )}
             <label className="rounded-full border border-ink-900/[.08] bg-white px-3.5 py-2
               text-[11.5px] font-extrabold text-ink-700 cursor-pointer hover:border-signa-500">
               Importă
@@ -463,6 +566,10 @@ export default function CollectPage({ onBack }) {
           </div>
         </div>
       </header>
+
+      {cloud.enabled && !datasetAccess?.consented && (
+        <ConsentBanner onAccept={handleConsent} busy={consentBusy} error={consentError} />
+      )}
 
       <main className="max-w-[1540px] mx-auto p-3.5 lg:p-6">
         <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_390px] gap-[18px] items-start">
@@ -668,8 +775,24 @@ export default function CollectPage({ onBack }) {
                 </span>
               </div>
               <p className="mt-2 text-[11.5px] font-semibold leading-relaxed text-ink-500">
-                Fiecare card arată exact câte poze sau filmări ai și pragul recomandat.
+                {cloud.enabled
+                  ? 'Cardurile arată totalul echipei (sau localul, dacă e mai mare). Progresul etichetei active e al tău, de pe dispozitiv.'
+                  : 'Fiecare card arată exact câte poze sau filmări ai și pragul recomandat.'}
               </p>
+              {cloud.enabled && datasetAccess?.consented && (
+                <button
+                  type="button"
+                  onClick={handlePushLocal}
+                  disabled={!hasData}
+                  className="mt-3 w-full rounded-full border border-signa-500/25 bg-signa-50 px-3 py-2
+                    text-[11px] font-extrabold text-signa-800 disabled:opacity-35"
+                >
+                  Trimite localul în cloud
+                </button>
+              )}
+              {(localPushMsg || (sync && !datasetAccess?.consented)) && (
+                <p className="mt-2 text-[11px] font-bold text-ink-500">{localPushMsg || sync?.text}</p>
+              )}
               <div className="sm:hidden mt-3 flex gap-2">
                 <label className="flex-1 text-center rounded-full border border-ink-900/[.08] bg-white px-3 py-2
                   text-[11px] font-extrabold text-ink-700 cursor-pointer">
@@ -691,7 +814,7 @@ export default function CollectPage({ onBack }) {
               <LetterSelector
                 activeLetter={activeLabel}
                 onSelect={handleSelectLetter}
-                samplesFor={samplesFor}
+                samplesFor={samplesForTiles}
                 extraLabels={labels}
               />
             </div>

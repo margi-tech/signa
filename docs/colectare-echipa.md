@@ -1,21 +1,24 @@
-# Ghid de colectare — pentru echipă 
+# Ghid de colectare — pentru echipă
 
 Scopul: recolecta **tot alfabetul** în formatul holistic nou (`normalize()` v2, 199 valori).
 Modelele vechi din `public/models/_legacy-hand-only-63dim/` **nu** mai sunt compatibile.
 
-**Tutorial complet (colectare + unire + antrenare + `public/models/`):**  
-→ [`docs/tutorial-antrenare-echipa.md`](./tutorial-antrenare-echipa.md)
+**Fluxul principal:** toți colectează pe `https://signa-lsr.online` → exemplele
+(vectori, nu poze) ajung în datasetul comun → un antrenor apasă **Încarcă din cloud**.
 
-## Pornire locală
+JSON export/import rămâne ca backup, dacă ești offline.
 
-```bash
-git checkout main && git pull
-npm install
-npm run dev
-```
+**Tutorial complet:** [`docs/tutorial-antrenare-echipa.md`](./tutorial-antrenare-echipa.md)
+· setup SQL: [`docs/supabase-setup.md`](./supabase-setup.md) §5c
 
-Deschide URL-ul din terminal (de obicei `http://localhost:5173`).
-Pe telefon: același Wi-Fi, apoi IP-ul din terminal (ex. `http://192.168.x.x:5173`) — **HTTPS sau localhost** e necesar pentru cameră pe unele browsere; pe iPhone Safari, cel mai simplu e un tunnel (Cloudflare/ngrok) sau deploy preview.
+## Pornire
+
+1. Cont pe `https://signa-lsr.online` (același ca la lecții)
+2. Un admin te invită în `dataset_members` (`can_collect = true`)
+3. Acasă → **Colectare date** → acceptă consimțământul (doar numere, fără cameră)
+4. Colectezi. Inventarul arată totalul echipei. Statusul din header spune dacă s-a trimis.
+
+Local (`npm run dev`) e util pentru UI; datele de echipă se strâng pe site-ul live.
 
 ## Cum colectezi
 
@@ -37,27 +40,21 @@ Pe telefon: același Wi-Fi, apoi IP-ul din terminal (ex. `http://192.168.x.x:517
 Vizorul umple complet cadrul (`cover`), fără margini. Verifică permanent ca
 mâinile să nu fie tăiate de marginile imaginii.
 
-## Export (OBLIGATORIU după fiecare sesiune)
+## Backup JSON (dacă ești offline)
 
-Apasă **Export** → salvează JSON-ul. Trimite pe canalul echipei cu numele:
+Apasă **Export** → salvează JSON-ul. **Import** unește datele (nu șterge ce ai deja).
+Pe site, **Trimite localul în cloud** urcă backup-ul după ce ai consimțământul.
 
-```
-signa-dataset-YYYY-MM-DD-<prenume>.json
-```
-
-localStorage se poate umple — exportă des.
-
-## Import
-
-**Import** unește datele (nu șterge ce ai deja). Poți combina exporturile colegilor înainte de antrenare.
+localStorage se poate umple — exportă dacă vezi avertismentul.
 
 ## Ce NU faci
 
 - Nu modifica `src/utils/normalize.js`
-- Nu urca imagini/video pe cloud — doar JSON cu vectori numerici
+- Nu urca imagini/video pe cloud — doar vectori numerici (automat, după consimțământ)
 - Nu amesteca dataset-uri din formatul vechi (63 valori) cu cel nou (199)
 
 ## După ce avem date suficiente
 
-Cineva (Lead AI) rulează **Antrenare model** → descarcă modelele → le pune în `public/models/`
-(vezi `docs/retrain.md`).
+Cineva cu `can_train` deschide **Antrenare model** → **Încarcă din cloud** → descarcă
+modelele → le pune în `public/models/` (vezi `docs/retrain.md`). JSON-ul de backup
+e doar dacă cloud-ul nu e disponibil.

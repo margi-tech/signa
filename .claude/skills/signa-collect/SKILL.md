@@ -14,8 +14,9 @@ description: Modifică fluxul de colectare a datasetului Signa — cameră holis
 - Importul trece prin `readJsonObject()` (limită de dimensiune + rădăcină obiect)
   și prin `isDatasetVector()` / `isDatasetSequence()`. Fiecare valoare trebuie să
   fie finită; nu relaxa validarea în `CollectPage` sau `TrainPage`.
-- Se salvează doar coordonate numerice în `signa-dataset-v1`. Imaginile și
-  filmările nu se trimit și nu se stochează.
+- Se salvează coordonate numerice în `signa-dataset-v1` (local) și, după
+  consimțământ, în `dataset_batches` (vectori 199, fără imagini). Coada
+  pending e `signa-dataset-pending-v1`, per user. Nu șterge dataset-ul local.
 
 ## Camera holistică
 

@@ -13,6 +13,7 @@ import { LESSONS } from './data/lessons.js';
 import { useProgress } from './hooks/useProgress.js';
 import { useProfileSummary } from './hooks/useProfileSummary.js';
 import { isSupabaseConfigured, supabase } from './lib/supabase.js';
+import { useDatasetAccess } from './hooks/useDatasetAccess.js';
 
 function pageFromHash() {
   return window.location.hash.replace(/^#/, '') === 'referinte' ? 'referinte' : null;
@@ -26,6 +27,7 @@ export default function App() {
   const [passwordRecovery, setPasswordRecovery] = useState(false);
   const { onboardingDone, finishOnboarding, xp } = useProgress();
   const profileSummary = useProfileSummary(xp, user?.id);
+  const datasetAccess = useDatasetAccess(user?.id);
 
   useEffect(() => {
     const onHash = () => {
@@ -91,22 +93,43 @@ export default function App() {
     return <Onboarding onDone={finishOnboarding} />;
   }
 
+  const isAdmin = profileSummary.role === 'admin';
+  const canCollect = !isSupabaseConfigured || isAdmin || datasetAccess.can_collect;
+  const canTrain = !isSupabaseConfigured || isAdmin || datasetAccess.can_train;
+  const canDiagnostic = !isSupabaseConfigured || isAdmin;
+  const needsDatasetAccess = page === 'collect' || page === 'train';
   const internalTool = ['collect', 'train', 'diagnostic'].includes(page);
-  const canUseInternalTools = !isSupabaseConfigured || profileSummary.role === 'admin';
-  if (internalTool && profileSummary.loading) {
+  const allowedTool = (
+    (page === 'collect' && canCollect)
+    || (page === 'train' && canTrain)
+    || (page === 'diagnostic' && canDiagnostic)
+  );
+  if (internalTool && (profileSummary.loading || (needsDatasetAccess && datasetAccess.loading))) {
     return (
       <div className="h-full bg-cream flex items-center justify-center">
         <div className="w-7 h-7 rounded-full border-2 border-ink-900/10 border-t-signa-500 animate-spin" />
       </div>
     );
   }
-  if (internalTool && !canUseInternalTools) {
+  if (internalTool && !allowedTool) {
+    const copy = page === 'train'
+      ? {
+        title: 'Antrenare rezervată echipei',
+        body: 'Doar antrenorii invitați pot încărca datasetul comun și antrena modelul.',
+      }
+      : page === 'diagnostic'
+        ? {
+          title: 'Unealtă rezervată administratorilor',
+          body: 'Diagnosticul rămâne intern, pentru verificarea detectoarelor.',
+        }
+        : {
+          title: 'Colectare rezervată echipei',
+          body: 'Doar colectorii invitați pot trimite exemple în datasetul comun.',
+        };
     return (
       <div className="h-full bg-cream flex flex-col items-center justify-center gap-4 px-6 text-center">
-        <h1 className="text-xl font-black text-ink-900">Unealtă rezervată administratorilor</h1>
-        <p className="max-w-sm text-sm font-semibold text-ink-500">
-          Colectarea, antrenarea și diagnosticul modifică datele locale de lucru.
-        </p>
+        <h1 className="text-xl font-black text-ink-900">{copy.title}</h1>
+        <p className="max-w-sm text-sm font-semibold text-ink-500">{copy.body}</p>
         <button
           type="button"
           onClick={() => setPage('home')}
@@ -118,8 +141,23 @@ export default function App() {
     );
   }
 
-  if (page === 'collect') return <CollectPage onBack={() => setPage('home')} />;
-  if (page === 'train') return <TrainPage onBack={() => setPage('home')} />;
+  if (page === 'collect') {
+    return (
+      <CollectPage
+        onBack={() => setPage('home')}
+        userId={user?.id}
+        datasetAccess={datasetAccess}
+      />
+    );
+  }
+  if (page === 'train') {
+    return (
+      <TrainPage
+        onBack={() => setPage('home')}
+        canLoadCloud={canTrain && isSupabaseConfigured}
+      />
+    );
+  }
   if (page === 'spell') return <SpellPage onBack={() => setPage('home')} />;
   if (page === 'diagnostic') return <DiagnosticPage onBack={() => setPage('home')} />;
 
@@ -165,7 +203,9 @@ export default function App() {
       onDiagnostic={() => setPage('diagnostic')}
       onReferinte={openReferinte}
       profileSummary={profileSummary}
-      canUseInternalTools={canUseInternalTools}
+      canCollect={canCollect}
+      canTrain={canTrain}
+      canDiagnostic={canDiagnostic}
     />
   );
 }

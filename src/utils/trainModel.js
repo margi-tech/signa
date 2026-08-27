@@ -73,6 +73,65 @@ export function stratifiedSplit(y, testRatio = 0.15) {
   return { trainIdx: shuffleIndices(trainIdx.length).map((i) => trainIdx[i]), testIdx };
 }
 
+/**
+ * Split train/test pe grupuri (session_id), nu pe exemple.
+ * Seriile automate sunt puternic corelate — un split pe sample umflă acuratețea.
+ * Toate exemplele din același grup rămân împreună. Fallback: stratifiedSplit.
+ */
+export function groupedSplit(y, groups, testRatio = 0.15) {
+  if (!Array.isArray(groups) || groups.length !== y.length) {
+    return stratifiedSplit(y, testRatio);
+  }
+
+  const byClass = new Map();
+  y.forEach((label, i) => {
+    const gid = groups[i] == null || groups[i] === '' ? `__solo_${i}` : String(groups[i]);
+    if (!byClass.has(label)) byClass.set(label, new Map());
+    const groupMap = byClass.get(label);
+    if (!groupMap.has(gid)) groupMap.set(gid, []);
+    groupMap.get(gid).push(i);
+  });
+
+  const testSet = new Set();
+
+  for (const groupMap of byClass.values()) {
+    const groupIds = [...groupMap.keys()];
+    const order = shuffleIndices(groupIds.length).map((k) => groupIds[k]);
+    if (order.length === 1) {
+      continue;
+    }
+
+    const total = [...groupMap.values()].reduce((sum, idxs) => sum + idxs.length, 0);
+
+    const targetTest = Math.max(1, Math.floor(total * testRatio));
+    let nTest = 0;
+    for (let g = 0; g < order.length; g += 1) {
+      const idxs = groupMap.get(order[g]);
+      const groupsLeftAfter = order.length - g - 1;
+      if (nTest < targetTest && groupsLeftAfter >= 1) {
+        for (const i of idxs) testSet.add(i);
+        nTest += idxs.length;
+      }
+    }
+  }
+
+  const testIdx = [];
+  const trainIdx = [];
+  for (let i = 0; i < y.length; i += 1) {
+    if (testSet.has(i)) testIdx.push(i);
+    else trainIdx.push(i);
+  }
+
+  if (!testIdx.length || !trainIdx.length) {
+    return stratifiedSplit(y, testRatio);
+  }
+
+  return {
+    trainIdx: shuffleIndices(trainIdx.length).map((k) => trainIdx[k]),
+    testIdx,
+  };
+}
+
 function gaussian() {
   // Box-Muller
   let u = 0;
@@ -181,6 +240,7 @@ export async function trainModel({
   aug = 2,
   stopRef,
   onEpoch,
+  groups,
 }) {
   const tf = await import('@tensorflow/tfjs');
 
@@ -189,7 +249,12 @@ export async function trainModel({
   } catch { /* cpu fallback */ }
   await tf.ready();
 
-  const { trainIdx, testIdx } = stratifiedSplit(y, 0.15);
+  let { trainIdx, testIdx } = groups
+    ? groupedSplit(y, groups, 0.15)
+    : stratifiedSplit(y, 0.15);
+  if (!trainIdx.length || !testIdx.length) {
+    ({ trainIdx, testIdx } = stratifiedSplit(y, 0.15));
+  }
   let Xtrain = trainIdx.map((i) => X[i]);
   let ytrain = trainIdx.map((i) => y[i]);
   const Xtest = testIdx.map((i) => X[i]);

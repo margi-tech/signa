@@ -1,6 +1,8 @@
 import { useState, useRef, useCallback } from 'react';
 import { VECTOR_SIZE } from '../utils/normalize';
 import { PRESETS, trainModel } from '../utils/trainModel';
+import { parseRawDataset } from '../utils/parseTrainDataset';
+import { loadCloudTrainSets } from '../lib/dataset';
 import {
   isDatasetSequence as isSeq,
   isDatasetVector as isVec,
@@ -102,6 +104,7 @@ function TrainerSection({
         batchSize,
         patience: config.patience,
         aug: config.aug,
+        groups: data.groups,
         stopRef,
         onEpoch: (h) => {
           historyFlushRef.current.push(h);
@@ -252,12 +255,24 @@ function TrainerSection({
 }
 
 /* ── Pagina principală ───────────────────────────────────────── */
-export default function TrainPage({ onBack }) {
+export default function TrainPage({ onBack, canLoadCloud = false }) {
   const [staticData, setStaticData] = useState(null);
   const [dynData, setDynData] = useState(null);
   const [preset, setPreset] = useState('standard');
   const [error, setError] = useState('');
   const [fileKey, setFileKey] = useState(0);
+  const [cloudLoading, setCloudLoading] = useState(false);
+  const [sourceNote, setSourceNote] = useState('');
+
+  const applySets = useCallback((st, dy, note) => {
+    if (!st && !dy) {
+      throw new Error('Dataset incompatibil sau prea mic (minim 2 etichete pe tip).');
+    }
+    setStaticData(st);
+    setDynData(dy);
+    setSourceNote(note);
+    setFileKey((k) => k + 1);
+  }, []);
 
   const handleFile = useCallback(async (e) => {
     const file = e.target.files?.[0];
@@ -265,30 +280,7 @@ export default function TrainPage({ onBack }) {
     setError('');
     try {
       const raw = await readJsonObject(file, MAX_TRAIN_IMPORT_BYTES);
-      const all = Object.entries(raw).filter(([k]) => k !== '_meta');
-
-      const parse = (check) => {
-        const entries = all
-          .map(([k, arr]) => [k, (arr ?? []).filter(check)])
-          .filter(([, arr]) => arr.length > 0);
-        if (entries.length < 2) return null;
-        const labels = entries.map(([k]) => k).sort();
-        const X = [];
-        const y = [];
-        for (const [letter, samples] of entries) {
-          const idx = labels.indexOf(letter);
-          for (const s of samples) { X.push(s); y.push(idx); }
-        }
-        return {
-          labels,
-          X,
-          y,
-          counts: Object.fromEntries(entries.map(([k, v]) => [k, v.length])),
-        };
-      };
-
-      const st = parse(isVec);
-      const dy = parse(isSeq);
+      const { staticData: st, dynData: dy, all } = parseRawDataset(raw);
       if (!st && !dy) {
         const diag = all.map(([k, arr]) => {
           const n = (arr ?? []).length;
@@ -301,16 +293,28 @@ export default function TrainPage({ onBack }) {
           `Dataset incompatibil (așteptat VECTOR_SIZE ${VECTOR_SIZE}, min. 2 litere). ${diag.join(' · ') || 'gol'}`,
         );
       }
-
-      setStaticData(st);
-      setDynData(dy);
-      setFileKey((k) => k + 1);
+      applySets(st, dy, 'Fișier JSON');
     } catch (err) {
       setError(err.message || 'Fișier invalid');
       setStaticData(null);
       setDynData(null);
     }
-  }, []);
+  }, [applySets]);
+
+  const handleCloud = useCallback(async () => {
+    setError('');
+    setCloudLoading(true);
+    try {
+      const { staticData: st, dynData: dy } = await loadCloudTrainSets();
+      applySets(st, dy, 'Dataset comun (split pe sesiune)');
+    } catch (err) {
+      setError(err.message || 'Nu am putut încărca din cloud');
+      setStaticData(null);
+      setDynData(null);
+    } finally {
+      setCloudLoading(false);
+    }
+  }, [applySets]);
 
   const hasData = staticData || dynData;
   const config = PRESETS.find((p) => p.id === preset) ?? PRESETS[1];
@@ -339,30 +343,63 @@ export default function TrainPage({ onBack }) {
           </p>
 
           {!hasData ? (
-            <label className="flex flex-col items-center justify-center gap-2.5
-              border-2 border-dashed border-ink-900/10 rounded-2xl p-8 cursor-pointer bg-white
-              hover:border-signa-500/40 hover:bg-signa-50/50 transition-all duration-200 shadow-card">
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" className="text-ink-400">
-                <path d="M16 4v16m0-16l-5 5m5-5l5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M4 22v2a4 4 0 004 4h16a4 4 0 004-4v-2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-              </svg>
-              <div className="text-center">
-                <p className="text-ink-700 text-sm font-medium">Încarcă dataset.json</p>
-                <p className="text-ink-400 text-xs mt-0.5">exportat din pagina de colectare</p>
-              </div>
-              <input type="file" accept=".json" className="hidden" onChange={handleFile} />
-            </label>
+            <div className="space-y-3">
+              {canLoadCloud && (
+                <button
+                  type="button"
+                  onClick={handleCloud}
+                  disabled={cloudLoading}
+                  className="w-full rounded-2xl bg-signa-500 py-4 text-sm font-bold text-white
+                    shadow-button active:scale-[0.97] disabled:opacity-50"
+                >
+                  {cloudLoading ? 'Se încarcă din cloud…' : 'Încarcă din cloud'}
+                </button>
+              )}
+              <label className="flex flex-col items-center justify-center gap-2.5
+                border-2 border-dashed border-ink-900/10 rounded-2xl p-8 cursor-pointer bg-white
+                hover:border-signa-500/40 hover:bg-signa-50/50 transition-all duration-200 shadow-card">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" className="text-ink-400">
+                  <path d="M16 4v16m0-16l-5 5m5-5l5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M4 22v2a4 4 0 004 4h16a4 4 0 004-4v-2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                </svg>
+                <div className="text-center">
+                  <p className="text-ink-700 text-sm font-medium">sau încarcă un JSON</p>
+                  <p className="text-ink-400 text-xs mt-0.5">backup exportat din colectare</p>
+                </div>
+                <input type="file" accept=".json" className="hidden" onChange={handleFile} />
+              </label>
+            </div>
           ) : (
             <div className="bg-white rounded-2xl p-4 space-y-3 shadow-card">
               <div className="flex items-center justify-between">
                 <p className="text-ink-900 text-sm font-semibold">
                   {(staticData?.labels.length ?? 0) + (dynData?.labels.length ?? 0)} etichete detectate
                 </p>
-                <label className="text-signa-600 text-xs font-medium cursor-pointer hover:underline">
-                  Schimbă
-                  <input type="file" accept=".json" className="hidden" onChange={handleFile} />
-                </label>
+                <div className="flex items-center gap-3">
+                  {canLoadCloud && (
+                    <button
+                      type="button"
+                      onClick={handleCloud}
+                      disabled={cloudLoading}
+                      className="text-signa-600 text-xs font-medium hover:underline disabled:opacity-50"
+                    >
+                      {cloudLoading ? 'Se încarcă…' : 'Reîncarcă cloud'}
+                    </button>
+                  )}
+                  <label className="text-signa-600 text-xs font-medium cursor-pointer hover:underline">
+                    Schimbă fișier
+                    <input type="file" accept=".json" className="hidden" onChange={handleFile} />
+                  </label>
+                </div>
               </div>
+              {sourceNote && (
+                <p className="text-[11px] font-semibold text-ink-400">{sourceNote}</p>
+              )}
+              {(staticData?.groups || dynData?.groups) && (
+                <p className="text-[11px] font-semibold text-signa-700">
+                  Split pe sesiune — exemplele din aceeași serie nu se amestecă între train și test.
+                </p>
+              )}
 
               {staticData && (
                 <div>

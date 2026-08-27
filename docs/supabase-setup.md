@@ -1,7 +1,8 @@
 # Signa — Setup Supabase (US #22)
 
 Pași pentru un coleg. Recunoașterea semnelor rămâne pe dispozitiv — pe server
-ajung doar profilul, progresul și relațiile sociale, niciodată camera/landmarks.
+ajung profilul, progresul, relațiile sociale și, pentru membri invitați,
+**vectori numerici de antrenare** (fără imagini/video/cameră).
 
 Ghidul de produs: [`docs/mvp-baza-de-date.md`](./mvp-baza-de-date.md). Schema: `supabase/schema.sql`.
 
@@ -32,6 +33,8 @@ Pentru proiectele existente, migrarea se aplică în această ordine:
 3. Rulează `supabase/storage-avatars.sql` după ce bucket-ul `avatars` există
 4. Table Editor: trebuie să vezi `profiles`, `progress`, `lesson_completions`,
    `follows` și view-urile `leaderboard`, `friendships`, `user_directory`
+5. Pentru colectare/antrenare în echipă: rulează și `supabase/dataset-collab.sql`
+   (deja inclus la finalul `schema.sql` pentru proiecte noi)
 5. Nu există coloană `parola` pe `profiles` — e corect. Parola stă în Auth.
 
 Schema securizată mută XP/streak/lecțiile în RPC-ul
@@ -59,7 +62,9 @@ trebuie făcut după această migrare.
 6. Cu două conturi publice: A îl urmărește pe B, apoi B pe A → ambele afișează
    „Prieteni” în secțiunea din Profil
 7. Profil privat → dispare și din căutarea socială/lista celorlalți
-8. Utilizator obișnuit → Colectare, Train și Diagnostic nu apar și nu se deschid
+8. Utilizator obișnuit → Colectare, Train și Diagnostic nu apar
+8b. După `dataset-collab.sql` + insert în `dataset_members`: colectorul vede
+    Colectare (nu Train), antrenorul vede Antrenare
 9. „Am uitat parola” → email cu link → ecran „Alege o parolă nouă”
 10. Ștergere cont → confirmare cu username, logout și dispariția datelor
 
@@ -85,6 +90,33 @@ where username = 'davidutz';
 3. Sunt acceptate numai JPEG, PNG și WebP sub 2 MB. Clientul verifică și
    semnătura magică; SVG-urile și fișierele cu MIME fals sunt respinse.
 4. Verificare: Profil → click pe avatar → alege o imagine validă → apare imediat.
+
+## 5c. Dataset colaborativ (colectori ≠ admini)
+
+Colectarea pe `https://signa-lsr.online` nu cere `role = 'admin'`. Invită oamenii
+în `dataset_members` (SQL Editor), apoi ei acceptă consimțământul în app.
+
+```sql
+-- 1) Rulează supabase/dataset-collab.sql o dată (dacă schema e deja aplicată).
+-- 2) Invită după username:
+
+insert into public.dataset_members (user_id, can_collect, can_train, granted_by)
+select p.id,
+       true,  -- colector
+       false, -- antrenor (true doar pentru cine antrenează)
+       g.id
+from public.profiles p
+cross join public.profiles g
+where lower(p.username) in ('alice', 'bob')
+  and lower(g.username) = 'davidutz'
+on conflict (user_id) do update
+  set can_collect = excluded.can_collect,
+      can_train = excluded.can_train,
+      granted_by = excluded.granted_by;
+```
+
+Adminii (`profiles.role = 'admin'`) au automat collect+train+publish.
+Clientul nu poate scrie în `dataset_members`. Nu urca imagini — doar vectori 199.
 
 ## 6. Invită echipa
 
@@ -121,5 +153,6 @@ Fiecare își face `.env.local` din `.env.example` + URL + **anon** key. Fără 
 
 - Tabel `users` cu coloană parolă
 - `service_role` în `.env.local` / Vercel (e cheie de server)
-- Imagini, video sau landmarks în Storage / tabele
-- Google OAuth în MVP
+- Imagini sau video în Storage / tabele (vectorii de antrenare sunt excepția
+  aprobată, doar pentru membri invitați, prin RPC)
+- Apple Sign In fără cont Apple Developer plătit (99 USD/an) — vezi §8

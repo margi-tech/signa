@@ -4,7 +4,8 @@ Document istoric pentru US #22, actualizat cu starea curentă a backendului.
 
 **Scop:** conturi reale, progres în cloud, clasament, aplicație publică pe Vercel.
 
-**Constrângere:** recunoașterea semnelor rămâne pe dispozitiv — zero imagini, zero landmarks pe server.
+**Constrângere:** recunoașterea semnelor rămâne pe dispozitiv — zero imagini pe server.
+Membrii invitați pot trimite **vectori normalizați** (199 valori) pentru antrenare.
 
 Ticket Taiga: [#22 Creare tabele/schema pentru baza de date](https://tree.taiga.io/project/paula1999-signa/us/22).
 

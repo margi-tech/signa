@@ -16,19 +16,20 @@ Documente înrudite:
 
 | Ce          | Ce este                                              | Unde stă                               |
 | ----------- | ---------------------------------------------------- | -------------------------------------- |
-| **Dataset** | JSON cu exemple (vectori numerici pe litere/cuvinte) | Export din browser / Downloads / Drive |
+| **Dataset** | exemple (vectori 199 / 30×199)                       | cloud comun + backup JSON local        |
 | **Model**   | Rețeaua antrenată (3–6 fișiere)                      | `public/models/` în proiect            |
 
 
 **Regula de aur:**
 
-1. Fiecare colectează pe literele lui → exportă **dataset JSON**.
-2. Cineva **unește** toate dataset-urile.
-3. Se face **o singură antrenare** pe setul unit.
-4. Se pune **un singur set de model** în `public/models/`.
+1. Fiecare colectează pe `https://signa-lsr.online` (după invitație + consimțământ).
+2. Un antrenor încarcă **datasetul comun** din cloud și antrenează o dată pe tot.
+3. Se pune **un singur set de model** în `public/models/`.
 
-Nu antrenezi „model pentru A” pe un branch și „model pentru B” pe altul, ca apoi să le lipești.
+Nu antrenezi „model pentru A” pe un branch și „model pentru B” pe altul.
 Nu merge. Modelul trebuie să vadă **toate** literele împreună ca să le deosebească.
+
+JSON export/import rămâne backup dacă ești offline — vezi `docs/colectare-echipa.md`.
 
 ---
 
@@ -56,9 +57,8 @@ Nu merge. Modelul trebuie să vadă **toate** literele împreună ca să le deos
 
 | Rol                                               | Face                                                                         |
 | ------------------------------------------------- | ---------------------------------------------------------------------------- |
-| **Colector** (toți)                               | Colectează literele alocate, exportă JSON, trimite pe canal                  |
-| **Lead date** (1 persoană)                        | Adună JSON-urile, le unește, verifică numărul de exemple                     |
-| **Lead antrenare** (1 persoană, poate fi același) | Antrenează, descarcă modelul, îl pune în `public/models/`, face PR pe `main` |
+| **Colector** (invitat în `dataset_members`) | Colectează pe site, acceptă consimțământul |
+| **Lead antrenare** (`can_train`)            | Încarcă din cloud, antrenează, PR cu modelul |
 
 
 Branch-urile Git sunt pentru **cod** (UI, bugfix-uri).  

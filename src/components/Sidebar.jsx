@@ -59,7 +59,8 @@ export default function Sidebar({
   chapters, selectedChapterId, onSelectChapter, starsFor,
   level, xpIntoLevel, xpNeeded, totalLessonsCount, rank,
   firstName, initials, avatarUrl, streak,
-  onCollect, onTrain, onDiagnostic, onReferinte, isAdmin = false,
+  onCollect, onTrain, onDiagnostic, onReferinte,
+  canCollect = false, canTrain = false, canDiagnostic = false,
 }) {
   const onLessons = page === 'lessons';
   const levelPct = xpNeeded > 0 ? Math.min(xpIntoLevel / xpNeeded, 1) : 0;
@@ -362,7 +363,7 @@ export default function Sidebar({
             transition: `max-height .45s ${EASE}, opacity .3s ease-out`,
             ...(onLessons
               ? { maxHeight: 0, opacity: 0, pointerEvents: 'none' }
-              : { maxHeight: 200, opacity: 1 }),
+              : { maxHeight: 280, opacity: 1 }),
           }}
         >
           <p
@@ -371,12 +372,14 @@ export default function Sidebar({
           >
             Unelte
           </p>
-          {isAdmin && (
-            <>
-              <ToolButton icon={DownloadIcon} label="Colectare date" onClick={onCollect} delay={0.5} />
-              <ToolButton icon={TrendIcon} label="Antrenare model" onClick={onTrain} delay={0.56} />
-              <ToolButton icon={PulseIcon} label="Diagnostic" onClick={onDiagnostic} delay={0.62} />
-            </>
+          {canCollect && (
+            <ToolButton icon={DownloadIcon} label="Colectare date" onClick={onCollect} delay={0.5} />
+          )}
+          {canTrain && (
+            <ToolButton icon={TrendIcon} label="Antrenare model" onClick={onTrain} delay={0.56} />
+          )}
+          {canDiagnostic && (
+            <ToolButton icon={PulseIcon} label="Diagnostic" onClick={onDiagnostic} delay={0.62} />
           )}
           {onReferinte && (
             <ToolButton icon={HandIcon} label="Referințe LSR" onClick={onReferinte} delay={0.68} />
