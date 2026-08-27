@@ -40,9 +40,9 @@ JSON export/import rămâne backup dacă ești offline — vezi `docs/colectare-
 
 | Greșeală                                                           | De ce e greșit                                           | Ce faci în schimb                                                   |
 | ------------------------------------------------------------------ | -------------------------------------------------------- | ------------------------------------------------------------------- |
-| Antrenez doar C și E, mâine doar A și B, și pun 2 seturi de modele | Modelul din ziua 2 nu „știe” C/E; nu se combină 2 modele | Unești dataset-urile → reantrenezi pe tot → **înlocuiești** modelul |
+| Antrenez doar C și E, mâine doar A și B, și pun 2 seturi de modele | Modelul din ziua 2 nu „știe” C/E; nu se combină 2 modele | Reantrenezi pe tot setul comun → **înlocuiești** modelul |
 | Pun JSON-urile de colectare în `public/models/`                    | Acolo stau doar modelele antrenate                       | Dataset-urile rămân în Downloads / Drive / Discord                  |
-| Încarc pe rând 4 JSON-uri pe pagina **Antrenare** ca să le unesc   | Antrenarea **înlocuiește** fișierul, nu unește           | Unești pe **Colectare → Import**                                    |
+| Încarc pe rând 4 JSON-uri pe pagina **Antrenare** ca să le unesc   | Antrenarea **înlocuiește** fișierul, nu unește           | Folosești **Încarcă din cloud**; ca rezervă, unești pe **Colectare → Import** |
 | Fiecare pe branch antrenează și dă push la `signa-model.json`      | La merge se calcă unul pe altul; modele incomplete       | Un singur PR cu modelul final, după antrenarea comună               |
 | Folosesc un dataset vechi (63 valori)                              | Format incompatibil (acum e 199)                         | Recolectezi; vezi eroarea `VECTOR_SIZE 199`                         |
 | Modific `src/utils/normalize.js`                                   | Invalidează tot dataset-ul și modelele                   | Nu atinge fișierul                                                  |
@@ -138,9 +138,15 @@ Exemplu: `signa-dataset-2026-07-31-rares.json`
 
 
 
-## 5. Cum uniți datele de la toți (Lead date)
+## 5. Cum uniți datele de la toți
 
-Uneirea se face pe pagina **Colectare**, nu pe Antrenare.
+**În mod normal nu trebuie să uniți nimic.** Dacă toți colectează invitați și cu
+consimțământ acceptat, exemplele sunt deja împreună în setul din cloud, iar
+antrenorul le ia direct cu **Antrenare → Încarcă din cloud** (secțiunea 6).
+
+Restul secțiunii e **procedura de rezervă**, pentru situația în care cineva a
+colectat offline sau fără invitație. Unirea se face pe pagina **Colectare**, nu
+pe Antrenare.
 
 1. Deschide **Colectare** (browser curat sau după ce ai golit dataset-ul local dacă vrei un start curat)
 2. **Import** → alege JSON-ul persoanei 1
@@ -175,14 +181,20 @@ Dacă vezi eroare `VECTOR_SIZE 199` → dataset vechi sau stricat. Nu-l forța.
 ### 6.1 Pe pagina Antrenare
 
 1. Acasă → **Antrenare model**
-2. La „1 – DATASET”, încarcă **un singur** fișier: `…-merged.json`
-  (sau un export care conține deja totul)
+2. La „1 – DATASET”, apasă **Încarcă din cloud** — iei tot setul echipei.
+  (Rezervă, dacă lucrezi offline: încarcă **un singur** fișier `…-merged.json`.)
 3. Alege preset **Standard**
 4. Antrenează **Model static** (litere fără mișcare)
 5. Dacă ai secvențe video: antrenează și **Model de mișcare**
 6. Uită-te la:
   - **Test set (held-out)** — acuratețea pe date nevăzute
   - literele slabe (< ~70%) — mai colectezi exemple pentru alea
+
+> **Cum se citește acuratețea.** Testul e separat pe **sesiuni de colectare**, nu
+> pe exemple: toate pozele dintr-o serie automată rămân împreună. Altfel modelul
+> ar fi testat pe cadre aproape identice cu cele de antrenament și cifra ar ieși
+> fals mare. Datele din cloud au sesiuni; un JSON încărcat local nu are, deci
+> acolo procentul e mai optimist decât realitatea.
 
 
 

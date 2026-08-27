@@ -3,7 +3,7 @@
 > Aplicație PWA „Duolingo pentru Limba Semnelor Române" (LSR).
 > Recunoașterea rulează pe dispozitiv (MediaPipe + TensorFlow.js) — fără cloud, fără costuri.
 
-## Starea actuală (24 august 2026)
+## Starea actuală (27 august 2026)
 
 - ✅ **Faza 1** — Tracking holistic Hand + Face + Pose + `normalize()` v2 (199)
 - ✅ **Faza 2** — Colectare cu inventar, serii automate 300 foto / 50 video, import/export
@@ -11,16 +11,22 @@
   recolectarea și reantrenarea holistică rămân blocante
 - ✅ **Faza 4** — Lecții gamificate (5 lecții × 5 litere, XP + stele)
 - 🔶 **Faza 4.5** — Semne dinamice (J, Z, X, Î, Ș, Ț) — pipeline GRU există, datele trebuie colectate
-- ✅ **Faza 5** — Supabase live: auth, progres, avatar, clasament și prieteni
+- ✅ **Faza 5** — Supabase live: auth, progres, avatar, clasament și prieteni;
+  aplicația e publică pe `https://signa-lsr.online`
+- ✅ **Faza 5.5** — Dataset colaborativ: toți colectăm în același set din cloud,
+  fără unire manuală de JSON-uri
 - ⬜ **Extindere** — Cuvinte întregi și provocări sociale
 
 ## Reguli de aur (valabile pentru toți)
 
 1. **`src/utils/normalize.js` NU se modifică.** Orice schimbare invalidează modelul și tot dataset-ul.
 2. Recunoașterea rămâne **pe dispozitiv** — niciodată imagini/video în cloud.
+   În cloud ajung doar vectori numerici, și numai după consimțământ.
 3. Stil: temă cream/friendly, Nunito, `ink` + accent `signa`; shell desktop-first,
    ecranele full-screen mobile-first.
-4. Dataset-ul se exportă des (localStorage se poate umple) și se păstrează versiuni în `~/Downloads` sau un folder partajat.
+4. Colectarea se sincronizează singură în setul comun. Setul e **partajat**, deci
+   nu colecta „de probă" — ce trimiți ajunge în modelul tuturor. Exportul JSON
+   rămâne util ca backup local.
 
 ---
 
@@ -51,7 +57,8 @@
 - [ ] Stabilește lista primelor 20–30 de cuvinte LSR de colectat (salut, mulțumesc, familie, culori, cifre)
 - [ ] Colectează cuvintele stabilite folosind câmpul de etichetă liberă + modul potrivit (Foto/Video)
 - [ ] Diversifică datele: mâna stângă/dreaptă, unghiuri, distanțe, iluminare diferită
-- [ ] Organizează fișierele exportate (convenție de nume, folder partajat, log cu cine/ce/când a colectat)
+- [x] Nu mai e nevoie de convenție de fișiere: inventarul comun din cloud arată
+      cine a colectat ce și cât
 - [x] Inventar permanent în CollectPage (etichete, număr și prag recomandat)
 - [x] Serii automate: 300 foto pe cadre MediaPipe noi / 50 secvențe video
 
@@ -153,5 +160,5 @@ Repozitoriu: https://github.com/margi-tech/signa
 ## Ritm de lucru sugerat
 
 - **Sync scurt săptămânal:** fiecare spune ce a terminat, ce urmează, ce îl blochează
-- **Dataset-ul se exportă și se versionează la fiecare sesiune de colectare**
+- **Colectarea se sincronizează automat; verifică inventarul comun după sesiune**
 - **Orice schimbare care atinge `normalize()`, formatul dataset-ului sau formatul modelului se anunță întregii echipe înainte de merge**

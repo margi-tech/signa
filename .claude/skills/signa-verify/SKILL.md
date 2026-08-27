@@ -8,7 +8,7 @@ description: Verifică o modificare în Signa — ce comenzi există de fapt, cu
 ## Comenzile care există de fapt
 
 ```bash
-npm test          # vitest run — 47 teste
+npm test          # vitest run — 60 de teste, 13 fișiere
 npx vite build    # verificarea de compilare
 npm run dev       # server de dev
 ```
@@ -109,14 +109,37 @@ preview și producție) are storage separat.
 
 ## Siguranța datasetului
 
-`signa-dataset-v1` este local și nu se sincronizează cu Supabase, dar conține
-muncă reală de colectare. Nu îl șterge, înlocui sau injecta pentru preview fără
-acord. Înainte de teste distructive:
+`signa-dataset-v1` conține muncă reală de colectare. Nu îl șterge, înlocui sau
+injecta pentru preview fără acord. Înainte de teste distructive:
 
 1. folosește o origine/instanță separată sau exportă datasetul;
 2. nu apăsa resetarea unei etichete reale;
 3. nu valida o serie automată completă în contul/browserul utilizatorului;
 4. pentru timing foto/video, cere test într-un browser vizibil cu cameră reală.
+
+### ⚠ Datasetul din cloud e comun pe toată echipa
+
+De la datasetul colaborativ, exemplele nu mai rămân pe mașina ta: un cont cu
+`can_collect` **și consimțământ dat** trimite automat orice captură în
+`dataset_batches`, la 4 secunde. Ce injectezi acolo intră în setul pe care
+antrenează toată lumea, iar loturile trimise nu se retrag din client.
+
+Deci, pe un cont real de colector:
+
+- nu porni serii automate „de test" și nu captura cadre fabricate;
+- nu apela `queueLocalDataset()` ca să vezi ce face — urcă tot datasetul local;
+- pentru verificări de UI, testează pe un cont **fără** `can_collect`, sau
+  înainte de a accepta consimțământul: coada rămâne locală și nu pleacă nimic.
+
+Verifică unde ești înainte de orice captură de test:
+
+```js
+(await import('/src/lib/dataset.js')).getDatasetAccess()
+// null sau can_collect:false → sigur; consented:true → capturile pleacă în cloud
+```
+
+Dacă ai trimis din greșeală exemple stricate, spune-i utilizatorului — curățarea
+se face din SQL Editor, nu din aplicație.
 
 ## Smoke test social
 
@@ -139,7 +162,20 @@ După o migrare de schemă:
 3. `record_lesson_completion` acordă XP o singură dată per lecție/zi;
 4. `profiles` complet este disponibil numai prin `get_own_profile()`;
 5. avatarurile SVG sau peste 2 MB sunt respinse;
-6. ștergerea contului elimină sesiunea și datele locale de progres.
+6. ștergerea contului elimină sesiunea și datele locale de progres;
+7. un cont fără rând în `dataset_members` nu poate chema `append_dataset_batch`
+   și nu vede Colectare/Train;
+8. un colector fără consimțământ primește „Consent required", nu un insert reușit.
+
+## Smoke test dataset colaborativ
+
+1. cont invitat cu `can_collect` → Colectare se deschide, dar nimic nu pleacă
+   până la consimțământ (UI: „Local până accepți trimiterea");
+2. după consimțământ, capturile ajung în inventarul comun în câteva secunde;
+3. offline → coada crește; revenirea online o golește singură;
+4. `can_train` → butonul „Încarcă din cloud" apare în Train;
+5. o etichetă colectată în două sesiuni diferite ajunge cu două `session_id`-uri
+   distincte (altfel split-ul train/test devine fals — vezi `signa-train`).
 
 ## Lista de verificat înainte de „gata"
 
@@ -151,3 +187,4 @@ După o migrare de schemă:
 - [ ] `git status` arată doar fișierele pe care chiar voiai să le atingi
 - [ ] ce n-ai putut verifica (timing, mobil real, cameră) — spus explicit
 - [ ] datele reale din `signa-dataset-v1` nu au fost șterse sau fabricate
+- [ ] nicio captură de test n-a plecat în `dataset_batches` (setul e comun)

@@ -112,6 +112,12 @@ aplică oricărei animații care suprascrie o stare vizuală purtătoare de info
 
 - `CollectPage` este full-screen: vizor mare + consolă compactă + inventar
   persistent. Nu o muta în `AppShell`.
+- Panoul de consimțământ și starea de sincronizare (`syncLabel`) sunt informative
+  și trebuie să rămână lizibile fără să acopere vizorul. Stările au tonuri
+  distincte: „Local până accepți trimiterea" (amber), „Se trimite…", „N netrimise"
+  (amber), eroare. Nu ascunde starea de eroare — vezi `signa-collect`.
+- Inventarul afișează `max(cloud, local)` pe etichetă, deci numărul poate sări
+  când sosește inventarul din cloud. E intenționat.
 - Camera folosește `videoFit="cover"`: fără benzi sau margini în jurul fluxului.
   `HandCanvas` trebuie să folosească același fit.
 - Cadranul de față e un oval subțire în treimea de sus (funcțional, nu decorativ).
@@ -133,9 +139,19 @@ aplică oricărei animații care suprascrie o stare vizuală purtătoare de info
    locale de iconițe în pagini — au fost deja deduplicate o dată.
 4. Datele de profil/rang/rol vin din `useProfileSummary()`, chemat o singură dată
    în shell și pasat mai departe. Nu re-interoga Supabase din fiecare pagină.
-5. Colectare, Train și Diagnostic se afișează în sidebar numai pentru admin.
-   Ascunderea vizuală nu este suficientă: păstrează și guard-ul de rută din
-   `App.jsx`.
+5. Uneltele interne se afișează condiționat în sidebar: **Colectare** cu
+   `canCollect`, **Train** cu `canTrain`, **Diagnostic** doar pentru admin.
+   Colectarea și antrenarea nu mai cer `role = 'admin'` — merg și pe capabilități
+   din `dataset_members` (vezi `signa-collect`). Ascunderea vizuală nu e
+   suficientă: păstrează și guard-ul de rută din `App.jsx`, cu ecranele lui de
+   refuz separate pentru colector și antrenor.
+
+## Skill-uri vecine
+
+- `signa-collect` — camera, seriile automate, datasetul și sincronizarea în cloud
+- `signa-train` — antrenare, split pe sesiuni, export de modele
+- `signa-auth` — ecranul de login/signup, resetare parolă, login cu Google
+- `signa-social` — follow reciproc și prietenii din Profil
 
 ## Înainte să spui că e gata
 

@@ -1,9 +1,9 @@
 # Ghid strict — Antrenare modele Signa
 
-**Dataset** = JSON cu exemple (Downloads/Drive).  
+**Dataset** = exemplele colectate (în cloud, comune pe echipă).  
 **Model** = rezultatul antrenării → `public/models/`.
 
-**1 dataset unit → 1 antrenare → 1 set de modele.**
+**1 dataset complet → 1 antrenare → 1 set de modele.**
 
 ---
 
@@ -11,12 +11,12 @@
 
 - JSON de colectare în `public/models/`
 - Antrenări separate pe litere/cuvinte pe care le „lipești” după
-- Upload multiplu pe Antrenare ca să unești (nu unește — **înlocuiește**)
 - Dataset vechi (63) — trebuie **199**
 - Modificat `normalize.js`
+- Colectat „de probă” pe contul tău de colector — setul din cloud e **comun**;
+  ce trimiți ajunge în modelul tuturor
 
-Unirea se face doar: **Colectare → Import**.  
-Date noi mâine = Import vechi+nou → **reantrenezi tot** → înlocuiești modelul.
+Date noi mâine = **reantrenezi tot** → înlocuiești modelul. Nu se lipesc modele.
 
 ---
 
@@ -24,11 +24,12 @@ Date noi mâine = Import vechi+nou → **reantrenezi tot** → înlocuiești mod
 
 1. **Colectezi** — Foto (static) / Video (dinamic). Prag recomandat: minimum
    50 Foto / 30 Video per etichetă. Seria automată face 300 Foto sau 50 Video;
-   oprește și exportă mai devreme dacă ai acoperirea necesară.
-2. **Export** — `signa-dataset-prenume.json` → pe canal.
-3. **Unești** (1 persoană) — Import pe rând → Export `signa-dataset-merged.json`.
-4. **Antrenezi** — încarci un singur merged → Model static + Model de mișcare → Descarcă.
-5. **Instalezi** în `public/models/` (nume exacte, fără `(1)`):
+   poți opri mai devreme dacă ai acoperirea necesară.
+   Exemplele pleacă singure în setul comun, după ce accepți consimțământul o
+   dată. Nu trebuie să exporți și să trimiți nimic pe canal.
+2. **Antrenezi** (1 persoană, cu drept de antrenare) — **Antrenare → Încarcă din
+   cloud** → Model static + Model de mișcare → Descarcă.
+3. **Instalezi** în `public/models/` (nume exacte, fără `(1)`):
 
 
 | Static                    | Dinamic                           |
@@ -38,9 +39,15 @@ Date noi mâine = Import vechi+nou → **reantrenezi tot** → înlocuiești mod
 | `signa-labels.json`       | `signa-labels-dynamic.json`       |
 
 
+4. **Testezi** (mai jos).
+
+### Dacă nu ai invitație sau lucrezi offline
+
+Fluxul vechi merge în continuare: **Colectare → Export** → un coleg face
+**Colectare → Import** pe rând → antrenează pe setul unit. E mai lent și pierde
+informația de sesiune (vezi `docs/retrain.md`), deci folosește-l doar ca rezervă.
+
 ---
-
-
 
 ## Test pe dev
 
