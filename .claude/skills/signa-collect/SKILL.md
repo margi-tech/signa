@@ -1,6 +1,6 @@
 ---
 name: signa-collect
-description: Modifică fluxul de colectare a datasetului Signa — cameră holistică, capturi foto/video, serii automate, inventar, import/export și siguranța coordonatelor. Folosește când lucrezi la CollectPage, HandTracker, HandCanvas, LetterSelector sau useDatasetCollector.
+description: Modifică fluxul de colectare a datasetului Signa — cameră holistică, capturi foto/video, serii automate, inventar, dataset colaborativ în cloud, import/export și siguranța coordonatelor. Folosește când lucrezi la CollectPage, HandTracker, HandCanvas, LetterSelector, useDatasetCollector, useDatasetCloudSync sau lib/dataset.js.
 ---
 
 # Colectarea datasetului Signa
@@ -17,6 +17,43 @@ description: Modifică fluxul de colectare a datasetului Signa — cameră holis
 - Se salvează coordonate numerice în `signa-dataset-v1` (local) și, după
   consimțământ, în `dataset_batches` (vectori 199, fără imagini). Coada
   pending e `signa-dataset-pending-v1`, per user. Nu șterge dataset-ul local.
+
+## Dataset colaborativ (cloud)
+
+Echipa nu mai unește JSON-uri manual: exemplele se replică în Supabase, ca
+`TrainPage` să antreneze pe setul comun. Local rămâne sursa de adevăr —
+sincronizarea **nu atinge niciodată `signa-dataset-v1`**.
+
+**Acces.** Capabilitățile stau în `dataset_members` (`can_collect`, `can_train`,
+`can_publish`) și sunt **separate de `profiles.role`**. Adminii le au implicit;
+restul se invită din SQL Editor. Clientul nu poate scrie în tabel. `useDatasetAccess`
+citește `get_dataset_access()`; fără Supabase, totul e `false`, iar `App.jsx` lasă
+uneltele deschise (mod offline).
+
+**Consimțământ.** Nimic nu pleacă spre cloud până la `consent_dataset_upload()`.
+Până atunci capturile se adună doar în coada locală, iar UI-ul spune explicit
+„Local până accepți trimiterea". Nu trimite exemple în avans „ca să nu se piardă".
+
+**Sesiuni — contează pentru antrenare.** `useDatasetCloudSync` ține un `sessionId`
+(`crypto.randomUUID()`) și îl schimbă prin `bumpSession()` la schimbarea
+etichetei/modului și la pornirea fiecărei serii automate. `session_id` ajunge în
+`dataset_batches` și devine grupul pe care `groupedSplit` separă train/test.
+**Dacă strici sesiunile, strici evaluarea modelului** — toate exemplele ar arăta
+ca o singură sesiune uriașă și acuratețea de test devine falsă. Vezi `signa-train`.
+
+**Loturi și coadă.** Exemplele se string în loturi de `STATIC_CHUNK = 50` /
+`SEQUENCE_CHUNK = 8` (`chunkSizeFor`), rotunjite la 4 zecimale (`round4`) și
+validate din nou înainte de a intra în coadă. Coada e `signa-dataset-pending-v1`,
+**per user**, exact ca la progres. Flush automat la 4 s și la evenimentul `online`.
+
+**Erori de la RPC.** `throwRpc` traduce mesajele: consimțământ lipsă, cont
+neinvitat la colectare/antrenare, rate limit. La rate limit lotul rămâne în coadă
+și se reîncearcă; la orice altă eroare coada se păstrează și eroarea urcă în UI.
+Nu înghiți eroarea și nu goli coada ca să „treacă".
+
+**Inventar.** `list_dataset_inventory()` dă numărul pe etichetă din setul comun;
+`CollectPage` afișează `max(cloud, local)`. `queueLocalDataset()` urcă la cerere
+datasetul local existent — util o singură dată, la intrarea unui coleg în echipă.
 
 ## Camera holistică
 

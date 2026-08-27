@@ -8,8 +8,8 @@ Recunoașterea semnelor rulează **pe dispozitiv**, fără cloud, fără costuri
 - MediaPipe (`@mediapipe/tasks-vision`) — Hand Landmarker (21 pct/mână) + Face Landmarker
   (blendshapes + orientare cap) + Pose Landmarker (trunchi) — tracking holistic, nu doar mâini
 - TensorFlow.js — clasificator MLP (poze statice) + GRU (semne cu mișcare), antrenate în browser
-- Backend: Supabase live — auth, profil, progres, clasament și social
-  (`src/lib/supabase.js` + `supabase/schema.sql`)
+- Backend: Supabase live — auth, profil, progres, clasament, social și datasetul
+  colaborativ (`src/lib/supabase.js` + `supabase/schema.sql`)
 
 ## Structura proiectului
 ```
@@ -30,6 +30,8 @@ src/
 ├── hooks/
 │   ├── useHolisticLandmarker.js
 │   ├── useDatasetCollector.js
+│   ├── useDatasetAccess.js    # capabilități colector/antrenor (dataset_members)
+│   ├── useDatasetCloudSync.js # coadă locală → append_dataset_batch, sesiuni
 │   ├── useClassifier.js
 │   ├── useProgress.js         # XP, stele, streak, nivel, mastery
 │   ├── useProgressSync.js     # progres server-authoritative + coadă offline per user
@@ -38,11 +40,18 @@ src/
 ├── pages/                     # Home, Camera, Collect, Train, Lessons, Lesson, Spell,
 │                              # Review, Diagnostic, Profile, Leaderboard, ReferinteCatalog
 ├── data/                      # lsr-alphabet, lessons, words, reference-poses
-├── lib/supabase.js
+├── lib/
+│   ├── supabase.js            # client + profil, avatar, social
+│   ├── dataset.js             # dataset colaborativ: coadă, loturi, RPC-uri
+│   └── authErrors.js          # erori Supabase → mesaje în română
 └── utils/
     ├── normalize.js           # ⚠ CRITICĂ — VECTOR_SIZE 199
     ├── datasetValidation.js   # vectori finiți + secvențe SEQ_FRAMES
+    ├── parseTrainDataset.js   # JSON/loturi cloud → seturi de antrenare + grupuri
+    ├── trainModel.js          # MLP + GRU, split pe sesiuni, augmentare
     ├── readJsonFile.js        # import JSON cu limită de dimensiune
+    ├── username.js            # validatori pentru nume/username/email/parolă
+    ├── faceFrame.js           # cadranul de față
     └── playerMeta.js          # nivel/rang/metadate vizuale comune socialului
 ```
 
@@ -77,12 +86,19 @@ direct din `App.jsx`.
     (SQL), nu prin `profiles.role`. Fără Supabase, uneltele rămân deschise.
 11. Clientul nu poate scrie rolul, XP-ul sau streak-ul direct. Nu slăbi trigger-ele,
     RPC-urile ori granturile din `supabase/schema.sql`.
+12. Datasetul din cloud e **comun pe toată echipa**: cu `can_collect` și
+    consimțământ dat, capturile pleacă automat în `dataset_batches`. Nu genera
+    exemple de test pe un cont real de colector. Coada locală e
+    `signa-dataset-pending-v1`, per user; `signa-dataset-v1` rămâne intact.
+13. `session_id`-ul din loturi e grupul pe care se face split-ul train/test.
+    Nu-l unifica și nu-l genera o singură dată per user — altfel acuratețea
+    raportată devine falsă (vezi skill-ul `signa-train`).
 
 ## Verificare
 ```bash
 npm install
 npm run dev
-npm test          # vitest — 47 teste
+npm test          # vitest — 60 de teste, 13 fișiere
 npx vite build
 ```
 **Nu există `npm run lint` și nici `tsc`** — proiectul e JS curat. Dacă o cerință
@@ -92,13 +108,19 @@ le menționează, spune că nu se aplică și rulează testele + build-ul.
 `.claude/skills/` — invocă-le după caz:
 - **signa-ui** — UI, layout, animații, tokeni, arhitectura de shell
 - **signa-verify** — comenzi de verificare, preview, capcane, siguranța datelor
-- **signa-git** — branch per task, commit, PR, merge, recuperare din stash
-- **signa-collect** — cameră holistică, serii automate, dataset, import/export
+- **signa-git** — branch per task, commit, push, PR, merge, recuperarea muncii pierdute
+- **signa-collect** — cameră holistică, serii automate, dataset local + cloud
+- **signa-train** — MLP/GRU, split pe sesiuni, augmentare, export în `public/models/`
+- **signa-auth** — login/signup, resetare parolă, login cu Google, `handle_new_user`
 - **signa-social** — follow reciproc, prieteni în Profil, Supabase/RLS
 
 ## Faze
 - Faza 1–4 ✅ (camera holistică, colectare, train, lecții)
 - Faza 4.5 🚧 (pipeline GRU gata; lipsește recolectare + modele active în `public/models/`)
-- Faza 5 — Supabase live; deploy Vercel blocat de contul echipei
+- Faza 5 ✅ Supabase live, aplicația publică pe `https://signa-lsr.online`
+- Faza 5.5 ✅ dataset colaborativ: echipa colectează în același set din cloud,
+  cu capabilități și consimțământ, iar antrenarea face split pe sesiuni
+- În curs: login cu Google (cod gata, provider neconfigurat încă în Supabase —
+  vezi `docs/supabase-setup.md` §8)
 
 Vezi `ROADMAP.md` pentru starea bifelor și `ARHITECTURA.md` pentru viziunea de produs.

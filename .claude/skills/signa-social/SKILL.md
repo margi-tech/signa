@@ -42,6 +42,13 @@ description: Modifică funcțiile sociale Signa — profil public/privat, follow
 - Rolul se promovează numai operațional, din SQL Editor; trigger-ul
   `protect_profile_role` forțează clientul autentificat la `role = 'user'`.
 
+## Ce ține de alt skill
+
+- Ecranul de login/signup, resetarea parolei și crearea profilului la primul
+  login → `signa-auth`. Aici e doar ce se întâmplă **după** ce contul există.
+- Capabilitățile `dataset_members` (colector/antrenor) nu sunt o funcție socială
+  și nu se amestecă cu `visibility` sau cu follow-urile → `signa-collect`.
+
 ## Verificare
 
 Testează cu două conturi publice:

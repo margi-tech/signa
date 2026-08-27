@@ -122,7 +122,10 @@ export default function AuthPanel({
   };
 
   const signInWithProvider = (provider) => run(async () => {
-    const { error } = await supabase.auth.signInWithOAuth({ provider });
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: window.location.origin },
+    });
     if (error) throw error;
   });
 

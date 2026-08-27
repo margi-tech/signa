@@ -55,7 +55,10 @@ Bariera e profundă: înainte de recunoașterea legală, peste 20 de ani, sub 1%
 - Follow reciproc și prieteni integrați în pagina Profil.
 - Colectare asistată: inventar permanent și serii automate foto/video.
 - Recuperare parolă prin email, ștergere cont și avatar JPEG/PNG/WebP validat.
-- Uneltele interne Colectare/Train/Diagnostic sunt disponibile numai adminilor.
+- Dataset colaborativ: echipa colectează în același set din cloud (numai vectori
+  numerici, cu consimțământ explicit), iar antrenarea îl încarcă de acolo.
+- Diagnosticul e rezervat adminilor; colectarea și antrenarea merg pe capabilități
+  acordate individual, separate de rol.
 
 ### 4.3. Non-goals (asumate explicit)
 - Traducere completă, în timp real, a propozițiilor.
@@ -147,6 +150,32 @@ publice permise, iar `leaderboard` combină profilul public cu scorul. Profilul
 complet propriu se citește prin `get_own_profile()`. XP/streak/lecțiile sunt
 actualizate numai prin `record_lesson_completion`, cu deduplicare per lecție/zi.
 
+### dataset_members
+| Câmp | Tip | Descriere |
+|---|---|---|
+| user_id | UUID | Membrul invitat |
+| can_collect / can_train / can_publish | boolean | Capabilități, separate de `role` |
+| consented_at | timestamptz | Momentul consimțământului pentru trimitere |
+| granted_by | UUID | Cine a acordat accesul |
+
+### dataset_batches
+| Câmp | Tip | Descriere |
+|---|---|---|
+| id | UUID | Identificator lot |
+| user_id | UUID | Cine a colectat |
+| label | text | Eticheta (literă sau cuvânt) |
+| kind | text | `static` sau `sequence` |
+| session_id | UUID | Sesiunea de colectare — grupul pentru split train/test |
+| samples | JSONB | Vectori 199 (sau secvențe `SEQ_FRAMES × 199`) |
+| created_at | timestamptz | Momentul trimiterii |
+
+Clientul nu poate scrie direct în niciunul dintre tabele: totul trece prin RPC-uri
+(`get_dataset_access`, `consent_dataset_upload`, `append_dataset_batch`,
+`list_dataset_inventory`, `fetch_dataset_batches`), care validează forma vectorilor,
+cer consimțământ și aplică o limită de rată. Sursa exactă: `supabase/dataset-collab.sql`.
+
+**Nu se stochează imagini sau video** — nici aici, nici altundeva.
+
 ---
 
 ## 8. Cum funcționează recunoașterea
@@ -214,8 +243,15 @@ Pe faze. Fiecare fază are obiectiv, sarcini și un rezultat verificabil. Nu tre
 
 ### Faza 5 — Backend, conturi și clasament
 - Supabase Auth, profil public/privat, progres sincronizat, clasament și follow reciproc.
-- **Rezultat curent:** conturile, progresul și socialul sunt implementate; deploy-ul
-  public este blocat de contul Vercel al echipei.
+- **Rezultat:** conturile, progresul și socialul rulează, iar aplicația e publică
+  pe `https://signa-lsr.online`.
+
+### Faza 5.5 — Dataset colaborativ
+- Colectare în echipă pe același set din cloud, cu capabilități per membru și
+  consimțământ explicit; antrenarea încarcă setul comun și separă train/test pe
+  sesiuni de colectare.
+- **Rezultat:** echipa nu mai unește JSON-uri manual, iar acuratețea raportată nu
+  mai e umflată de seriile automate.
 
 ### Faza 6 — Finisare, testare și pregătirea demo-ului
 - Curățarea UI, testare pe mai multe telefoane/condiții de lumină, repetarea demo-ului, variantă de rezervă.

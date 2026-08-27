@@ -13,7 +13,9 @@ Aplicație web PWA care recunoaște semnele **pe dispozitiv** — fără cloud, 
 - **Predicție live** — litere statice (MLP) + semne cu mișcare (GRU), în browser
 - **Lecții + XP** — progres, stele, streak, nivel
 - **Colectare & antrenare** — cameră holistică, inventar permanent, serii automate
-  (300 foto / 50 video), export JSON și antrenare TensorFlow.js
+  (300 foto / 50 video) și antrenare TensorFlow.js în browser
+- **Dataset colaborativ** — echipa colectează în același set din cloud (doar
+  vectori numerici, cu consimțământ), fără unire manuală de JSON-uri
 - **Scrie cuvântul** — dactilare literă cu literă
 - **Profil social** — identitate de jucător, clasament, follow reciproc și prieteni
 - **Cont securizat** — recuperare parolă, ștergere cont și avataruri validate
@@ -59,23 +61,27 @@ Fără aceste fișiere, predicția nu e disponibilă. Vezi ghidul de antrenare m
 ## Flux pentru echipă (date + modele)
 
 ```
-Colectare (Foto/Video) → Export JSON → Import (unire) → Antrenare → public/models/ → Test
+Colectare (Foto/Video) → sync automat în cloud → Train „Încarcă din cloud"
+   → public/models/ → Test
 ```
 
-1. Fiecare colectează pe etichetele lui și exportă JSON  
-2. Un lead unește dataset-urile (**Colectare → Import**)  
-3. O singură antrenare pe setul unit  
+1. Fiecare e invitat în `dataset_members` și acceptă consimțământul în aplicație  
+2. Colectează pe etichetele lui — exemplele se trimit singure, în fundal  
+3. Un antrenor apasă **Train → Încarcă din cloud** și antrenează pe setul comun  
 4. Fișierele modelului merg în `public/models/`  
 5. Test: `npm run dev` → Diagnostic → Antrenament  
 
-**Ghid scurt (obligatoriu pentru echipă):** [`docs/GHID-ANTRENARE-STRICT.md`](docs/GHID-ANTRENARE-STRICT.md) · [PDF](docs/GHID-ANTRENARE-STRICT.pdf)
+Fluxul vechi (export JSON → **Colectare → Import** → antrenare) încă
+funcționează offline sau fără invitație, dar nu mai e calea normală.
+
+**Ghid scurt (obligatoriu pentru echipă):** [`docs/GHID-ANTRENARE-STRICT.md`](docs/GHID-ANTRENARE-STRICT.md)
 
 ### Reguli pe scurt
 
 - Nu pune JSON-uri de colectare în `public/models/`
 - Nu antrena litere separat ca să „lipești” modele — reantrenezi pe tot setul
-- Unirea dataset-urilor = **Colectare → Import**, nu pagina Antrenare
 - Format dataset: **199** valori (nu 63)
+- Nu colecta „de test" pe un cont invitat — setul din cloud e comun pe toată echipa
 - Pe `main`: modelul final. Pe `dev`/local: teste OK
 
 ## Structură
@@ -88,12 +94,15 @@ src/
 ├── pages/          # Home, Camera, Collect, Train, Lessons, Lesson, Spell,
 │                   # Review, Diagnostic, Profile, Leaderboard, Referințe
 ├── data/           # alfabet, lecții, cuvinte, reference-poses
-├── utils/normalize.js   # ⚠ VECTOR_SIZE 199
+├── utils/          # normalize (⚠ VECTOR_SIZE 199), validatori, antrenare,
+│                   # parsare dataset, validări de cont
 ├── index.css       # tokeni + animațiile `sg-*`
-└── lib/supabase.js
+└── lib/            # supabase, dataset colaborativ, mesaje de eroare
 public/models/      # modele active (TF.js)
+supabase/           # schema.sql, dataset-collab.sql, storage-avatars.sql
 docs/               # ghiduri echipă
-.claude/skills/     # skill-uri de lucru (UI, colectare, social, verificare, git)
+.claude/skills/     # skill-uri de lucru (UI, colectare, antrenare, auth,
+                    # social, verificare, git)
 ```
 
 **Acasă / Lecții / Cameră / Clasament / Profil** stau într-un shell comun
@@ -121,9 +130,11 @@ Profil. Lecția, Colectarea, Train, Diagnostic și Referințe rămân full-scree
 | Skill | Când |
 |---|---|
 | `signa-ui` | Ecrane, layout, animații, tokeni, shell |
-| `signa-verify` | Verificare, preview, capcane, siguranța datelor de progres |
-| `signa-git` | Branch per task, commit, PR, merge |
-| `signa-collect` | Cameră holistică, serii automate, dataset, import/export |
+| `signa-verify` | Verificare, preview, capcane, siguranța datelor |
+| `signa-git` | Branch per task, commit, push, PR, merge, recuperare |
+| `signa-collect` | Cameră holistică, serii automate, dataset local + cloud |
+| `signa-train` | MLP/GRU, split pe sesiuni, export în `public/models/` |
+| `signa-auth` | Login/signup, resetare parolă, login cu Google |
 | `signa-social` | Follow reciproc, prieteni în Profil, Supabase/RLS |
 
 ## Git (echipă)
@@ -136,7 +147,14 @@ Profil. Lecția, Colectarea, Train, Diagnostic și Referințe rămân full-scree
 
 ## Confidențialitate
 
-Recunoașterea rulează **local pe dispozitiv**. Nu trimitem imagini/video în cloud — doar vectori numerici în dataset-urile exportate (JSON), dacă le partajați în echipă.
+Recunoașterea rulează **local pe dispozitiv**. Imaginile și filmările nu pleacă
+niciodată de pe dispozitiv — nu sunt trimise și nu sunt stocate nicăieri.
+
+Ce ajunge în cloud, pentru membrii invitați la datasetul colaborativ și **numai
+după consimțământ explicit în aplicație**: vectorii numerici normalizați (199 de
+valori per captură statică, `SEQ_FRAMES × 199` per filmare). Din ei nu se poate
+reconstrui imaginea. Până accepți, exemplele rămân într-o coadă locală, iar
+ecranul de Colectare o spune explicit.
 
 XP-ul, streak-ul și lecțiile sunt validate și acordate în Supabase prin
 `record_lesson_completion`; clientul nu poate suprascrie direct scorurile.

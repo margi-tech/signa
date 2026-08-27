@@ -1,6 +1,6 @@
 ---
 name: signa-git
-description: Fluxul de git pentru repo-ul Signa — branch per task, commit, PR, merge. Folosește când începi o lucrare nouă, când dai commit/push, când schimbi branch-ul sau când un merge e blocat. Conține regula care a costat deja o zi de muncă pierdută.
+description: Fluxul de git pentru repo-ul Signa — branch per task, commit, push, PR, merge și recuperarea muncii pierdute. Folosește când începi o lucrare nouă, când dai commit/push, când schimbi branch-ul, când un merge e blocat sau când un commit pare dispărut. Conține cele două reguli care au costat deja muncă pierdută.
 ---
 
 # Git în Signa
@@ -26,6 +26,31 @@ Concret:
   `git log --all --oneline -- <fisier>`, `git reflog`, `git fsck --lost-found`.
   Verifică și partea untracked a unui stash: `git show --stat 'stash@{N}^3'`.
 
+## ⚠ A doua regulă plătită cu muncă pierdută: nu ești singur pe repo
+
+Pe 27 aug 2026, un commit terminat (login cu Google) a dispărut complet — și din
+istoric, și din working tree. Cauza: repo-ul e deschis simultan în Claude Code și
+în Cursor. Cealaltă unealtă a resetat branch-ul la `origin/main` și a
+cherry-pick-uit peste el altă lucrare. Commit-ul meu exista doar local, deci
+nimic nu l-a protejat. A fost refăcut manual; în `git reflog` se vedea limpede.
+
+Ce urmează din asta:
+
+- **Verifică starea imediat înainte de push**, nu doar înainte de commit. Un
+  `git log --oneline -3` care nu arată commit-ul tău înseamnă că altcineva a
+  rescris branch-ul între timp.
+- **Push devreme.** Un commit ne-pushed pe un repo folosit de două unelte e la fel
+  de fragil ca lucrul necomis. `origin` e singura copie pe care n-o rescrie
+  accidental un alt proces local.
+- Dacă un fișier la care tocmai ai lucrat „arată ca înainte", nu presupune că te-ai
+  înșelat — verifică `git reflog` întâi. Reflog-ul ține și commit-urile rămase
+  fără branch.
+- Când raportezi o pierdere de muncă utilizatorului, spune ce s-a întâmplat și de
+  unde știi (reflog), nu doar „refac".
+
+Recuperare, în ordine: `git reflog`, `git stash list`,
+`git log --all --oneline -- <fisier>`, `git fsck --lost-found`.
+
 ## Branch per task
 
 Fiecare lucrare pleacă din `main`, nu din branch-ul curent:
@@ -45,8 +70,11 @@ fișierul e atins de ambele părți, ai conflict.
 ## Commit
 
 Mesaje în română, imperativ, cu explicația *de ce* în corp când nu e evident.
-Nu adăuga automat un `Co-Authored-By` fix: agentul/modelul se poate schimba.
-Folosește un trailer doar dacă utilizatorul îl cere și identitatea este corectă.
+
+Trailer-ul `Co-Authored-By` trebuie să poarte identitatea **modelului care chiar a
+scris commit-ul** — istoricul are deja `Cursor` și `Claude Sonnet 5` pe commit-uri
+diferite, ceea ce e corect. Nu copia un trailer dintr-un commit vechi și nu lăsa
+un nume hardcodat în vreun script; se schimbă de la o sesiune la alta.
 
 Dă commit doar la fișierele lucrării tale. Repo-ul are frecvent și munca altcuiva
 în working tree — `git add -A` orb amestecă istoricul. Verifică cu
@@ -78,9 +106,12 @@ după termeni din cealaltă lucrare.
 `main` are branch protection. La merge te poți lovi de:
 
 1. **„Review required"** — cere cel puțin un approve de la cineva cu write access.
-   Nu-ți poți aproba singur PR-ul.
-2. **Vercel: „Account is blocked"** — check-ul de deploy pică din cauza contului
-   Vercel al ownerului echipei (billing/suspendare), nu din cauza codului.
+   Nu-ți poți aproba singur PR-ul. `gh` e autentificat chiar ca autorul PR-urilor,
+   deci auto-aprobarea e imposibilă.
+2. **Vercel: „Account is blocked"** — check-ul de deploy a picat o perioadă din
+   cauza contului Vercel al ownerului echipei (billing), nu din cauza codului.
+   Aplicația e între timp publică pe `https://signa-lsr.online`, deci dacă
+   revezi blocajul, verifică starea reală a contului înainte să dai vina pe cod.
 
 Merge cu bypass (doar dacă ești admin și ți se cere explicit):
 
