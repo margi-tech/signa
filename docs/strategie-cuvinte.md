@@ -14,4 +14,5 @@
 
 ## Vocabular MVP
 
-Vezi `src/data/words.js` (~25 cuvinte, 5 categorii) extras din `docs/cuvinte-lsr-categorii.pdf`.
+Vezi `src/data/words.js` (~25 cuvinte, 5 categorii), extras dintr-un PDF cu
+cuvinte LSR pe categorii care nu mai e păstrat în repo (îl are David).

@@ -74,7 +74,7 @@ Colectare (Foto/Video) → sync automat în cloud → Train „Încarcă din clo
 Fluxul vechi (export JSON → **Colectare → Import** → antrenare) încă
 funcționează offline sau fără invitație, dar nu mai e calea normală.
 
-**Ghid scurt (obligatoriu pentru echipă):** [`docs/GHID-ANTRENARE-STRICT.md`](docs/GHID-ANTRENARE-STRICT.md) · [PDF](docs/GHID-ANTRENARE-STRICT.pdf)
+**Ghid scurt (obligatoriu pentru echipă):** [`docs/GHID-ANTRENARE-STRICT.md`](docs/GHID-ANTRENARE-STRICT.md)
 
 ### Reguli pe scurt
 

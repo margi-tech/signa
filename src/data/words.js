@@ -2,7 +2,8 @@
  * Vocabular MVP — cuvinte LSR pentru provocarea „Scrie cuvântul"
  * (dactilare literă-cu-literă) și lecțiile de cuvinte viitoare.
  *
- * Sursa: docs/cuvinte-lsr-categorii.pdf, subset curat pentru începători.
+ * Sursa: un PDF cu cuvinte LSR pe categorii (nu mai e în repo), subset curat
+ * pentru începători.
  * Strategia (P1): dactilarea literă-cu-literă folosește modelul static existent;
  * cuvintele-semn (gest unic) vor avea model separat după recolectare.
  */
