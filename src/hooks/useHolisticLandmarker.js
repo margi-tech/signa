@@ -1,16 +1,18 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { HandLandmarker, FaceLandmarker, PoseLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
 
-// WASM-ul și modelele vin de pe CDN și sunt cachuite de service worker după prima încărcare.
-const WASM_PATH =
+// WASM-ul și modelele vin de pe CDN (script injectat de MediaPipe, apoi fetch)
+// și sunt cachuite de service worker. CSP-ul de producție trebuie să permită
+// jsDelivr la script-src, nu doar la connect-src — vezi vercel.json.
+export const WASM_PATH =
   'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/wasm';
-const HAND_MODEL_PATH =
+export const HAND_MODEL_PATH =
   'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
-const FACE_MODEL_PATH =
+export const FACE_MODEL_PATH =
   'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task';
 // Pose "lite" — mai rapid decât "full"/"heavy"; precizia suplimentară nu contează
 // pentru cei ~6 puncte de trunchi/umeri pe care îi folosim.
-const POSE_MODEL_PATH =
+export const POSE_MODEL_PATH =
   'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task';
 
 /**
@@ -69,7 +71,13 @@ export function useHolisticLandmarker() {
           hand.close(); face.close(); pose.close();
         }
       } catch (err) {
-        if (!cancelled) setError(err.message);
+        if (!cancelled) {
+          setError(
+            typeof err?.message === 'string' && err.message
+              ? err.message
+              : 'Detectoarele MediaPipe nu s-au putut încărca.',
+          );
+        }
       }
     }
 

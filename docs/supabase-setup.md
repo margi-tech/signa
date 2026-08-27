@@ -20,8 +20,8 @@ Deploy-ul public (Vercel) poate fi blocat pe planul Hobby când autorul commitul
    permite aproximativ 2 emailuri/oră pe proiect și este doar pentru test;
    pentru producție cu volum real ar trebui SMTP propriu.
 4. **Authentication → URL Configuration** (valorile live, aug 2026)
-   - Site URL: `https://signa-flax.vercel.app`
-   - Redirect URLs: `https://signa-flax.vercel.app/**`, `https://signa-*-signa-team.vercel.app/**` (preview-uri per branch) și `http://localhost:5173/**` (dev)
+   - Site URL: `https://signa-lsr.online`
+   - Redirect URLs: `https://signa-lsr.online/**`, `https://signa-flax.vercel.app/**`, `https://signa-*-signa-team.vercel.app/**` (preview-uri per branch) și `http://localhost:5173/**` (dev)
 
 ## 2. Schema
 
@@ -98,8 +98,8 @@ Fiecare își face `.env.local` din `.env.example` + URL + **anon** key. Fără 
 2. Environment Variables (Production **și** Preview):
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY`
-3. Adaugă URL-ul `.vercel.app` la Redirect URLs în Supabase
-4. Preview pe branch-ul `feat/22-supabase-schema`, apoi test signup pe URL public
+3. Adaugă `https://signa-lsr.online/**` (și preview-urile `.vercel.app`) la Redirect URLs în Supabase
+4. Preview pe branch, apoi test signup pe `https://signa-lsr.online`
 
 ### Notă practică (aug 2026)
 
