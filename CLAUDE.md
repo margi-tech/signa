@@ -72,8 +72,9 @@ direct din `App.jsx`.
    MediaPipe nou (~75 ms minim), video are pauză 1 s. Camera folosește `cover`.
 9. Prietenii sunt integrați în `ProfileDashboard` prin `FriendsSection`; fără
    rută/sidebar `friends`.
-10. Colectare, Train și Diagnostic sunt unelte interne: cu Supabase configurat,
-    rutele și sidebarul le permit numai profilurilor cu `role = 'admin'`.
+10. Colectare și Train: cu Supabase, rutele rămân interne. Diagnostic e
+    `role = 'admin'`. Colectorii/antrenorii se invită în `dataset_members`
+    (SQL), nu prin `profiles.role`. Fără Supabase, uneltele rămân deschise.
 11. Clientul nu poate scrie rolul, XP-ul sau streak-ul direct. Nu slăbi trigger-ele,
     RPC-urile ori granturile din `supabase/schema.sql`.
 

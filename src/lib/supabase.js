@@ -2,7 +2,8 @@
  * Client Supabase — activ doar dacă VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY există.
  * Fără chei, aplicația rămâne 100% offline (localStorage).
  *
- * GDPR: sincronizăm DOAR progres/XP/streak/profil — niciodată landmarks, imagini, video.
+ * GDPR: progres/XP/streak/profil. Datasetul de antrenare (dacă ești invitat)
+ * trimite doar vectori numerici normalizați — niciodată imagini sau video.
  */
 import { createClient } from '@supabase/supabase-js';
 

@@ -28,8 +28,10 @@ function loadStored() {
  *
  * Persistență: fiecare modificare se salvează automat în localStorage,
  * deci un refresh nu pierde datele colectate.
+ *
+ * @param {{ onSample?: (event: { label: string, kind: 'static'|'sequence', sample: unknown }) => void }} [options]
  */
-export function useDatasetCollector() {
+export function useDatasetCollector({ onSample } = {}) {
   const [dataset,       setDataset]       = useState(loadStored);
   const [activeLabel,   setActiveLabel]   = useState(LSR_ALPHABET[0]);
   // Cheia sub care se salvează exemplele. Tastarea rămâne liberă (etichetele pot
@@ -62,9 +64,10 @@ export function useDatasetCollector() {
       ...prev,
       [labelKey]: [...(prev[labelKey] ?? []), vector],
     }));
+    onSample?.({ label: labelKey, kind: 'static', sample: vector });
 
     return true;
-  }, [labelKey]);
+  }, [labelKey, onSample]);
 
   /**
    * Capturează o SECVENȚĂ de cadre (film) pentru eticheta activă.
@@ -85,9 +88,10 @@ export function useDatasetCollector() {
       ...prev,
       [labelKey]: [...(prev[labelKey] ?? []), seq],
     }));
+    onSample?.({ label: labelKey, kind: 'sequence', sample: seq });
 
     return true;
-  }, [labelKey]);
+  }, [labelKey, onSample]);
 
   /** Șterge toate exemplele pentru eticheta activă */
   const clearActiveLabel = useCallback(() => {

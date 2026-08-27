@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   stratifiedSplit,
+  groupedSplit,
   expandWithAug,
   classWeights,
   augmentStatic,
@@ -15,6 +16,37 @@ describe('stratifiedSplit', () => {
     expect(trainClasses.has(0)).toBe(true);
     expect(trainClasses.has(1)).toBe(true);
     expect(trainClasses.has(2)).toBe(true);
+  });
+});
+
+describe('groupedSplit', () => {
+  it('keeps all samples of a session on the same side', () => {
+    const y = [];
+    const groups = [];
+    for (const label of [0, 1]) {
+      for (let session = 0; session < 4; session += 1) {
+        for (let i = 0; i < 10; i += 1) {
+          y.push(label);
+          groups.push(`${label}-${session}`);
+        }
+      }
+    }
+    const { trainIdx, testIdx } = groupedSplit(y, groups, 0.25);
+    expect(trainIdx.length + testIdx.length).toBe(y.length);
+    expect(testIdx.length).toBeGreaterThan(0);
+
+    const testGroups = new Set(testIdx.map((i) => groups[i]));
+    for (const gid of testGroups) {
+      const members = y.map((_, i) => i).filter((i) => groups[i] === gid);
+      expect(members.every((i) => testIdx.includes(i))).toBe(true);
+      expect(members.every((i) => !trainIdx.includes(i))).toBe(true);
+    }
+  });
+
+  it('falls back to stratifiedSplit without groups', () => {
+    const y = [0, 0, 0, 0, 1, 1, 1, 1];
+    const grouped = groupedSplit(y, null, 0.25);
+    expect(grouped.trainIdx.length + grouped.testIdx.length).toBe(y.length);
   });
 });
 

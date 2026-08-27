@@ -14,8 +14,9 @@ description: Modifică funcțiile sociale Signa — profil public/privat, follow
 - Tabela `profiles` nu este director public: profilul complet propriu se citește
   prin RPC-ul `get_own_profile()`, iar ceilalți apar numai prin view-uri cu
   coloane allowlist.
-- Nu trimite în cloud imagini, video sau landmarks. Supabase păstrează doar
-  profil, progres și relații sociale.
+- Nu trimite în cloud imagini sau video. Datasetul colaborativ stochează doar
+  vectori normalizați (199 / 30×199) pentru membri invitați; socialul rămâne
+  profil + progres + follow.
 
 ## UI curent
 

@@ -35,7 +35,9 @@ export default function AppShell({
   page, onNavigate,
   onOpenLesson, onCollect, onTrain, onDiagnostic, onSpell, onReview, onReferinte,
   profileSummary,
-  canUseInternalTools = false,
+  canCollect = false,
+  canTrain = false,
+  canDiagnostic = false,
 }) {
   const {
     streak, level, xpIntoLevel, xpNeeded, totalLessonsCount, starsFor,
@@ -133,7 +135,9 @@ export default function AppShell({
           onTrain={onTrain}
           onDiagnostic={onDiagnostic}
           onReferinte={onReferinte}
-          isAdmin={canUseInternalTools}
+          canCollect={canCollect}
+          canTrain={canTrain}
+          canDiagnostic={canDiagnostic}
         />
 
         <div className="relative min-w-0 flex-1 min-h-0 overflow-hidden">
