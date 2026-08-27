@@ -300,16 +300,10 @@ function SocialButton({ onClick, disabled, children }) {
 
 export function SocialButtons({ onProvider, disabled }) {
   return (
-    <div className="flex flex-col gap-2.5 md:flex-row md:gap-3">
+    <div className="flex">
       <SocialButton onClick={() => onProvider('google')} disabled={disabled}>
         <span className="font-black text-[15px] text-[#4285F4]">G</span>
         Google
-      </SocialButton>
-      <SocialButton onClick={() => onProvider('apple')} disabled={disabled}>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-          <path d="M16.4 12.8c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.15-2.8.85-3.5.85-.7 0-1.85-.83-3.05-.8-1.55.02-3 .9-3.8 2.3-1.63 2.83-.42 7 1.17 9.3.78 1.12 1.7 2.38 2.9 2.34 1.17-.05 1.61-.76 3.02-.76 1.4 0 1.8.76 3.03.73 1.25-.02 2.04-1.14 2.8-2.27.88-1.3 1.24-2.56 1.26-2.62-.03-.01-2.42-.93-2.43-3.77zM14.1 5.9c.64-.78 1.07-1.86.95-2.94-.92.04-2.03.61-2.69 1.38-.59.69-1.11 1.79-.97 2.85 1.03.08 2.07-.52 2.71-1.29z" />
-        </svg>
-        Apple
       </SocialButton>
     </div>
   );

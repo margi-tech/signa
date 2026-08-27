@@ -133,6 +133,29 @@ Fiecare își face `.env.local` din `.env.example` + URL + **anon** key. Fără 
 3. Adaugă `https://signa-lsr.online/**` (și preview-urile `.vercel.app`) la Redirect URLs în Supabase
 4. Preview pe branch, apoi test signup pe `https://signa-lsr.online`
 
+## 8. Login cu Google (gratuit)
+
+Butonul Google există deja în `AuthPanel.jsx`, ascuns de flag-ul `VITE_ENABLE_OAUTH`.
+Apple Sign In a fost scos din UI — cere cont Apple Developer plătit (99 USD/an), nu
+merita acum.
+
+1. **Google Cloud Console** → [console.cloud.google.com](https://console.cloud.google.com) →
+   creează/selectează un proiect.
+2. **OAuth consent screen**: tip "External", nume aplicație "Signa", email suport.
+   Rămâne "Testing" e ok pentru câțiva utilizatori (max 100), sau "Publish" pentru public.
+3. **Credentials → Create Credentials → OAuth client ID**, tip "Web application".
+   - Authorized redirect URIs: `https://<project-ref>.supabase.co/auth/v1/callback`
+     (găsești `<project-ref>` în Supabase → Project Settings → API → Project URL)
+4. Copiază **Client ID** și **Client secret**.
+5. **Supabase Dashboard** → Authentication → Providers → **Google** → activează,
+   lipește Client ID + Secret → Save.
+6. Setează `VITE_ENABLE_OAUTH=true`:
+   - local, în `.env.local`
+   - Vercel → Project Settings → Environment Variables (Production **și** Preview)
+7. Test: buton "Google" pe `/login` trebuie să deschidă popup-ul Google și să
+   revină autentificat. `handle_new_user` (schema.sql) creează profil + progress
+   automat, indiferent de provider — nu e nevoie de nimic suplimentar în DB.
+
 ### Notă practică (aug 2026)
 
 - Integrarea Supabase pe Vercel adaugă automat variabile `SUPABASE_*` / `POSTGRES_*`, dar aplicația Vite citește doar variabile cu prefix `VITE_`.
