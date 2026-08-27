@@ -172,7 +172,7 @@ Fișier: `vercel.json` (deja gata).
 | 5 | Fără login, accesul e blocat până la autentificare | Fereastră incognito: vezi doar ecranul de auth |
 | 6 | Profil privat nu apare în clasament | Schimbi visibility, reîncarci Clasament |
 | 7 | Există rol admin vs user în DB | Un rând cu `role=admin`, restul `user` |
-| 8 | App publică pe Vercel, signup funcționează | URL `.vercel.app`, nu doar localhost |
+| 8 | App publică pe Vercel, signup funcționează | `https://signa-lsr.online`, nu doar localhost |
 
 ---
 
