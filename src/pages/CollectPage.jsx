@@ -535,11 +535,20 @@ export default function CollectPage({ onBack, userId = null, datasetAccess = nul
             </h1>
           </div>
 
+          {/* Contorul rămâne vizibil și pe telefon: acolo e singura cale de a vedea
+              totalul echipei, fiindcă restul uneltelor din header cer ecran lat. */}
+          <span className="flex-none flex flex-col sm:flex-row sm:gap-1 leading-tight text-center
+            rounded-2xl sm:rounded-full bg-white border border-ink-900/[.07] px-2.5 py-1.5 sm:px-3 sm:py-2
+            text-[11px] sm:text-[11.5px] font-extrabold text-ink-600 tabular-nums">
+            <span>{totalSamples} locale</span>
+            {cloud.enabled && teamTotal > 0 && (
+              <span className="text-signa-700">
+                <span className="hidden sm:inline">· </span>{teamTotal} echipă
+              </span>
+            )}
+          </span>
+
           <div className="hidden sm:flex items-center gap-2">
-            <span className="rounded-full bg-white border border-ink-900/[.07] px-3 py-2
-              text-[11.5px] font-extrabold text-ink-600 tabular-nums">
-              {totalSamples} locale{cloud.enabled && teamTotal > 0 ? ` · ${teamTotal} echipă` : ''}
-            </span>
             {sync && (
               <span className={`hidden lg:inline rounded-full border px-3 py-2 text-[11px] font-extrabold
                 ${sync.tone === 'rose' ? 'border-rose-200 bg-rose-50 text-rose-700'

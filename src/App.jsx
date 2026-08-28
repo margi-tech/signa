@@ -15,8 +15,19 @@ import { useProfileSummary } from './hooks/useProfileSummary.js';
 import { isSupabaseConfigured, supabase } from './lib/supabase.js';
 import { useDatasetAccess } from './hooks/useDatasetAccess.js';
 
+/* Ecranele cu URL propriu, ca să poată fi deschise direct dintr-un link — pe
+   telefon sidebar-ul cu Unelte nu există (`hidden lg:flex`), deci hash-ul e
+   singurul drum spre Colectare. Accesul rămâne filtrat de `canCollect` mai jos. */
+const HASH_PAGES = { referinte: 'referinte', colectare: 'collect' };
+
 function pageFromHash() {
-  return window.location.hash.replace(/^#/, '') === 'referinte' ? 'referinte' : null;
+  return HASH_PAGES[window.location.hash.replace(/^#/, '')] ?? null;
+}
+
+function clearHash() {
+  if (pageFromHash()) {
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+  }
 }
 
 export default function App() {
@@ -38,14 +49,12 @@ export default function App() {
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
 
-  const openReferinte = () => {
-    window.location.hash = 'referinte';
-    setPage('referinte');
+  const openHashPage = (hash, target) => {
+    window.location.hash = hash;
+    setPage(target);
   };
-  const closeReferinte = () => {
-    if (window.location.hash.replace(/^#/, '') === 'referinte') {
-      history.replaceState(null, '', window.location.pathname + window.location.search);
-    }
+  const backHome = () => {
+    clearHash();
     setPage('home');
   };
 
@@ -65,7 +74,7 @@ export default function App() {
 
   // Catalogul de review e un document intern — accesibil și fără login (#referinte).
   if (page === 'referinte') {
-    return <ReferinteCatalogPage onBack={closeReferinte} />;
+    return <ReferinteCatalogPage onBack={backHome} />;
   }
 
   if (user === undefined) {
@@ -132,7 +141,7 @@ export default function App() {
         <p className="max-w-sm text-sm font-semibold text-ink-500">{copy.body}</p>
         <button
           type="button"
-          onClick={() => setPage('home')}
+          onClick={backHome}
           className="rounded-xl bg-signa-500 px-5 py-3 text-sm font-bold text-white"
         >
           Înapoi acasă
@@ -144,7 +153,7 @@ export default function App() {
   if (page === 'collect') {
     return (
       <CollectPage
-        onBack={() => setPage('home')}
+        onBack={backHome}
         userId={user?.id}
         datasetAccess={datasetAccess}
       />
@@ -196,12 +205,12 @@ export default function App() {
       page={SHELL_PAGES.includes(page) ? page : 'home'}
       onNavigate={setPage}
       onOpenLesson={(id) => { setLessonId(id); setReviewLesson(null); setPage('lesson'); }}
-      onCollect={() => setPage('collect')}
+      onCollect={() => openHashPage('colectare', 'collect')}
       onTrain={() => setPage('train')}
       onSpell={() => setPage('spell')}
       onReview={() => setPage('review')}
       onDiagnostic={() => setPage('diagnostic')}
-      onReferinte={openReferinte}
+      onReferinte={() => openHashPage('referinte', 'referinte')}
       profileSummary={profileSummary}
       canCollect={canCollect}
       canTrain={canTrain}
