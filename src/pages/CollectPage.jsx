@@ -515,7 +515,7 @@ export default function CollectPage({ onBack, userId = null, datasetAccess = nul
   return (
     <div className="min-h-full bg-[radial-gradient(ellipse_80%_45%_at_72%_0%,#F2FBF6,#FFFBF3_68%)] text-ink-900">
       <header className="sticky top-0 z-40 border-b border-ink-900/[.06] bg-cream/90 backdrop-blur-xl">
-        <div className="max-w-[1540px] mx-auto px-4 lg:px-7 py-3.5 flex items-center gap-4">
+        <div className="max-w-[1540px] mx-auto px-4 lg:px-7 py-3.5 flex flex-wrap items-center gap-x-4 gap-y-2">
           <button
             type="button"
             onClick={onBack}
@@ -535,17 +535,13 @@ export default function CollectPage({ onBack, userId = null, datasetAccess = nul
             </h1>
           </div>
 
-          {/* Contorul rămâne vizibil și pe telefon: acolo e singura cale de a vedea
-              totalul echipei, fiindcă restul uneltelor din header cer ecran lat. */}
-          <span className="flex-none flex flex-col sm:flex-row sm:gap-1 leading-tight text-center
-            rounded-2xl sm:rounded-full bg-white border border-ink-900/[.07] px-2.5 py-1.5 sm:px-3 sm:py-2
-            text-[11px] sm:text-[11.5px] font-extrabold text-ink-600 tabular-nums">
-            <span>{totalSamples} locale</span>
-            {cloud.enabled && teamTotal > 0 && (
-              <span className="text-signa-700">
-                <span className="hidden sm:inline">· </span>{teamTotal} echipă
-              </span>
-            )}
+          {/* Contorul rămâne vizibil și pe telefon — acolo e singura cale de a vedea
+              totalul echipei. Sub `sm` trece pe rândul lui, ca să nu taie titlul;
+              restul uneltelor din header cer în continuare ecran lat. */}
+          <span className="order-last w-full text-center sm:order-none sm:w-auto flex-none
+            rounded-full bg-white border border-ink-900/[.07] px-3 py-1.5 sm:py-2
+            text-[11.5px] font-extrabold text-ink-600 tabular-nums">
+            {totalSamples} locale{cloud.enabled && teamTotal > 0 ? ` · ${teamTotal} echipă` : ''}
           </span>
 
           <div className="hidden sm:flex items-center gap-2">

@@ -19,6 +19,7 @@ import { useDatasetAccess } from './hooks/useDatasetAccess.js';
    telefon sidebar-ul cu Unelte nu există (`hidden lg:flex`), deci hash-ul e
    singurul drum spre Colectare. Accesul rămâne filtrat de `canCollect` mai jos. */
 const HASH_PAGES = { referinte: 'referinte', colectare: 'collect' };
+const HASH_TARGETS = Object.values(HASH_PAGES);
 
 function pageFromHash() {
   return HASH_PAGES[window.location.hash.replace(/^#/, '')] ?? null;
@@ -43,7 +44,10 @@ export default function App() {
   useEffect(() => {
     const onHash = () => {
       const fromHash = pageFromHash();
-      if (fromHash) setPage(fromHash);
+      /* Back-ul browserului scoate hash-ul: atunci ieșim din ecranul cu URL propriu.
+         Ecranele fără hash (lecție, train, review) nu se ating — altfel orice
+         hashchange le-ar arunca Acasă. */
+      setPage((prev) => fromHash ?? (HASH_TARGETS.includes(prev) ? 'home' : prev));
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
