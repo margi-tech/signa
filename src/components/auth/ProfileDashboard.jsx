@@ -10,7 +10,6 @@ import {
   validateUsername,
 } from '../../utils/username';
 import { useCountUp } from '../../hooks/useCountUp';
-import { clearPendingLessonCompletions } from '../../hooks/useProgressSync';
 import { LESSONS } from '../../data/lessons';
 import { FlameIcon, HandIcon } from '../icons';
 import FriendsSection from '../FriendsSection';
@@ -207,8 +206,9 @@ export default function ProfileDashboard({
     });
   };
 
+  // Lecțiile netrimise rămân în coadă: sunt legate de userId și pleacă la
+  // următorul login al aceluiași cont. Coada se golește doar la ștergerea contului.
   const signOut = () => run(async () => {
-    clearPendingLessonCompletions();
     await supabase.auth.signOut();
     onMessage({ tone: 'info', text: 'Te-ai deconectat.' });
     onSignOut();

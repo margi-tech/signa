@@ -85,26 +85,29 @@ export async function queueLessonCompletion(lessonId, stars, xp) {
   savePending(events);
 }
 
-export function clearPendingLessonCompletions() {
-  localStorage.removeItem(PENDING_KEY);
-}
-
 async function flushLessonCompletions() {
   if (!supabase) return;
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
 
   const pending = loadPending().filter((event) => event.userId === user.id);
-  const failed = [];
+  const sent = [];
   for (const event of pending) {
     const { error } = await supabase.rpc('record_lesson_completion', {
       p_lesson_id: event.lessonId,
       p_stars: event.stars,
       p_xp: event.xp,
     });
-    if (error) failed.push(event);
+    if (!error) sent.push(event);
   }
-  savePending(failed);
+  if (!sent.length) return;
+
+  // Recitim coada în loc s-o suprascriem: între timp pot apărea lecții noi, iar
+  // evenimentele altor conturi de pe același dispozitiv trebuie să rămână.
+  // Scoatem doar ce a ajuns pe server exact cu valorile trimise.
+  const wasSent = (event) => sent.some((s) => s.userId === event.userId
+    && s.key === event.key && s.stars === event.stars && s.xp === event.xp);
+  savePending(loadPending().filter((event) => !wasSent(event)));
 }
 
 /** Trage de pe server și unește cu local. Returnează progresul merge-uit. */
