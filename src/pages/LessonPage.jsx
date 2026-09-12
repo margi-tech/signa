@@ -5,10 +5,11 @@ import Confetti from '../components/ui/Confetti';
 import { useClassifier } from '../hooks/useClassifier';
 import { useProgress } from '../hooks/useProgress';
 import {
-  XP_PER_LETTER, XP_PERFECT_BONUS, HOLD_DURATION_MS, HOLD_DURATION_DYNAMIC_MS,
+  HOLD_DURATION_MS, HOLD_DURATION_DYNAMIC_MS, lessonResult,
 } from '../data/lessons';
 import { DYNAMIC_LETTERS, SEQ_FRAMES, SEQ_INTERVAL_MS, isWord } from '../data/lsr-alphabet';
 import { normalize } from '../utils/normalize';
+import { sameSign, usesDynamicModel } from '../utils/signMatch';
 import REFERENCE_POSES from '../data/reference-poses.json';
 import { playSuccess, playSkip, playLevelUp } from '../utils/sounds';
 
@@ -122,7 +123,9 @@ function LessonSession({ lesson, onExit }) {
   const seqBufRef = useRef([]);
   const levelBeforeRef = useRef(null);
 
-  const { isReady, isDynReady, predict, predictSequence } = useClassifier();
+  const {
+    isReady, isDynReady, predict, predictSequence, staticLabels, dynamicLabels,
+  } = useClassifier();
   const {
     completeLesson, recordLetter, soundEnabled, level,
   } = useProgress();
@@ -139,7 +142,11 @@ function LessonSession({ lesson, onExit }) {
   // Tipul (static/dinamic) se decide PER LITERĂ/CUVÂNT, din DYNAMIC_LETTERS —
   // nu mai depinde de lesson.type, care e la nivel de lecție întreagă și nu
   // are sens pentru sesiuni mixte (ex. Repetiție spațiată).
-  const isDynamicTarget = DYNAMIC_LETTERS.has(target);
+  // Dacă modelul ales așa nu cunoaște semnul, dar celălalt da, îl folosim pe acela
+  // (lecțiile scriu „El”/„Alb”, listele „el”/„alb” — vezi utils/signMatch).
+  const isDynamicTarget = usesDynamicModel(
+    target, DYNAMIC_LETTERS.has(target), { staticLabels, dynamicLabels },
+  );
   isDynTargetRef.current = isDynamicTarget;
   const holdNeed = isDynamicTarget ? HOLD_DURATION_DYNAMIC_MS : HOLD_DURATION_MS;
 
@@ -194,7 +201,7 @@ function LessonSession({ lesson, onExit }) {
         const p = predictSeqRef.current(seqBufRef.current);
         if (p) {
           label = p.label;
-          isMatch = p.label === targetRef.current
+          isMatch = sameSign(p.label, targetRef.current)
             && p.confidence >= DYN_MIN_CONF
             && p.margin >= DYN_MIN_MARGIN;
         }
@@ -203,7 +210,7 @@ function LessonSession({ lesson, onExit }) {
       const p = predictRef.current(lm);
       if (p) {
         label = p.label;
-        isMatch = p.label === targetRef.current && p.confidence >= MIN_CONFIDENCE;
+        isMatch = sameSign(p.label, targetRef.current) && p.confidence >= MIN_CONFIDENCE;
       }
     }
 
@@ -233,9 +240,7 @@ function LessonSession({ lesson, onExit }) {
     recordedRef.current = true;
     levelBeforeRef.current = level;
 
-    const done = lesson.letters.length - skipped.length;
-    const stars = skipped.length === 0 ? 3 : skipped.length === 1 ? 2 : done === 0 ? 0 : 1;
-    const xp = done * XP_PER_LETTER + (skipped.length === 0 ? XP_PERFECT_BONUS : 0);
+    const { stars, xp } = lessonResult(lesson.letters.length, skipped.length);
     completeLesson(lesson.id, stars, xp);
   }, [phase, skipped, lesson, completeLesson, level]);
 
@@ -249,9 +254,7 @@ function LessonSession({ lesson, onExit }) {
   }, [phase, level, soundEnabled]);
 
   if (phase === 'results') {
-    const done = lesson.letters.length - skipped.length;
-    const stars = skipped.length === 0 ? 3 : skipped.length === 1 ? 2 : done === 0 ? 0 : 1;
-    const xp = done * XP_PER_LETTER + (skipped.length === 0 ? XP_PERFECT_BONUS : 0);
+    const { stars, xp } = lessonResult(lesson.letters.length, skipped.length);
     return (
       <ResultsScreen
         lesson={lesson} skipped={skipped} xpGained={xp} stars={stars}
