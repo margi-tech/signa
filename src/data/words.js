@@ -94,13 +94,13 @@ export const WORD_CATEGORIES = [
   },
   {
     id: 'saluturi',
-    title: 'saluturi',
+    title: 'Saluturi',
+    // „Bună" e deja în „Salut & politețe" — un al doilea id `buna` era inaccesibil.
     words: [
-      { id: 'buna',  label: 'Buna',  letters: ['B', 'U', 'N', 'A'] },
-      { id: 'buna ziua',     label: 'Buna ziua',     letters: ['B','U','N','A','Z','I','U','A'] },
-      { id: 'ce faci',    label: 'Ce faci',    letters: ['C', 'E', 'F', 'A','C','I'] },
-      { id: 'la revedere',  label: 'La revedere',  letters: ['L','A','R','E','V','E','D','E','R','E'] },
-      { id: 'buna seara', label: 'Buna seara', letters: ['B', 'U', 'N', 'A', 'S', 'E', 'A', 'R', 'A'] },
+      { id: 'buna-ziua',   label: 'Bună ziua',   letters: ['B', 'U', 'N', 'Ă', 'Z', 'I', 'U', 'A'] },
+      { id: 'ce-faci',     label: 'Ce faci',     letters: ['C', 'E', 'F', 'A', 'C', 'I'] },
+      { id: 'la-revedere', label: 'La revedere', letters: ['L', 'A', 'R', 'E', 'V', 'E', 'D', 'E', 'R', 'E'] },
+      { id: 'buna-seara',  label: 'Bună seara',  letters: ['B', 'U', 'N', 'Ă', 'S', 'E', 'A', 'R', 'A'] },
     ],
   },
 ];
