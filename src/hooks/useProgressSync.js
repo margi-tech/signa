@@ -85,6 +85,12 @@ export async function queueLessonCompletion(lessonId, stars, xp) {
   savePending(events);
 }
 
+/** Câte lecții ale contului așteaptă încă să ajungă pe server. */
+export function pendingLessonCount(userId) {
+  if (!userId) return 0;
+  return loadPending().filter((event) => event.userId === userId).length;
+}
+
 async function flushLessonCompletions() {
   if (!supabase) return;
   const { data: { user } } = await supabase.auth.getUser();
@@ -98,7 +104,11 @@ async function flushLessonCompletions() {
       p_stars: event.stars,
       p_xp: event.xp,
     });
-    if (!error) sent.push(event);
+    if (error) {
+      console.warn('[signa] lecția', event.lessonId, 'nu a ajuns pe server:', error.code ?? '', error.message ?? error);
+    } else {
+      sent.push(event);
+    }
   }
   if (!sent.length) return;
 
@@ -141,8 +151,9 @@ export async function pushProgress(progress = loadLocal()) {
   };
 
   const { error } = await supabase.from('progress').upsert(payload);
-  if (error) throw error;
+  // Lecțiile au RPC-ul lor — le trimitem și dacă salvarea mastery-ului pică.
   await flushLessonCompletions();
+  if (error) throw error;
 }
 
 export async function pushProgressBestEffort(progress) {

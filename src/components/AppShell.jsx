@@ -40,7 +40,7 @@ export default function AppShell({
   canDiagnostic = false,
 }) {
   const {
-    streak, level, xpIntoLevel, xpNeeded, totalLessonsCount, starsFor,
+    streak, level, xpIntoLevel, xpNeeded, totalLessonsCount, starsFor, unsyncedLessons,
   } = useProgress();
   const {
     firstName, initials, avatarUrl, rank, refresh: refreshProfile,
@@ -131,6 +131,7 @@ export default function AppShell({
           initials={initials}
           avatarUrl={avatarUrl}
           streak={streak}
+          unsyncedLessons={unsyncedLessons}
           onCollect={onCollect}
           onTrain={onTrain}
           onDiagnostic={onDiagnostic}

@@ -58,7 +58,7 @@ export default function Sidebar({
   page, onNavigate,
   chapters, selectedChapterId, onSelectChapter, starsFor,
   level, xpIntoLevel, xpNeeded, totalLessonsCount, rank,
-  firstName, initials, avatarUrl, streak,
+  firstName, initials, avatarUrl, streak, unsyncedLessons = 0,
   onCollect, onTrain, onDiagnostic, onReferinte,
   canCollect = false, canTrain = false, canDiagnostic = false,
 }) {
@@ -328,7 +328,7 @@ export default function Sidebar({
               borderWidth: 0,
               pointerEvents: 'none',
             }
-            : { maxHeight: 120, opacity: 1 }),
+            : { maxHeight: 150, opacity: 1 }),
         }}
         className="mt-[26px] bg-[#FBF7F0] border border-ink-900/[.06] rounded-[18px] p-4 overflow-hidden"
       >
@@ -353,6 +353,14 @@ export default function Sidebar({
         <p className="mt-2.5 text-xs font-bold text-ink-500 tabular-nums">
           {xpIntoLevel} <span className="text-[#C4BAA9]">/ {xpNeeded} XP</span>
         </p>
+        {unsyncedLessons > 0 && (
+          <p
+            className="mt-1.5 text-[11px] font-bold text-amber-600 tabular-nums"
+            title="Se trimit automat la următoarea sincronizare"
+          >
+            {unsyncedLessons} {unsyncedLessons === 1 ? 'lecție nesincronizată' : 'lecții nesincronizate'}
+          </p>
+        )}
       </div>
 
       <div className="mt-auto pt-[22px]">
