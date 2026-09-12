@@ -164,11 +164,26 @@ export async function requestPasswordReset(email) {
   if (error) throw error;
 }
 
+/**
+ * Șterge pozele din folderul userului prin Storage API. Supabase nu mai permite
+ * `delete from storage.objects` din SQL, deci `delete_own_account` nu le poate
+ * șterge singur. Aruncă la eroare, ca poza să nu rămână în urma unui cont șters.
+ */
+export async function removeAvatarFiles(bucket, userId) {
+  const { data: files, error } = await bucket.list(userId);
+  if (error) throw error;
+  if (!files?.length) return 0;
+  const { error: removeError } = await bucket.remove(files.map((f) => `${userId}/${f.name}`));
+  if (removeError) throw removeError;
+  return files.length;
+}
+
 export async function deleteOwnAccount() {
   if (!supabase) throw new Error('Supabase nu e configurat.');
   const user = await getSessionUser();
   if (!user) throw new Error('Nu ești conectat.');
 
+  await removeAvatarFiles(supabase.storage.from(AVATAR_BUCKET), user.id);
   const { error } = await supabase.rpc('delete_own_account');
   if (error) throw error;
   localStorage.removeItem('signa-progress-v2');

@@ -550,12 +550,15 @@ revoke update on public.follows from anon, authenticated;
 grant usage, select on sequence public.follows_id_seq to authenticated;
 
 -- Ștergere GDPR: funcția poate șterge exclusiv utilizatorul sesiunii curente.
--- Cascade-urile curăță profile/progress/follows; avatarul se șterge explicit.
+-- Cascade-urile curăță profile/progress/follows. Avatarul îl șterge clientul
+-- prin Storage API înainte de apel (deleteOwnAccount în src/lib/supabase.js):
+-- Supabase blochează orice `delete from storage.objects` din SQL
+-- (storage.protect_delete), iar un delete aici făcea funcția să pice mereu.
 create or replace function public.delete_own_account()
 returns void
 language plpgsql
 security definer
-set search_path = public, auth, storage
+set search_path = public, auth
 as $$
 declare
   v_user_id uuid := auth.uid();
@@ -563,10 +566,6 @@ begin
   if v_user_id is null then
     raise exception 'Authentication required';
   end if;
-
-  delete from storage.objects
-  where bucket_id = 'avatars'
-    and (storage.foldername(name))[1] = v_user_id::text;
 
   delete from auth.users where id = v_user_id;
 end;
