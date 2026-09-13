@@ -6,3 +6,4 @@ dist/
 .env.local
 dev-dist/
 .idea
+supabase/.temp/
