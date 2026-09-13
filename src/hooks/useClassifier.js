@@ -48,6 +48,9 @@ export function useClassifier() {
   const [isReady,    setIsReady]    = useState(false);
   const [isDynReady, setIsDynReady] = useState(false);
   const [modelVersion, setModelVersion] = useState(null);
+  // Etichetele încărcate — LessonPage alege după ele modelul care cunoaște ținta.
+  const [staticLabels,  setStaticLabels]  = useState([]);
+  const [dynamicLabels, setDynamicLabels] = useState([]);
   const tfRef        = useRef(null);
   const modelRef     = useRef(null);
   const labelsRef    = useRef(null);
@@ -89,6 +92,7 @@ export function useClassifier() {
         if (st && !cancelled) {
           modelRef.current  = st.model;
           labelsRef.current = st.labels;
+          setStaticLabels(st.labels);
           setModelVersion(st.version);
           setIsReady(true);
         }
@@ -99,6 +103,7 @@ export function useClassifier() {
         if (dy && !cancelled) {
           dynModelRef.current  = dy.model;
           dynLabelsRef.current = dy.labels;
+          setDynamicLabels(dy.labels);
           setIsDynReady(true);
         }
       } catch { /* model dinamic lipsă sau corupt */ }
@@ -133,5 +138,7 @@ export function useClassifier() {
     return rank(tf, dynModelRef.current, [frames], dynLabelsRef.current);
   }, []);
 
-  return { isReady, isDynReady, predict, predictSequence, modelVersion };
+  return {
+    isReady, isDynReady, predict, predictSequence, modelVersion, staticLabels, dynamicLabels,
+  };
 }

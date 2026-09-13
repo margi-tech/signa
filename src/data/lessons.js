@@ -52,6 +52,17 @@ export const XP_PER_LETTER = 10;
 // Bonus pentru lecție perfectă (nicio literă sărită)
 export const XP_PERFECT_BONUS = 10;
 
+/**
+ * Stele și XP pentru o lecție terminată. Fără niciun semn validat → 0 stele,
+ * inclusiv într-o repetiție cu un singur semn (înainte ieșeau 2 stele).
+ */
+export function lessonResult(total, skippedCount) {
+  const done = total - skippedCount;
+  const stars = done === 0 ? 0 : skippedCount === 0 ? 3 : skippedCount === 1 ? 2 : 1;
+  const xp = done * XP_PER_LETTER + (skippedCount === 0 && done > 0 ? XP_PERFECT_BONUS : 0);
+  return { done, stars, xp };
+}
+
 // Cât timp trebuie ținut semnul corect ca să fie validat (ms)
 export const HOLD_DURATION_MS = 1200;
 
