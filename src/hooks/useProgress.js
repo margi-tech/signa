@@ -1,7 +1,8 @@
-import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { LESSONS, levelFromXp, xpForLevel } from '../data/lessons';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import {
+  pendingLessonCount,
   pullAndMergeProgress,
   pushProgress,
   pushProgressBestEffort,
@@ -63,6 +64,13 @@ function loadStored() {
 
 function useProgressState() {
   const [progress, setProgress] = useState(loadStored);
+  // Lecții terminate care n-au ajuns încă pe server — afișate în sidebar,
+  // ca o sincronizare care pică să nu mai treacă neobservată.
+  const [unsyncedLessons, setUnsyncedLessons] = useState(0);
+  const userIdRef = useRef(null);
+  const refreshUnsynced = useCallback(() => {
+    setUnsyncedLessons(pendingLessonCount(userIdRef.current));
+  }, []);
 
   const persist = useCallback((next) => {
     setProgress(next);
@@ -163,9 +171,10 @@ function useProgressState() {
           if (raw) return pushProgressBestEffort(JSON.parse(raw));
           return undefined;
         })
-        .catch(() => {});
+        .catch(() => {})
+        .finally(refreshUnsynced);
     });
-  }, [update]);
+  }, [update, refreshUnsynced]);
 
   const recordLetter = useCallback((letter, correct) => {
     update((prev) => {
@@ -193,26 +202,33 @@ function useProgressState() {
   }, [update]);
 
   const syncNow = useCallback(async () => {
-    await pushProgress();
-    const merged = await pullAndMergeProgress();
-    if (merged) persist(merged);
-    return merged;
-  }, [persist]);
+    try {
+      await pushProgress();
+      const merged = await pullAndMergeProgress();
+      if (merged) persist(merged);
+      return merged;
+    } finally {
+      refreshUnsynced();
+    }
+  }, [persist, refreshUnsynced]);
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) return undefined;
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      userIdRef.current = session?.user?.id ?? null;
+      refreshUnsynced();
       if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
         pushProgress()
           .then(() => pullAndMergeProgress())
           .then((merged) => {
             if (merged) persist(merged);
           })
-          .catch(() => {});
+          .catch(() => {})
+          .finally(refreshUnsynced);
       }
     });
     return () => sub.subscription.unsubscribe();
-  }, [persist]);
+  }, [persist, refreshUnsynced]);
 
   const reviewLetters = useMemo(() => {
     const mastered = Object.entries(progress.letterMastery)
@@ -265,6 +281,7 @@ function useProgressState() {
     setSoundEnabled,
     persist,
     syncNow,
+    unsyncedLessons,
   };
 }
 

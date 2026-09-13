@@ -85,8 +85,10 @@ export async function queueLessonCompletion(lessonId, stars, xp) {
   savePending(events);
 }
 
-export function clearPendingLessonCompletions() {
-  localStorage.removeItem(PENDING_KEY);
+/** Câte lecții ale contului așteaptă încă să ajungă pe server. */
+export function pendingLessonCount(userId) {
+  if (!userId) return 0;
+  return loadPending().filter((event) => event.userId === userId).length;
 }
 
 async function flushLessonCompletions() {
@@ -95,16 +97,27 @@ async function flushLessonCompletions() {
   if (!user) return;
 
   const pending = loadPending().filter((event) => event.userId === user.id);
-  const failed = [];
+  const sent = [];
   for (const event of pending) {
     const { error } = await supabase.rpc('record_lesson_completion', {
       p_lesson_id: event.lessonId,
       p_stars: event.stars,
       p_xp: event.xp,
     });
-    if (error) failed.push(event);
+    if (error) {
+      console.warn('[signa] lecția', event.lessonId, 'nu a ajuns pe server:', error.code ?? '', error.message ?? error);
+    } else {
+      sent.push(event);
+    }
   }
-  savePending(failed);
+  if (!sent.length) return;
+
+  // Recitim coada în loc s-o suprascriem: între timp pot apărea lecții noi, iar
+  // evenimentele altor conturi de pe același dispozitiv trebuie să rămână.
+  // Scoatem doar ce a ajuns pe server exact cu valorile trimise.
+  const wasSent = (event) => sent.some((s) => s.userId === event.userId
+    && s.key === event.key && s.stars === event.stars && s.xp === event.xp);
+  savePending(loadPending().filter((event) => !wasSent(event)));
 }
 
 /** Trage de pe server și unește cu local. Returnează progresul merge-uit. */
@@ -138,8 +151,9 @@ export async function pushProgress(progress = loadLocal()) {
   };
 
   const { error } = await supabase.from('progress').upsert(payload);
-  if (error) throw error;
+  // Lecțiile au RPC-ul lor — le trimitem și dacă salvarea mastery-ului pică.
   await flushLessonCompletions();
+  if (error) throw error;
 }
 
 export async function pushProgressBestEffort(progress) {
