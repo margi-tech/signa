@@ -12,6 +12,7 @@ import { normalize } from '../utils/normalize';
 import { sameSign, usesDynamicModel } from '../utils/signMatch';
 import REFERENCE_POSES from '../data/reference-poses.json';
 import { playSuccess, playSkip, playLevelUp } from '../utils/sounds';
+import DYNAMIC_HAND_ANIMATIONS from '../data/dynamic-hand-animations';
 
 const MIN_CONFIDENCE = 0.7;
 // Litere dinamice: prag mai relaxat (6 clase, seturi mici).
@@ -331,14 +332,20 @@ function LessonSession({ lesson, onExit }) {
             {target}
           </div>
 
-          {REFERENCE_POSES[target] ? (
+          {isDynamicTarget && DYNAMIC_HAND_ANIMATIONS[target] ? (
+              <div className="w-16 h-16 bg-cream-100 rounded-2xl p-1 flex-shrink-0 overflow-hidden">
+                {(() => {
+                  const MovementHint = DYNAMIC_HAND_ANIMATIONS[target];
+                  return <MovementHint />;
+                })()}
+              </div>
+          ) : REFERENCE_POSES[target] ? (
             <div className="w-16 h-16 bg-cream-100 rounded-2xl p-1 flex-shrink-0">
               <ReferenceHand pose={REFERENCE_POSES[target]} className="w-full h-full" theme="light" />
             </div>
           ) : (
-            // Fără pose de referință (ex. cuvinte-semn) — placeholder discret
-            <div className="w-16 h-16 bg-cream-100 rounded-2xl flex items-center justify-center flex-shrink-0
-              text-ink-300" aria-hidden>
+           <div className="w-16 h-16 bg-cream-100 rounded-2xl flex items-center justify-center flex-shrink-0
+    text-ink-300" aria-hidden>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path d="M8 11V7a2 2 0 114 0v4M12 11V6a2 2 0 114 0v6M16 11V8a2 2 0 114 0v6a6 6 0 01-12 0v-1"
                   stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
