@@ -21,10 +21,10 @@ set
   allowed_mime_types = array['image/jpeg', 'image/png', 'image/webp']
 where id = 'avatars';
 
--- Curăță tipurile vechi care nu mai sunt acceptate (în special SVG).
-delete from storage.objects
-where bucket_id = 'avatars'
-  and lower(storage.extension(name)) not in ('jpg', 'jpeg', 'png', 'webp');
+-- Fișierele vechi de alt tip (ex. SVG) NU se mai pot șterge de aici: Supabase
+-- blochează orice `delete from storage.objects` din SQL (storage.protect_delete)
+-- și pică tot scriptul. Dacă apar, șterge-le din Storage UI sau prin Storage API.
+-- Update-ul de mai jos le scoate oricum din profiluri.
 
 update public.profiles
 set avatar_url = null
