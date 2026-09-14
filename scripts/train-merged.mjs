@@ -1,6 +1,6 @@
 /**
- * Unește dataseturile din Drive + culori (git) + loturile din cloud și antrenează
- * MLP + GRU. Rulează: npx vite-node scripts/train-merged.mjs
+ * Unește dataseturile din `datasets/` + loturile din cloud (dacă există dump)
+ * și antrenează MLP + GRU. Rulează: npx vite-node scripts/train-merged.mjs
  * Nu e folosit de aplicație — script de antrenare one-off.
  */
 import fs from 'node:fs';
@@ -16,10 +16,8 @@ import { PRESETS, trainModel } from '../src/utils/trainModel.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT_DIR = path.join(ROOT, 'public', 'models');
-const DRIVE = '/tmp/signa-drive';
+const DATA = path.join(ROOT, 'datasets');
 const CLOUD_PAGES = '/tmp/signa-train/pages';
-const COLORS = '/tmp/signa-train/signa-dataset-2026-08-12-culori.json';
-const DOWNLOADS_C = '/Users/david/Downloads/signa-dataset-2026-08-24.json';
 
 const staticBucket = new Map();
 const dynBucket = new Map();
@@ -53,6 +51,10 @@ function addSamples(label, samples, groupId) {
 }
 
 function loadJsonFile(file, groupPrefix, { skipLabels = new Set(), onlyLabels = null } = {}) {
+  if (!fs.existsSync(file)) {
+    console.log(`lipsește ${file}`);
+    return [];
+  }
   const raw = JSON.parse(fs.readFileSync(file, 'utf8'));
   const stats = [];
   for (const [key, arr] of Object.entries(raw)) {
@@ -120,13 +122,17 @@ function saveLabels(kind, labels) {
   const name = kind === 'dynamic' ? 'signa-labels-dynamic.json' : 'signa-labels.json';
   fs.writeFileSync(path.join(OUT_DIR, name), JSON.stringify({
     labels,
-    version: '2026-09-10',
+    version: '2026-09-14',
     vectorSize: VECTOR_SIZE,
     kind,
   }));
 }
 
 function loadCloud() {
+  if (!fs.existsSync(CLOUD_PAGES)) {
+    console.log('cloud: fără dump local');
+    return;
+  }
   const files = fs.readdirSync(CLOUD_PAGES).filter((f) => f.endsWith('.json')).sort();
   let batches = 0;
   let samples = 0;
@@ -144,39 +150,38 @@ function loadCloud() {
 }
 
 function loadLocal() {
-  const petrisor = path.join(DRIVE, 'Petrisor Catalin');
-  const rares = path.join(DRIVE, 'Schiau Rares');
+  const petrisor = path.join(DATA, 'petrisor');
+  const rares = path.join(DATA, 'rares');
   const skipAu = new Set('ABCDEFGHIKLMNOPQRST'.split(''));
 
+  // restul literelor include A–T identic cu a-u; păstrăm U din a-u (100 vs 50)
   loadJsonFile(
-    path.join(petrisor, 'signa-dataset-2026-08-02 (restul literelor).json'),
+    path.join(petrisor, 'signa-dataset-2026-08-02-restul-literelor.json'),
     'petrisor-restul',
     { skipLabels: new Set(['U']) },
   );
   loadJsonFile(
-    path.join(petrisor, 'signa-dataset(a-u fara video)-2026-08-02.json'),
+    path.join(petrisor, 'signa-dataset-2026-08-02-au-fara-video.json'),
     'petrisor-au',
     { skipLabels: skipAu },
   );
-  loadJsonFile(
-    path.join(petrisor, 'signa-dataset-2026-08-03 (Prieten, Copil, Bunic, Unchi, Verisor).json'),
-    'petrisor-familie',
-  );
-  loadJsonFile(
-    path.join(petrisor, 'signa-dataset-2026-08-03 (Socru_Soacra).json'),
-    'petrisor-socru',
-  );
-  loadJsonFile(
-    path.join(petrisor, 'signa-dataset-2026-08-03(Eu-Sora).json'),
-    'petrisor-eu-sora',
-  );
+  loadJsonFile(path.join(petrisor, 'signa-dataset-2026-08-03-familie.json'), 'petrisor-familie');
+  loadJsonFile(path.join(petrisor, 'signa-dataset-2026-08-03-socru.json'), 'petrisor-socru');
+  loadJsonFile(path.join(petrisor, 'signa-dataset-2026-08-03-eu-sora.json'), 'petrisor-eu-sora');
   loadJsonFile(path.join(rares, 'signa-dataset-2026-08-10.json'), 'rares-10');
   loadJsonFile(path.join(rares, 'signa-dataset-2026-08-11.json'), 'rares-11');
-  loadJsonFile(COLORS, 'culori-0812');
-
-  if (fs.existsSync(DOWNLOADS_C)) {
-    loadJsonFile(DOWNLOADS_C, 'downloads-0824', { onlyLabels: new Set(['C']) });
-  }
+  loadJsonFile(path.join(DATA, 'extra', 'signa-dataset-2026-09-03.json'), 'greetings-0903');
+  loadJsonFile(
+    path.join(DATA, 'andreea', 'signa-dataset-2026-08-04-mancare-litere-dinamice.json'),
+    'andreea-mancare-0804',
+  );
+  loadJsonFile(path.join(DATA, 'extra', 'signa-dataset-2026-09-14.json'), 'extra-0914');
+  loadJsonFile(path.join(DATA, 'enia', 'signa-dataset-2026-08-12-culori.json'), 'culori-0812');
+  loadJsonFile(
+    path.join(DATA, 'extra', 'signa-dataset-2026-08-24.json'),
+    'extra-0824',
+    { onlyLabels: new Set(['C']) },
+  );
 }
 
 async function trainOne(kind, data, config) {
@@ -185,7 +190,7 @@ async function trainOne(kind, data, config) {
     return null;
   }
   const batchSize = kind === 'dynamic' ? config.batchDyn : config.batchStatic;
-  console.log(`\n=== Antrenare ${kind} · ${data.labels.length} clase · max ${config.epochs} epoci ===`);
+  console.log(`\n=== Antrenare ${kind} · ${data.labels.length} clase · max ${config.epochs} epoci · ${config.label} ===`);
   const result = await trainModel({
     kind,
     X: data.X,
@@ -198,21 +203,27 @@ async function trainOne(kind, data, config) {
     groups: data.groups,
     onEpoch: (h) => {
       const pct = ((h.valAcc ?? 0) * 100).toFixed(1);
-      if ((h.epoch + 1) % 5 === 0 || h.epoch === 0) {
+      if ((h.epoch + 1) % 2 === 0 || h.epoch === 0) {
         console.log(`  ep ${h.epoch + 1}/${config.epochs}  loss=${h.loss.toFixed(4)}  val=${pct}%`);
       }
     },
   });
   const weak = data.labels
-    .map((l, i) => ({ l, acc: result.perLabel[i] ?? 0 }))
-    .filter((x) => x.acc < 0.7)
+    .map((l, i) => ({ l, acc: result.perLabel[i] ?? 0, inTest: result.perLabel[i] != null }))
+    .filter((x) => x.inTest && x.acc < 0.7)
     .sort((a, b) => a.acc - b.acc);
+  const heldOut = data.labels.filter((_, i) => result.perLabel[i] != null);
   console.log(
     `${kind} gata: test=${(result.testAcc * 100).toFixed(1)}%  epoci=${result.epochsRan}`
-    + `${result.earlyStopped ? '  early-stop' : ''}  trainN=${result.trainN}`,
+    + `${result.earlyStopped ? '  early-stop' : ''}  trainN=${result.trainN}  testN=${result.testN}`
+    + `  held-out=${heldOut.length}/${data.labels.length}`,
   );
   if (weak.length) {
-    console.log(`  slabe (<70%): ${weak.map((x) => `${x.l} ${(x.acc * 100).toFixed(0)}%`).join(' · ')}`);
+    console.log(`  slabe (<70% pe test): ${weak.map((x) => `${x.l} ${(x.acc * 100).toFixed(0)}%`).join(' · ')}`);
+  }
+  const onlyTrain = data.labels.filter((_, i) => result.perLabel[i] == null);
+  if (onlyTrain.length) {
+    console.log(`  doar în train (o sesiune): ${onlyTrain.join(', ')}`);
   }
   const base = kind === 'dynamic' ? 'signa-model-dynamic' : 'signa-model';
   const tf = await import('@tensorflow/tfjs');
@@ -228,6 +239,7 @@ async function trainOne(kind, data, config) {
     testN: result.testN,
     labels: data.labels,
     weak,
+    onlyTrain,
   };
 }
 
@@ -239,11 +251,12 @@ const dynData = toTrainSet(dynBucket);
 summarize('STATIC', staticData);
 summarize('DYNAMIC', dynData);
 
-const config = PRESETS.find((p) => p.id === 'standard');
+const config = PRESETS.find((p) => p.id === 'detaliat');
 const report = {
   static: await trainOne('static', staticData, config),
   dynamic: await trainOne('dynamic', dynData, config),
 };
+fs.mkdirSync('/tmp/signa-train', { recursive: true });
 fs.writeFileSync('/tmp/signa-train/report.json', JSON.stringify(report, null, 2));
 console.log('\nScris raportul în /tmp/signa-train/report.json');
 console.log('Modele în', OUT_DIR);
