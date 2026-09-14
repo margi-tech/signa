@@ -7,6 +7,7 @@ import HandI2 from '../components/animation/HandI2';
 import HandT2 from '../components/animation/HandT2';
 import HandJ from '../components/animation/HandJ';
 import HandX from '../components/animation/HandX';
+import { referenceMediaFor } from '../data/reference-media';
 
 /** Litere statice din modelul antrenat + reference-poses.json (Faza 1). */
 export const STATIC_CATALOG_LETTERS = [
@@ -26,6 +27,8 @@ const DYNAMIC_CATALOG_LETTERS = [
 ];
 
 function LetterCard({ letter, pose, onOpen }) {
+  const media = referenceMediaFor(letter);
+
   return (
       <button
           type="button"
@@ -45,7 +48,15 @@ function LetterCard({ letter, pose, onOpen }) {
         </span>
         </div>
         <div className="flex-1 flex items-center justify-center py-1 min-h-[140px]">
-          <ReferenceHand3D pose={pose} className="w-full h-40" />
+          {media ? (
+            <img
+              src={media}
+              alt={`Dactilema ${letter}`}
+              className="w-full h-40 object-contain rounded-xl"
+            />
+          ) : (
+            <ReferenceHand3D pose={pose} className="w-full h-40" />
+          )}
         </div>
         <p className="text-center text-xs font-semibold text-ink-500 mt-1">
           Dactilema „{letter}”
@@ -80,6 +91,8 @@ function DynamicLetterCard({ letter, Component }) {
 }
 
 function ZoomSheet({ letter, pose, onClose }) {
+  const media = referenceMediaFor(letter);
+
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === 'Escape') onClose();
@@ -120,12 +133,20 @@ function ZoomSheet({ letter, pose, onClose }) {
             </button>
           </div>
           <div className="bg-white rounded-[24px] border border-ink-900/[0.06] p-3 shadow-card">
-            <ReferenceHand3D
-                pose={pose}
-                interactive
-                detail="high"
-                className="w-full h-[min(52vh,340px)]"
-            />
+            {media ? (
+              <img
+                src={media}
+                alt={`Dactilema ${letter}`}
+                className="w-full h-[min(52vh,340px)] object-contain rounded-xl"
+              />
+            ) : (
+              <ReferenceHand3D
+                  pose={pose}
+                  interactive
+                  detail="high"
+                  className="w-full h-[min(52vh,340px)]"
+              />
+            )}
           </div>
           <p className="text-center text-sm text-ink-500 mt-4 leading-relaxed">
             Trage mâna ca să o vezi din toate părțile. Unghiile marchează dosul mâinii,
