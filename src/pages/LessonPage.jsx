@@ -1,32 +1,18 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
 import HandTracker from '../components/hand-tracker';
-import ReferencePreview from '../components/lesson/ReferencePreview';
+import SignCoach, { SignWell } from '../components/lesson/SignCoach';
 import Confetti from '../components/ui/Confetti';
 import { useClassifier } from '../hooks/useClassifier';
 import { useProgress } from '../hooks/useProgress';
 import {
-  HOLD_DURATION_MS, HOLD_DURATION_DYNAMIC_MS, lessonResult,
+  HOLD_DURATION_MS, HOLD_DURATION_DYNAMIC_MS, HOLD_DECAY, lessonResult,
+  nextCurriculumLesson,
 } from '../data/lessons';
-import { DYNAMIC_LETTERS, SEQ_FRAMES, SEQ_INTERVAL_MS, isWord } from '../data/lsr-alphabet';
+import { DYNAMIC_LETTERS, SEQ_FRAMES, SEQ_INTERVAL_MS } from '../data/lsr-alphabet';
 import { normalize } from '../utils/normalize';
-import { sameSign, usesDynamicModel } from '../utils/signMatch';
+import { usesDynamicModel, matchesLessonTarget } from '../utils/signMatch';
 import REFERENCE_POSES from '../data/reference-poses.json';
 import { playSuccess, playSkip, playLevelUp } from '../utils/sounds';
-import DYNAMIC_HAND_ANIMATIONS from '../data/dynamic-hand-animations';
-
-const MIN_CONFIDENCE = 0.7;
-// Litere dinamice: prag mai relaxat (6 clase, seturi mici).
-const DYN_MIN_CONF = 0.55;
-const DYN_MIN_MARGIN = 0.08;
-
-/** Text mare pentru target: shrink automat pentru cuvinte lungi. */
-function targetTextSize(label) {
-  const len = label?.length ?? 1;
-  if (len <= 1) return 'text-4xl';
-  if (len <= 3) return 'text-2xl';
-  if (len <= 6) return 'text-lg';
-  return 'text-base';
-}
 
 function LetterDots({ letters, idx, skipped }) {
   return (
@@ -44,7 +30,11 @@ function LetterDots({ letters, idx, skipped }) {
   );
 }
 
-function ResultsScreen({ lesson, skipped, xpGained, stars, leveledUp, onExit, onRetry }) {
+function ResultsScreen({ lesson, skipped, xpGained, stars, leveledUp, nextLesson, onContinue, onExit, onRetry }) {
+  const continueLabel = nextLesson
+    ? `Continuă · ${nextLesson.title}`
+    : 'Continuă';
+
   return (
     <div className="h-full bg-cream flex flex-col items-center justify-center px-8 animate-fade-up relative">
       <Confetti active={stars > 0} />
@@ -85,24 +75,34 @@ function ResultsScreen({ lesson, skipped, xpGained, stars, leveledUp, onExit, on
 
       <div className="w-full max-w-xs flex flex-col gap-3">
         <button
-          onClick={onExit}
+          type="button"
+          onClick={onContinue}
           className="w-full py-4 bg-signa-500 text-white font-bold rounded-2xl
             shadow-button active:scale-[0.97] transition-transform"
         >
-          Continuă
+          {continueLabel}
         </button>
         <button
+          type="button"
           onClick={onRetry}
           className="w-full py-3 text-ink-500 hover:text-ink-700 font-medium text-sm transition-colors"
         >
           Repetă lecția
+        </button>
+        <button
+          type="button"
+          onClick={onExit}
+          className="w-full py-3 rounded-2xl border border-ink-900/10 text-ink-700 font-semibold text-sm
+            hover:bg-cream-100 transition-colors"
+        >
+          Ieși afară
         </button>
       </div>
     </div>
   );
 }
 
-function LessonSession({ lesson, onExit }) {
+function LessonSession({ lesson, onExit, onContinue }) {
   const [idx, setIdx] = useState(0);
   const [holdPct, setHoldPct] = useState(0);
   const [phase, setPhase] = useState('active');
@@ -202,16 +202,14 @@ function LessonSession({ lesson, onExit }) {
         const p = predictSeqRef.current(seqBufRef.current);
         if (p) {
           label = p.label;
-          isMatch = sameSign(p.label, targetRef.current)
-            && p.confidence >= DYN_MIN_CONF
-            && p.margin >= DYN_MIN_MARGIN;
+          isMatch = matchesLessonTarget(p, targetRef.current, { dynamic: true });
         }
       }
     } else {
       const p = predictRef.current(lm);
       if (p) {
         label = p.label;
-        isMatch = sameSign(p.label, targetRef.current) && p.confidence >= MIN_CONFIDENCE;
+        isMatch = matchesLessonTarget(p, targetRef.current);
       }
     }
 
@@ -220,7 +218,7 @@ function LessonSession({ lesson, onExit }) {
     const step = Math.min(elapsed, 200);
     holdMsRef.current = isMatch
       ? holdMsRef.current + step
-      : Math.max(0, holdMsRef.current - step * 2);
+      : Math.max(0, holdMsRef.current - step * HOLD_DECAY);
 
     setHoldPct(Math.min(holdMsRef.current / holdNeed, 1));
 
@@ -256,10 +254,13 @@ function LessonSession({ lesson, onExit }) {
 
   if (phase === 'results') {
     const { stars, xp } = lessonResult(lesson.letters.length, skipped.length);
+    const nextLesson = nextCurriculumLesson(lesson.id);
     return (
       <ResultsScreen
         lesson={lesson} skipped={skipped} xpGained={xp} stars={stars}
         leveledUp={leveledUp}
+        nextLesson={nextLesson}
+        onContinue={() => (nextLesson && onContinue ? onContinue(nextLesson) : onExit())}
         onExit={onExit}
         onRetry={() => {
           recordedRef.current = false;
@@ -272,14 +273,15 @@ function LessonSession({ lesson, onExit }) {
   }
 
   const isSuccess = phase === 'success';
+  const pose = REFERENCE_POSES[target];
 
   return (
-    <div className="h-full bg-cream flex flex-col overflow-hidden">
-      <div className="relative flex-1 overflow-hidden">
+    <div className="h-full bg-cream flex flex-col lg:flex-row lg:gap-3 lg:p-3 overflow-hidden">
+      <div className="relative flex-1 min-h-0 min-w-0 overflow-hidden lg:rounded-[26px] lg:shadow-card">
         <HandTracker onLandmarks={handleLandmarks} />
 
         <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-black/65 to-transparent pointer-events-none z-10" />
-        <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-cream to-transparent pointer-events-none z-10" />
+        <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-black/40 to-transparent pointer-events-none z-10 lg:from-black/30" />
 
         {holdPct > 0 && !isSuccess && (
           <div
@@ -299,10 +301,12 @@ function LessonSession({ lesson, onExit }) {
           </div>
         )}
 
-        <div className="absolute top-0 inset-x-0 z-20 flex items-center justify-between px-4 py-4">
+        <div className="absolute top-0 inset-x-0 z-20 flex items-center justify-between gap-3 px-3 py-3 sm:px-4 sm:py-4">
           <button
+            type="button"
             onClick={onExit}
-            className="flex items-center gap-1.5 text-white/70 hover:text-white text-sm font-medium transition-colors"
+            className="flex items-center gap-1.5 h-9 px-3 rounded-full bg-black/35 backdrop-blur-sm
+              text-white/90 hover:text-white text-sm font-medium transition-colors"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
@@ -310,81 +314,54 @@ function LessonSession({ lesson, onExit }) {
             Ieși
           </button>
 
-          <span className="text-white/60 text-xs font-semibold tracking-wider">{lesson.title}</span>
-          <LetterDots letters={lesson.letters} idx={idx} skipped={skipped} />
+          <span className="h-9 px-3 rounded-full bg-black/35 backdrop-blur-sm text-white/80 text-xs font-semibold
+            tracking-wider flex items-center truncate max-w-[40%]">
+            {lesson.title}
+          </span>
+          <div className="h-9 px-3 rounded-full bg-black/35 backdrop-blur-sm flex items-center">
+            <LetterDots letters={lesson.letters} idx={idx} skipped={skipped} />
+          </div>
         </div>
 
         {detected && detected !== target && !isSuccess && (
-          <div className="absolute bottom-4 left-0 right-0 z-10 flex justify-center">
-            <span className="text-white/40 text-xs bg-black/40 px-3 py-1 rounded-full">
-              Văd: <span className="font-bold text-white/70">{detected}</span>
+          <div className="absolute bottom-4 inset-x-0 z-20 flex justify-center pointer-events-none">
+            <span className="text-white/50 text-xs bg-black/45 backdrop-blur-sm px-3 py-1 rounded-full">
+              Văd: <span className="font-bold text-white/80">{detected}</span>
             </span>
           </div>
         )}
-      </div>
 
-      <div className="flex-shrink-0 bg-white border-t border-ink-900/[0.06] px-5 pt-4 pb-8 shadow-soft">
-        <div className="flex items-center gap-4 mb-4">
-          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0
-            font-black px-2 text-center leading-tight transition-colors duration-300
-            ${targetTextSize(target)}
-            ${isSuccess ? 'bg-signa-50 text-signa-600' : 'bg-cream-100 text-ink-900'}`}>
-            {target}
-          </div>
-
-          {isDynamicTarget && DYNAMIC_HAND_ANIMATIONS[target] ? (
-              <div className="w-16 h-16 bg-cream-100 rounded-2xl p-1 flex-shrink-0 overflow-hidden">
-                {(() => {
-                  const MovementHint = DYNAMIC_HAND_ANIMATIONS[target];
-                  return <MovementHint />;
-                })()}
-              </div>
-          ) : REFERENCE_POSES[target] ? (
-            <div className="w-16 h-16 bg-cream-100 rounded-2xl p-1 flex-shrink-0">
-              <ReferencePreview target={target} pose={REFERENCE_POSES[target]} className="w-full h-full" theme="light" />
-            </div>
-          ) : (
-           <div className="w-16 h-16 bg-cream-100 rounded-2xl flex items-center justify-center flex-shrink-0
-    text-ink-300" aria-hidden>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path d="M8 11V7a2 2 0 114 0v4M12 11V6a2 2 0 114 0v6M16 11V8a2 2 0 114 0v6a6 6 0 01-12 0v-1"
-                  stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
-          )}
-
-          <div className="flex-1 min-w-0">
-            <p className="text-ink-900 font-semibold text-sm mb-0.5 truncate">
-              {isWord(target) ? `Semnul „${target}"` : `Fă semnul „${target}"`}
-            </p>
-            <p className="text-ink-500 text-xs">
-              {isDynamicTarget
-                ? 'fă mișcarea și ține până se umple bara'
-                : 'și ține-l până se umple bara'}
-            </p>
-          </div>
-        </div>
-
-        <div className="h-2 bg-cream-200 rounded-full overflow-hidden mb-3">
-          <div
-            className={`h-full rounded-full transition-all duration-100
-              ${isSuccess ? 'bg-signa-400' : holdPct > 0 ? 'bg-signa-500' : 'bg-transparent'}`}
-            style={{ width: `${holdPct * 100}%` }}
+        <div className="lg:hidden absolute top-[4.35rem] right-3 z-20 w-[min(52vw,220px)]">
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/75 mb-1.5 text-right drop-shadow">
+            De reprodus
+          </p>
+          <SignWell
+            target={target}
+            pose={pose}
+            isDynamic={isDynamicTarget}
+            isSuccess={isSuccess}
+            holdPct={holdPct}
+            className="w-full aspect-square shadow-[0_16px_40px_rgba(0,0,0,0.4)]"
           />
         </div>
-
-        <button
-          onClick={() => advance(true)}
-          className="w-full py-2 text-ink-400 hover:text-ink-600 text-xs font-medium transition-colors"
-        >
-          {isWord(target) ? 'Sari peste cuvântul ăsta →' : 'Sari peste litera asta →'}
-        </button>
       </div>
+
+      <SignCoach
+        target={target}
+        pose={pose}
+        isDynamic={isDynamicTarget}
+        isSuccess={isSuccess}
+        holdPct={holdPct}
+        onSkip={() => advance(true)}
+        letters={lesson.letters}
+        idx={idx}
+        skipped={skipped}
+      />
     </div>
   );
 }
 
-export default function LessonPage({ lesson, onExit }) {
+export default function LessonPage({ lesson, onExit, onContinue }) {
   if (!lesson?.letters?.length) {
     return (
       <div className="h-full bg-cream flex items-center justify-center">
@@ -395,5 +372,5 @@ export default function LessonPage({ lesson, onExit }) {
     );
   }
 
-  return <LessonSession lesson={lesson} onExit={onExit} />;
+  return <LessonSession lesson={lesson} onExit={onExit} onContinue={onContinue} />;
 }

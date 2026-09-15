@@ -63,11 +63,20 @@ export function lessonResult(total, skippedCount) {
   return { done, stars, xp };
 }
 
-// Cât timp trebuie ținut semnul corect ca să fie validat (ms)
-export const HOLD_DURATION_MS = 1200;
+// Cât timp trebuie ținut semnul corect ca să fie validat (ms).
+export const HOLD_DURATION_MS = 500;
 
 // Litere dinamice: menținere mai lungă (mișcarea e mai greu de stabilizat)
-export const HOLD_DURATION_DYNAMIC_MS = 1800;
+export const HOLD_DURATION_DYNAMIC_MS = 750;
+
+// Când predicția pică, bara scade mai lent decât s-a umplut — o ezitare nu resetează.
+export const HOLD_DECAY = 0.3;
+
+// Praguri în lecții — blânde; camera liberă rămâne mai strictă.
+export const MIN_CONFIDENCE = 0.22;
+export const MIN_TOP3 = 0.12;
+export const DYN_MIN_CONF = 0.15;
+export const DYN_MIN_MARGIN = 0.01;
 
 /** XP necesar pentru a ajunge la un nivel (nivelul 1 = 0 XP) */
 export function xpForLevel(level) {
@@ -148,6 +157,13 @@ export function buildChaptersWithLessons() {
     ...ch,
     lessons: ch.lessonIds.map((id) => lessonsById[id]).filter(Boolean),
   }));
+}
+
+/** Lecția imediat următoare din curriculum, sau null la capăt / la o sesiune care nu e în listă. */
+export function nextCurriculumLesson(lessonId) {
+  const idx = LESSONS.findIndex((l) => l.id === lessonId);
+  if (idx < 0 || idx >= LESSONS.length - 1) return null;
+  return LESSONS[idx + 1];
 }
 
 /** Găsește capitolul căruia îi aparține o lecție, după id. */
