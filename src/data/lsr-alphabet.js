@@ -13,15 +13,15 @@
  * semne cu două mâini / față esențială, extragem model separat.
  */
 export const LSR_LETTERS = [
-  'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
-  'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
-  'U', 'V', 'W', 'X', 'Y', 'Z',
-  'Ă', 'Â', 'Î', 'Ș', 'Ț',
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
+    'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
+    'U', 'V', 'W', 'X', 'Y', 'Z',
+    'Ă', 'Â', 'Î', 'Ș', 'Ț',
 ];
 
 export const LSR_FOOD_WORDS = [
-  'mâncare', 'apă', 'legumă', 'fruct', 'pâine',
-  'carne', 'supă', 'măr', 'cafea', 'lapte',
+    'mâncare', 'apă', 'legumă', 'fruct', 'pâine',
+    'carne', 'supă', 'măr', 'cafea', 'lapte',
 ];
 
 export const LSR_PRONOUNS = ['eu', 'tu', 'el', 'ea', 'noi', 'voi', 'ei', 'ele'];
@@ -29,21 +29,21 @@ export const LSR_PRONOUNS = ['eu', 'tu', 'el', 'ea', 'noi', 'voi', 'ei', 'ele'];
 export const LSR_FAMILY = ['mamă', 'tată', 'frate', 'soră', 'bunicul', 'bunica', 'prieten', 'prietenă'];
 
 export const LSR_COLORS = [
-  'alb', 'negru', 'gri', 'roșu', 'galben', 'portocaliu', 'albastru', 'verde', 'mov', 'maro', 'roz',
+    'alb', 'negru', 'gri', 'roșu', 'galben', 'portocaliu', 'albastru', 'verde', 'mov', 'maro', 'roz',
 ]
 
 //cifre statice
 export const LSR_DIGITS = [
-  '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
+    '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
 ];
 
 //numere dinamice
 export const LSR_NUMBERS = [
-  '11', '12', '13', '14', '15', '16', '17', '18', '19', '20',
-  '100', '1000', '112'
+    '11', '12', '13', '14', '15', '16', '17', '18', '19', '20',
+    '100', '1000', '112'
 ];
 export const LSR_SALUTATION = [
-  'buna','buna dimineata','ce faci','la revedere','buna seara'
+    'buna','buna dimineata','ce faci','la revedere','buna seara'
 ];
 
 
@@ -60,8 +60,8 @@ export const MIN_SAMPLES_PER_LETTER = 50;
  * folosește `isDynamicTarget()` sau aliasul `DYNAMIC_TARGETS`.
  */
 export const DYNAMIC_LETTERS = new Set([
-  'J', 'Z', 'X', 'Î', 'Ș', 'Ț',
-  ...LSR_FOOD_WORDS, ...LSR_NUMBERS, ...LSR_COLORS, ...LSR_SALUTATION, ...LSR_PRONOUNS, ...LSR_FAMILY
+    'J', 'Z', 'X', 'Î', 'Ș', 'Ț',
+    ...LSR_FOOD_WORDS, ...LSR_NUMBERS, ...LSR_COLORS, ...LSR_SALUTATION, ...LSR_PRONOUNS, ...LSR_FAMILY
 ]);
 
 /** Alias semantic — orice etichetă care merge prin GRU. */
@@ -88,4 +88,4 @@ export const MIN_SEQ_PER_LETTER = 30;
  * @param {boolean} isVideo  true = secvență filmată, false = poză statică
  */
 export const minFor = (isVideo) =>
-  isVideo ? MIN_SEQ_PER_LETTER : MIN_SAMPLES_PER_LETTER;
+    isVideo ? MIN_SEQ_PER_LETTER : MIN_SAMPLES_PER_LETTER;

@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
 import HandTracker from '../components/hand-tracker';
-import ReferenceHand from '../components/lesson/ReferenceHand';
+import ReferencePreview from '../components/lesson/ReferencePreview';
 import Confetti from '../components/ui/Confetti';
 import { useClassifier } from '../hooks/useClassifier';
 import { useProgress } from '../hooks/useProgress';
@@ -341,7 +341,7 @@ function LessonSession({ lesson, onExit }) {
               </div>
           ) : REFERENCE_POSES[target] ? (
             <div className="w-16 h-16 bg-cream-100 rounded-2xl p-1 flex-shrink-0">
-              <ReferenceHand pose={REFERENCE_POSES[target]} className="w-full h-full" theme="light" />
+              <ReferencePreview target={target} pose={REFERENCE_POSES[target]} className="w-full h-full" theme="light" />
             </div>
           ) : (
            <div className="w-16 h-16 bg-cream-100 rounded-2xl flex items-center justify-center flex-shrink-0
