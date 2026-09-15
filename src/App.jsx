@@ -187,6 +187,11 @@ export default function App() {
         key={reviewLesson ? `review-${reviewLesson.letters?.join('') ?? 'invalid'}` : lessonId}
         lesson={lesson}
         onExit={() => setPage(reviewLesson ? 'review' : 'lessons')}
+        onContinue={(next) => {
+          setReviewLesson(null);
+          setLessonId(next.id);
+          setPage('lesson');
+        }}
       />
     );
   }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { sameSign, usesDynamicModel } from './signMatch.js';
+import { sameSign, usesDynamicModel, matchesLessonTarget } from './signMatch.js';
 import { LESSONS } from '../data/lessons.js';
 import { DYNAMIC_LETTERS } from '../data/lsr-alphabet.js';
 import { cleanLabels } from '../hooks/useClassifier.js';
@@ -15,6 +15,40 @@ describe('sameSign', () => {
   it('păstrează diacriticele — Ă și A sunt litere diferite', () => {
     expect(sameSign('A', 'Ă')).toBe(false);
     expect(sameSign('Mama', 'Mamă')).toBe(false);
+  });
+});
+
+describe('matchesLessonTarget', () => {
+  it('acceptă top-1 la pragul blând', () => {
+    expect(matchesLessonTarget({ label: 'A', confidence: 0.25, top3: [] }, 'A')).toBe(true);
+    expect(matchesLessonTarget({ label: 'A', confidence: 0.1, top3: [] }, 'A')).toBe(false);
+  });
+
+  it('acceptă ținta din top-3 chiar dacă top-1 e alt semn', () => {
+    const p = {
+      label: 'S',
+      confidence: 0.41,
+      top3: [
+        { label: 'S', p: 0.41 },
+        { label: 'A', p: 0.18 },
+        { label: 'E', p: 0.09 },
+      ],
+    };
+    expect(matchesLessonTarget(p, 'A')).toBe(true);
+    expect(matchesLessonTarget(p, 'B')).toBe(false);
+  });
+
+  it('la semne dinamice cere top-1 și o marjă mică', () => {
+    expect(matchesLessonTarget(
+      { label: 'J', confidence: 0.2, margin: 0.04, top3: [] },
+      'J',
+      { dynamic: true },
+    )).toBe(true);
+    expect(matchesLessonTarget(
+      { label: 'J', confidence: 0.2, margin: 0.002, top3: [] },
+      'J',
+      { dynamic: true },
+    )).toBe(false);
   });
 });
 

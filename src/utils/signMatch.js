@@ -7,11 +7,34 @@
  * niciodată — nici modelul ales nu era cel care cunoștea semnul.
  */
 
+import {
+  MIN_CONFIDENCE, MIN_TOP3, DYN_MIN_CONF, DYN_MIN_MARGIN,
+} from '../data/lessons.js';
+
 /** Cheia de comparație: fără spații la capete și fără majuscule. Diacriticele
  *  rămân — Ă și A sunt litere diferite în alfabet. */
 export const signKey = (label) => String(label ?? '').trim().toLocaleLowerCase('ro');
 
 export const sameSign = (a, b) => signKey(a) === signKey(b);
+
+/**
+ * Recunoaștere în lecții: top-1 la pragul blând, sau ținta în top-3.
+ * Dinamic rămâne pe top-1 + marjă mică (clase puține, mișcarea e semnalul).
+ */
+export function matchesLessonTarget(prediction, target, { dynamic = false } = {}) {
+  if (!prediction) return false;
+  if (dynamic) {
+    return sameSign(prediction.label, target)
+      && prediction.confidence >= DYN_MIN_CONF
+      && prediction.margin >= DYN_MIN_MARGIN;
+  }
+  if (sameSign(prediction.label, target) && prediction.confidence >= MIN_CONFIDENCE) {
+    return true;
+  }
+  return (prediction.top3 ?? []).some(
+    (row) => sameSign(row.label, target) && row.p >= MIN_TOP3,
+  );
+}
 
 /**
  * Alege modelul pentru o țintă. Păstrează regula din lsr-alphabet când modelul
