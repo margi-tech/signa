@@ -66,7 +66,7 @@ function WordInput({ value, onChange, mode, onModeChange }) {
 
 /* ── Buton captură / înregistrare ──────────────────────────────── */
 function CaptureBtn({
-  onCapture, isHandDetected, idleHint = 'Ridică mâna în față camerei', letter, isDone, isDynamic,
+  onCapture, isHandDetected, idleHint = 'Ridică mâna în fața camerei', letter, isDone, isDynamic,
   recording, recProgress, countdown, onCancelCountdown, automation = false,
 }) {
   const busy = recording || countdown > 0 || automation;
@@ -501,7 +501,7 @@ export default function CollectPage({ onBack, userId = null, datasetAccess = nul
   const trackingReady = tracking.hands > 0;
   const idleHint = tracking.hands > 0
     ? 'Gata de captură'
-    : 'Ridică mâna în față camerei';
+    : 'Ridică mâna în fața camerei';
 
   return (
     <div className="min-h-full bg-[radial-gradient(ellipse_80%_45%_at_72%_0%,#F2FBF6,#FFFBF3_68%)] text-ink-900">
@@ -647,7 +647,7 @@ export default function CollectPage({ onBack, userId = null, datasetAccess = nul
                   : 'border-white/12 bg-black/35 text-white/70'}`}>
                 {trackingReady
                   ? '✓ Gata de captură'
-                  : 'Ridică mâna în față camerei'}
+                  : 'Ridică mâna în fața camerei'}
               </div>
             </section>
 

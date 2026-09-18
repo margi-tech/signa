@@ -193,7 +193,7 @@ export default function HandTracker({
         >
           {requireFaceFrame && !faceFrame.ok
             ? faceFrame.hint
-            : subject?.hands?.length ? '✓ Mână detectată' : 'Ridică mâna în față camerei'}
+            : subject?.hands?.length ? '✓ Mână detectată' : 'Ridică mâna în fața camerei'}
         </span>
 
           {subject && (
