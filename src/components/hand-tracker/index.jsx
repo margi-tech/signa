@@ -17,16 +17,16 @@ const DETECT_INTERVAL_MS = 66;
  *
  * @param {Function} [onLandmarks]  callback opțional, apelat la fiecare detecție cu
  *   subiectul complet { hands, handedness, faceBlendshapes, headMatrix, pose }
- *   (sau null dacă nu e nicio mână în cadru, sau dacă fața nu e în cadran)
- * @param {boolean} [requireFaceFrame=true]  fără față în cadran, onLandmarks primește
- *   null — captura și recunoașterea stau. onTracking continuă să raporteze tot.
+ *   (sau null dacă nu e nicio mână în cadru)
+ * @param {boolean} [requireFaceFrame=false]  dacă e true, fără față în cadran
+ *   onLandmarks primește null. Implicit detectoarele pornesc fără oval.
  */
 export default function HandTracker({
   onLandmarks,
   onTracking,
   videoFit = 'cover',
   showStatus = true,
-  requireFaceFrame = true,
+  requireFaceFrame = false,
 }) {
   const videoRef       = useRef(null);
   const loopRef        = useRef(null);
@@ -89,7 +89,7 @@ export default function HandTracker({
         setFaceFrame(faceFrameNow);
 
         // Canvas: arată față/corp chiar și fără mână; callback-ul de colectare/predicție
-        // rămâne null fără mână (semnul LSR cere cel puțin o mână) sau fără cadran.
+        // rămâne null fără mână (semnul LSR cere cel puțin o mână).
         const forDraw = result && (
           hasHand || result.faceLandmarks || result.pose
         ) ? result : null;
@@ -166,7 +166,7 @@ export default function HandTracker({
           videoRef={videoRef}
           videoFit={videoFit}
           faceFrame={faceFrame}
-          showFaceFrame
+          showFaceFrame={requireFaceFrame}
         />
       </div>
 
@@ -199,8 +199,8 @@ export default function HandTracker({
           {subject && (
             <div className="flex gap-1.5">
               <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full
-                ${faceFrame.ok ? 'bg-sky-500/80 text-white' : 'bg-slate-800/50 text-slate-500'}`}>
-                {faceFrame.ok ? '✓ Cadran' : 'Cadran'}
+                ${subject.faceLandmarks?.length ? 'bg-sky-500/80 text-white' : 'bg-slate-800/50 text-slate-500'}`}>
+                {subject.faceLandmarks?.length ? '✓ Față' : 'Față'}
               </span>
               <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full
                 ${subject.pose ? 'bg-amber-500/80 text-white' : 'bg-slate-800/50 text-slate-500'}`}>

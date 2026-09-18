@@ -66,7 +66,7 @@ function WordInput({ value, onChange, mode, onModeChange }) {
 
 /* ── Buton captură / înregistrare ──────────────────────────────── */
 function CaptureBtn({
-  onCapture, isHandDetected, idleHint = 'Așază-te cu fața în cadran', letter, isDone, isDynamic,
+  onCapture, isHandDetected, idleHint = 'Ridică mâna în față camerei', letter, isDone, isDynamic,
   recording, recProgress, countdown, onCancelCountdown, automation = false,
 }) {
   const busy = recording || countdown > 0 || automation;
@@ -78,7 +78,7 @@ function CaptureBtn({
         ? 'Seria automată este în desfășurare…'
       : isDynamic
         ? !isHandDetected
-          ? `Apasă — ai ${COUNTDOWN_SEC}s să intri în cadran`
+          ? `Apasă — ai ${COUNTDOWN_SEC}s să ridici mâna`
           : isDone ? `✓ ${letter} complet — mai înregistrează` : `● Înregistrează  ${letter}`
         : !isHandDetected
           ? idleHint
@@ -175,12 +175,10 @@ export default function CollectPage({ onBack, userId = null, datasetAccess = nul
   const [recProgress,    setRecProgress]    = useState(0);
   const [countdown,      setCountdown]      = useState(0);
   const [importMsg,      setImportMsg]      = useState('');
-  const faceFrameRef = useRef({ ok: false, hint: 'Așază-te cu fața în cadran' });
   const [tracking,       setTracking]       = useState({
     hands: 0,
     face: false,
     pose: false,
-    frame: { ok: false, hint: 'Așază-te cu fața în cadran' },
   });
   const [autoRunning,    setAutoRunning]    = useState(false);
   const [autoProgress,   setAutoProgress]   = useState(0);
@@ -263,13 +261,10 @@ export default function CollectPage({ onBack, userId = null, datasetAccess = nul
   }, []);
 
   const handleTracking = useCallback((subject) => {
-    const frame = subject?.faceFrame ?? { ok: false, hint: 'Așază-te cu fața în cadran' };
-    faceFrameRef.current = frame;
     setTracking({
       hands: subject?.hands?.length ?? 0,
       face: Boolean(subject?.faceLandmarks?.length),
       pose: Boolean(subject?.pose?.length),
-      frame,
     });
   }, []);
 
@@ -438,9 +433,7 @@ export default function CollectPage({ onBack, userId = null, datasetAccess = nul
         }
         const fresh = await waitForFreshHandFrame(landmarkFrameRef.current, runId);
         if (!fresh || autoRunRef.current !== runId) {
-          setAutoNote(faceFrameRef.current.ok
-            ? 'Seria s-a oprit: tracking-ul mâinii a fost pierdut.'
-            : 'Seria s-a oprit: fața a ieșit din cadran.');
+          setAutoNote('Seria s-a oprit: tracking-ul mâinii a fost pierdut.');
           setAutoRunning(false);
           return;
         }
@@ -453,9 +446,7 @@ export default function CollectPage({ onBack, userId = null, datasetAccess = nul
 
       if (autoRunRef.current !== runId) return;
       if (!saved) {
-        setAutoNote(faceFrameRef.current.ok
-          ? 'Seria s-a oprit: mâna a ieșit din cadru.'
-          : 'Seria s-a oprit: fața a ieșit din cadran.');
+        setAutoNote('Seria s-a oprit: mâna a ieșit din cadru.');
         setAutoRunning(false);
         return;
       }
@@ -507,10 +498,10 @@ export default function CollectPage({ onBack, userId = null, datasetAccess = nul
     error: cloud.error,
   });
 
-  const trackingReady = tracking.hands > 0 && tracking.frame?.ok && tracking.pose;
-  const idleHint = tracking.frame?.ok
-    ? 'Ridică mâna în față camerei'
-    : (tracking.frame?.hint ?? 'Așază-te cu fața în cadran');
+  const trackingReady = tracking.hands > 0;
+  const idleHint = tracking.hands > 0
+    ? 'Gata de captură'
+    : 'Ridică mâna în față camerei';
 
   return (
     <div className="min-h-full bg-[radial-gradient(ellipse_80%_45%_at_72%_0%,#F2FBF6,#FFFBF3_68%)] text-ink-900">
@@ -594,7 +585,7 @@ export default function CollectPage({ onBack, userId = null, datasetAccess = nul
                 <div className="flex flex-wrap gap-1.5">
                   {[
                     { label: tracking.hands === 2 ? '2 mâini' : tracking.hands === 1 ? '1 mână' : 'Mâini', on: tracking.hands > 0 },
-                    { label: 'Cadran', on: Boolean(tracking.frame?.ok) },
+                    { label: 'Față', on: tracking.face },
                     { label: 'Corp', on: tracking.pose },
                   ].map((item) => (
                     <span
@@ -626,7 +617,7 @@ export default function CollectPage({ onBack, userId = null, datasetAccess = nul
                     {countdown}
                   </span>
                   <p className="mt-3 text-[14px] font-extrabold text-white/85">
-                    Fața în cadran, mâinile în cadru
+                    Ridică mâinile în cadru
                   </p>
                 </div>
               )}
@@ -656,9 +647,7 @@ export default function CollectPage({ onBack, userId = null, datasetAccess = nul
                   : 'border-white/12 bg-black/35 text-white/70'}`}>
                 {trackingReady
                   ? '✓ Gata de captură'
-                  : !tracking.frame?.ok
-                    ? (tracking.frame?.hint ?? 'Așază-te cu fața în cadran')
-                    : 'Intră cu mâinile în cadru'}
+                  : 'Ridică mâna în față camerei'}
               </div>
             </section>
 
