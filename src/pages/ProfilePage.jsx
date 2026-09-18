@@ -9,18 +9,30 @@ import { useProgress } from '../hooks/useProgress';
 import { pullAndMergeProgress, pushProgress } from '../hooks/useProgressSync';
 import AuthPanel from '../components/auth/AuthPanel';
 import ProfileDashboard from '../components/auth/ProfileDashboard';
-import { MessageBanner, SectionCard } from '../components/auth/AuthUi';
+import { MessageBanner, SecondaryButton, SectionCard } from '../components/auth/AuthUi';
+import { ChartIcon, RepeatIcon, UserIcon, UsersIcon } from '../components/icons.jsx';
+import { consumeGuestConversion } from '../lib/guest';
+
+/** Ce câștigă invitatul dacă își face cont — lucruri care cer un `user_id`. */
+const GUEST_PERKS = [
+  { icon: ChartIcon, title: 'Locul tău în clasament', body: 'XP-ul tău intră în competiția cu ceilalți.' },
+  { icon: UsersIcon, title: 'Prieteni', body: 'Urmărește-ți colegii și vezi cum avansează.' },
+  { icon: RepeatIcon, title: 'Progres sincronizat', body: 'Continui de pe telefon exact unde ai rămas pe laptop.' },
+  { icon: UserIcon, title: 'Profil cu poză și nume', body: 'Cum te văd ceilalți în Signa.' },
+];
 
 /**
  * Profil / autentificare — funcțional doar cu VITE_SUPABASE_* setate.
  * Fără chei: arată starea locală (XP, streak) și instrucțiuni.
+ * Pentru invitat, `ProfileDashboard` nu se montează deloc: nicio cale prin UI
+ * nu ajunge la profil, avatar, social sau sincronizare. Vezi `docs/guest-mode.md`.
  */
-export default function ProfilePage({ onProfileUpdated }) {
+export default function ProfilePage({ onProfileUpdated, isGuest = false, onExitGuest }) {
   const {
     xp, streak, level, xpIntoLevel, xpNeeded,
     completedLessonsCount, totalLessonsCount, letterMastery, persist, syncNow,
   } = useProgress();
-  const [authMode, setAuthMode] = useState('login');
+  const [authMode, setAuthMode] = useState(isGuest ? 'signup' : 'login');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [username, setUsername] = useState('');
@@ -72,11 +84,13 @@ export default function ProfilePage({ onProfileUpdated }) {
       setUser(session?.user ?? null);
       if (!session?.user) {
         setProfile(null);
-        setAuthMode('login');
+        // Resetul e pentru sign-out. Invitatul n-are din ce ieși, iar pentru
+        // el panoul trebuie să rămână pe „cont nou".
+        setAuthMode(isGuest ? 'signup' : 'login');
       }
     });
     return () => sub.subscription.unsubscribe();
-  }, []);
+  }, [isGuest]);
 
   useEffect(() => {
     if (!user) {
@@ -106,6 +120,22 @@ export default function ProfilePage({ onProfileUpdated }) {
     if (merged) persist(merged);
     const p = await getOwnProfile();
     if (p) setProfile(p);
+  };
+
+  const clearLocalProgress = () => {
+    if (!window.confirm('Ștergi tot progresul de pe acest dispozitiv? Nu se poate anula.')) return;
+    consumeGuestConversion();   // nu mai e nimic de mutat pe un cont
+    persist({
+      xp: 0,
+      streak: 0,
+      lastPracticeDate: null,
+      onboardingDone: true,
+      lessons: {},
+      letterMastery: {},
+      favorites: [],
+      soundEnabled: true,
+    });
+    setBanner({ tone: 'success', text: 'Progresul local a fost șters.' });
   };
 
   const stickyName = [firstName, lastName].filter(Boolean).join(' ') || username || 'Jucător';
@@ -199,6 +229,64 @@ export default function ProfilePage({ onProfileUpdated }) {
             <code className="text-ink-700">.env.local</code>, pune URL + anon key, rulează{' '}
             <code className="text-ink-700">supabase/schema.sql</code>.
           </p>
+        ) : isGuest ? (
+          <>
+            <SectionCard>
+              <h2 className="text-[17px] font-black text-ink-900 tracking-tight">
+                Ce deblochezi cu un cont
+              </h2>
+              <ul className="mt-3.5 space-y-3">
+                {GUEST_PERKS.map(({ icon: Icon, title, body }, i) => (
+                  <li
+                    key={title}
+                    className="flex items-start gap-3 sg-fade-up"
+                    style={{ animationDelay: `${0.06 * i}s` }}
+                  >
+                    <span className="flex items-center justify-center w-8 h-8 flex-none rounded-[11px]
+                      bg-signa-100 text-signa-700">
+                      <Icon width="17" height="17" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-[13.5px] font-extrabold text-ink-900 leading-tight">
+                        {title}
+                      </span>
+                      <span className="block text-[12.5px] font-semibold text-ink-500 leading-snug mt-0.5">
+                        {body}
+                      </span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-4 text-[12.5px] font-semibold text-ink-400 leading-relaxed">
+                Lecțiile și XP-ul strânse ca invitat se mută pe cont la prima
+                conectare. Seria de zile consecutive pornește odată cu contul.
+              </p>
+            </SectionCard>
+
+            <SectionCard>
+              {/* Fără `afterAuth`: conversia o face handler-ul de `SIGNED_IN`
+                  din useProgress. Un al doilea scriitor ar putea salva
+                  progresul contului în slate-ul de invitat cât flag-ul e încă
+                  aprins — și apoi i-ar re-emite lecțiile. */}
+              <AuthPanel
+                mode={authMode}
+                onModeChange={setAuthMode}
+                busy={busy}
+                onBusy={setBusy}
+                onMessage={setBanner}
+                afterAuth={async () => {}}
+              />
+            </SectionCard>
+
+            <div className="pt-1 space-y-2">
+              <SecondaryButton disabled={busy} onClick={onExitGuest}>
+                Ieși din modul invitat
+              </SecondaryButton>
+              <SecondaryButton disabled={busy} variant="danger" onClick={clearLocalProgress}>
+                Șterge progresul de pe acest dispozitiv
+              </SecondaryButton>
+            </div>
+          </>
         ) : authLoading ? (
           <div className="flex justify-center py-12">
             <div className="w-7 h-7 rounded-full border-2 border-ink-900/10 border-t-signa-500 animate-spin" />

@@ -43,8 +43,10 @@ export function useProfileSummary(xp, userId) {
   }, [reloadKey, userId]);
 
   // Poziția în clasament — două count-uri ieftine pe view-ul `leaderboard`.
+  // `anon` are select pe view, deci fără `userId` am calcula o poziție din XP
+  // local pentru cineva care nu e în clasament. Invitatul rămâne fără rang.
   useEffect(() => {
-    if (!isSupabaseConfigured || !supabase) return undefined;
+    if (!isSupabaseConfigured || !supabase || !userId) return undefined;
     let cancelled = false;
     (async () => {
       try {
@@ -57,7 +59,7 @@ export function useProfileSummary(xp, userId) {
       } catch { /* fără sesiune / offline */ }
     })();
     return () => { cancelled = true; };
-  }, [xp]);
+  }, [xp, userId]);
 
   return {
     firstName,

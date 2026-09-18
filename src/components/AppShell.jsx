@@ -35,6 +35,8 @@ export default function AppShell({
   page, onNavigate,
   onOpenLesson, onCollect, onTrain, onDiagnostic, onSpell, onReview, onReferinte,
   profileSummary,
+  isGuest = false,
+  onExitGuest,
   canCollect = false,
   canTrain = false,
   canDiagnostic = false,
@@ -132,6 +134,8 @@ export default function AppShell({
           avatarUrl={avatarUrl}
           streak={streak}
           unsyncedLessons={unsyncedLessons}
+          isGuest={isGuest}
+          onProfile={() => go('profile')}
           onCollect={onCollect}
           onTrain={onTrain}
           onDiagnostic={onDiagnostic}
@@ -180,13 +184,17 @@ export default function AppShell({
 
           {shows('leaderboard') && (
             <main className={mainClass} style={layer('leaderboard')} onAnimationEnd={onLayerAnimEnd}>
-              <LeaderboardPage />
+              <LeaderboardPage isGuest={isGuest} onCreateAccount={() => go('profile')} />
             </main>
           )}
 
           {shows('profile') && (
             <main className={mainClass} style={layer('profile')} onAnimationEnd={onLayerAnimEnd}>
-              <ProfilePage onProfileUpdated={refreshProfile} />
+              <ProfilePage
+                onProfileUpdated={refreshProfile}
+                isGuest={isGuest}
+                onExitGuest={onExitGuest}
+              />
             </main>
           )}
         </div>

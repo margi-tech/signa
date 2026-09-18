@@ -182,7 +182,7 @@ function BrandColumn() {
  * Ecran full-screen de autentificare — blocat până la login/signup.
  * Desktop: split-screen brand + formular. Mobil: doar formularul.
  */
-export default function AuthGate({ initialMode = 'login', onRecoveryComplete }) {
+export default function AuthGate({ initialMode = 'login', onRecoveryComplete, onGuest }) {
   const [mode, setMode] = useState(initialMode);
   const [busy, setBusy] = useState(false);
   const [banner, setBanner] = useState(null);
@@ -221,6 +221,7 @@ export default function AuthGate({ initialMode = 'login', onRecoveryComplete }) 
               onMessage={setBanner}
               afterAuth={async () => {}}
               onRecoveryComplete={onRecoveryComplete}
+              onGuest={onGuest}
             />
 
             <p className="md:hidden text-center text-ink-400 text-[12.5px] leading-relaxed px-2">

@@ -21,6 +21,7 @@ import {
   PasswordInput,
   PasswordStrength,
   PrimaryButton,
+  SecondaryButton,
   SocialButtons,
 } from './AuthUi';
 
@@ -63,6 +64,8 @@ function Collapsible({ open, maxHeight, children }) {
 
 /**
  * Panou autentificare: login, signup, reset parolă.
+ * `onGuest` vine doar din AuthGate — în ProfilePage, unde același panou e
+ * montat pentru cineva deja intrat, butonul de invitat nu are ce căuta.
  */
 export default function AuthPanel({
   mode,
@@ -72,6 +75,7 @@ export default function AuthPanel({
   onMessage,
   afterAuth,
   onRecoveryComplete,
+  onGuest,
 }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -390,6 +394,20 @@ export default function AuthPanel({
         <div className="space-y-4">
           <OrSeparator />
           <SocialButtons onProvider={signInWithProvider} disabled={busy} />
+        </div>
+      )}
+
+      {/* Separatorul e al blocului social când OAuth e pornit — două „SAU"
+          unul sub altul ar rupe ecranul. */}
+      {onGuest && (
+        <div className="space-y-3">
+          {!OAUTH_ENABLED && <OrSeparator />}
+          <SecondaryButton disabled={busy} onClick={onGuest}>
+            Continuă ca invitat
+          </SecondaryButton>
+          <p className="text-center text-[12.5px] text-ink-400 leading-relaxed">
+            Înveți fără cont. Progresul rămâne pe acest dispozitiv.
+          </p>
         </div>
       )}
 
