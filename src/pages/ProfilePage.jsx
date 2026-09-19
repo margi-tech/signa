@@ -121,9 +121,14 @@ export default function ProfilePage({ onProfileUpdated, isGuest = false, onExitG
     // `overflow-x-clip`, nu `overflow-hidden`: halourile decorative ies în
     // dreapta și făceau pagina trăgibilă lateral, dar `clip` nu creează un
     // container de scroll, deci bara sticky de mai jos rămâne funcțională.
-    <div className="min-h-full flex flex-col relative overflow-x-clip">
+    <div className={`min-h-full flex flex-col relative overflow-x-clip ${isGuest
+      ? 'lg:bg-[radial-gradient(ellipse_70%_50%_at_85%_0%,#FFFDF7,#FBF6ED)]' : ''}`}
+    >
 
-      {/* Fundal ambiental — două halouri difuze care plutesc lent, în spatele conținutului. */}
+      {/* Fundal ambiental — două halouri difuze care plutesc lent, în spatele
+          conținutului. Invitatul are fundalul lui de secțiune, ca pe Acasă. */}
+      {!isGuest && (
+      <>
       <span
         aria-hidden
         className="absolute top-[6%] left-[-8%] w-[420px] h-[420px] rounded-full pointer-events-none sg-drift"
@@ -143,6 +148,8 @@ export default function ProfilePage({ onProfileUpdated, isGuest = false, onExitG
           animationDirection: 'reverse',
         }}
       />
+      </>
+      )}
 
       {/* Bară sticky compactă — apare după ~130px de scroll, cu avatar mic + nume + XP. */}
       {/* Înveliș `sticky` de înălțime zero: bara plutește peste conținut
@@ -172,9 +179,12 @@ export default function ProfilePage({ onProfileUpdated, isGuest = false, onExitG
       {/* max-w-[1180px]: pe desktop bannerul + cele două coloane au loc să respire,
           pe mobil containerul e lățimea ecranului. */}
       <div ref={scrollRef} className="flex-1 relative z-10">
-        {/* Invitatul merge pe toată lățimea conținutului, ca Lecții și
-            Clasament — plafonul de 1180px e pentru profilul cu cont. */}
-        <div className={`mx-auto px-4 pt-4 pb-8 md:px-8 md:pt-6 md:pb-10 ${isGuest ? '' : 'max-w-[1180px]'}`}>
+        {/* Invitatul merge pe toată lățimea conținutului, cu padding-ul de pe
+            Acasă — plafonul de 1180px e pentru profilul cu cont. */}
+        <div className={isGuest
+          ? 'px-4 pt-[22px] pb-8 lg:px-11 lg:pt-[34px] lg:pb-11'
+          : 'max-w-[1180px] mx-auto px-4 pt-4 pb-8 md:px-8 md:pt-6 md:pb-10'}
+        >
         {/* Invitatul are propriul antet, în cardul de conversie. */}
         {!user && !isGuest && (
           <div className="mb-5">
@@ -217,6 +227,7 @@ export default function ProfilePage({ onProfileUpdated, isGuest = false, onExitG
             xpIntoLevel={xpIntoLevel}
             xpNeeded={xpNeeded}
             lessonsCount={completedLessonsCount}
+            totalLessons={totalLessonsCount}
             onExitGuest={onExitGuest}
           />
         ) : authLoading ? (

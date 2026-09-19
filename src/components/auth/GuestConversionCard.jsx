@@ -5,21 +5,18 @@ import { useCountUp } from '../../hooks/useCountUp';
 import { useAuthForm } from './useAuthForm';
 
 const EASE = 'cubic-bezier(.22,1,.36,1)';
+const POP = 'cubic-bezier(.34,1.5,.64,1)';
 
-/** Inelul de XP are r=48, deci circumferința 302. */
-const RING_C = 302;
+/** Inelul de nivel: r=30 ⇒ circumferință 189. */
+const RING_C = 189;
+
+const EMAIL_ID = 'guest-email';
 
 const PERKS = [
-  { icon: ChartIcon, label: 'Locul în clasament', delay: '.56s' },
-  { icon: UsersIcon, label: 'Prieteni și urmăriri', delay: '.64s' },
-  { icon: RepeatIcon, label: 'Progres sincronizat', delay: '.72s' },
-  { icon: UserIcon, label: 'Poză și nume', delay: '.8s' },
-];
-
-/** Plăcuțele LSR din colțul panoului verde — pur decorative. */
-const TILES = [
-  { letter: 'A', size: 48, radius: 16, font: 21, top: 14, right: 18, rot: -8, dur: '7.5s', delay: '0s' },
-  { letter: 'B', size: 36, radius: 12, font: 16, top: 70, right: 74, rot: 10, dur: '9.5s', delay: '.8s' },
+  { icon: ChartIcon, label: 'Clasament', delay: '.72s' },
+  { icon: UsersIcon, label: 'Prieteni', delay: '.78s' },
+  { icon: RepeatIcon, label: 'Progres sincronizat', delay: '.84s' },
+  { icon: UserIcon, label: 'Poză și nume', delay: '.9s' },
 ];
 
 /** Regulile de putere a parolei din handoff — separate de PasswordStrength. */
@@ -31,6 +28,9 @@ function strengthOf(password) {
 }
 
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+
+const anim = (name, dur, delay = 0, ease = EASE) =>
+  ({ animation: `${name} ${dur}s ${ease} ${delay}s both` });
 
 function Field({ label, hint, error, children }) {
   return (
@@ -44,17 +44,32 @@ function Field({ label, hint, error, children }) {
   );
 }
 
+/** Chip alb pe verde — același limbaj ca pastilele de pe Acasă. */
+function Perk({ icon: Icon, label, delay }) {
+  return (
+    <span
+      className="flex items-center gap-[9px] px-[17px] py-[11px] rounded-xl text-[13.5px] font-bold
+        text-[#ECFDF5] bg-white/10 border border-white/[.15]
+        hover:bg-white/20 hover:-translate-y-0.5 transition-[background-color,transform] duration-[280ms]"
+      style={{ ...anim('sg-pop', 0.5, parseFloat(delay)), transitionTimingFunction: EASE }}
+    >
+      <Icon width="16" height="16" />
+      {label}
+    </span>
+  );
+}
+
 /**
- * Cardul de conversie al invitatului: panoul verde cu progresul local lângă
- * formularul de cont. Layout nou peste fluxul existent — câmpurile, validările
- * și submit-ul vin din `useAuthForm`, la fel ca în AuthPanel.
+ * Ecranul de invitat: hero verde pe toată lățimea, cu rândul alb de sub el —
+ * același limbaj ca pagina Acasă (gradient 125deg + grilă 1.55fr/1fr).
  *
- * `afterAuth` rămâne gol intenționat: conversia progresului o face handler-ul
- * de `SIGNED_IN` din useProgress, iar un al doilea scriitor ar putea salva
- * progresul contului în slate-ul de invitat (vezi docs/guest-mode.md §6.1).
+ * Câmpurile, validările și submit-ul vin din `useAuthForm`, la fel ca în
+ * AuthPanel. `afterAuth` rămâne gol intenționat: conversia progresului o face
+ * handler-ul de `SIGNED_IN` din useProgress, iar un al doilea scriitor ar putea
+ * salva progresul contului în slate-ul de invitat (vezi docs/guest-mode.md §6.1).
  */
 export default function GuestConversionCard({
-  xp, level, xpIntoLevel, xpNeeded, lessonsCount, onExitGuest,
+  xp, level, xpIntoLevel, xpNeeded, lessonsCount, totalLessons, onExitGuest,
 }) {
   const [mode, setMode] = useState('signup');
   const [showPassword, setShowPassword] = useState(false);
@@ -78,10 +93,19 @@ export default function GuestConversionCard({
 
   const signup = mode === 'signup';
   const xpShown = useCountUp(xp, { duration: 1400, delay: 0 });
-  const pct = xpNeeded > 0 ? Math.min(xpIntoLevel / xpNeeded, 1) : 0;
-  const ringTo = Math.round(RING_C * (1 - pct));
   const strength = strengthOf(password);
   const lessonsLabel = plural(lessonsCount, 'lecție', 'lecții');
+  const pct = xpNeeded > 0 ? Math.min(xpIntoLevel / xpNeeded, 1) : 0;
+  const ringTo = Math.round(RING_C * (1 - pct));
+  const xpToNext = Math.max(xpNeeded - xpIntoLevel, 0);
+  const lessonsPct = totalLessons > 0 ? Math.min(lessonsCount / totalLessons, 1) : 0;
+
+  /* Butoanele din hero nu fac submit: comută modul și trimit cursorul în
+     formularul de mai jos, ca omul să nu-l caute singur. */
+  const goMode = (next) => {
+    setMode(next);
+    requestAnimationFrame(() => document.getElementById(EMAIL_ID)?.focus());
+  };
 
   /* Indicatorul de tab își ia lățimea și poziția din DOM — etichetele au
      lungimi diferite, iar Nunito se încarcă după primul cadru. */
@@ -100,95 +124,92 @@ export default function GuestConversionCard({
 
   return (
     <div>
-      <p
-        className="text-[12px] font-extrabold uppercase tracking-[.22em] text-ink-400"
-        style={{ animation: `sg-fade-up .7s ${EASE} both` }}
-      >
-        Profil · Modul invitat
-      </p>
-      <h1
-        className="mt-1.5 text-[1.9rem] lg:text-[2.4rem] font-black text-ink-900 tracking-[-.02em] leading-[1.1]"
-        style={{ animation: `sg-fade-up .8s ${EASE} .06s both` }}
-      >
-        Ai deja{' '}
-        <span className="relative whitespace-nowrap tabular-nums">
-          {xp} XP
-          <span
-            aria-hidden
-            className="absolute left-0 right-0 bottom-[2px] h-[7px] rounded bg-signa-400/50 sg-underline"
-            style={{ transformOrigin: 'left', animationDelay: '.9s', animationDuration: '.9s' }}
-          />
-        </span>{' '}
-        de mutat pe cont.
-      </h1>
-      <p
-        className="mt-2 max-w-[520px] text-[14px] font-semibold text-ink-500 leading-[1.5]"
-        style={{ animation: `sg-fade-up .8s ${EASE} .14s both` }}
-      >
-        Creează contul și lecțiile strânse pe acest dispozitiv se mută singure.
-        Nu pierzi nimic — seria de zile pornește odată cu contul.
-      </p>
-
-      <div
-        className="mt-6 grid grid-cols-1 lg:grid-cols-[352px_1fr] rounded-[26px] overflow-hidden
-          border border-ink-900/[.07] shadow-[0_18px_50px_rgba(46,42,36,.12)]"
-        style={{ animation: `sg-fade-up .9s ${EASE} .2s both` }}
-      >
-        {/* ── Panoul verde: cine ești și ce ai de mutat ───────────────── */}
-        <div className="relative overflow-hidden px-7 py-[30px]
-          bg-[linear-gradient(160deg,#064e3b,#065f46_52%,#059669)]">
-          <span
-            aria-hidden
-            className="absolute -top-[120px] -right-[120px] w-[360px] h-[360px] rounded-full blur-[50px] sg-aurora-a"
-            style={{ background: 'radial-gradient(circle, rgba(52,211,153,.55) 0%, transparent 70%)' }}
-          />
-          <span
-            aria-hidden
-            className="absolute -bottom-[88px] -left-[68px] w-[300px] h-[300px] rounded-full blur-[46px] sg-aurora-b"
-            style={{ background: 'radial-gradient(circle, rgba(255,251,243,.22) 0%, transparent 70%)' }}
-          />
-          <span
-            aria-hidden
-            className="absolute inset-0 opacity-[.16]"
-            style={{
-              backgroundImage:
-                'linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px),'
-                + 'linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px)',
-              backgroundSize: '64px 64px',
-              maskImage: 'radial-gradient(ellipse 70% 60% at 60% 40%, #000, transparent 75%)',
-              WebkitMaskImage: 'radial-gradient(ellipse 70% 60% at 60% 40%, #000, transparent 75%)',
-            }}
-          />
-          {TILES.map((t) => (
-            <span
-              key={t.letter}
-              aria-hidden
-              className="absolute flex items-center justify-center font-black text-signa-100
-                bg-white/10 border border-white/[.18] backdrop-blur-[6px] sg-float"
-              style={{
-                top: t.top,
-                right: t.right,
-                width: t.size,
-                height: t.size,
-                borderRadius: t.radius,
-                fontSize: t.font,
-                '--r': `${t.rot}deg`,
-                animationDuration: t.dur,
-                animationDelay: t.delay,
-              }}
-            >
-              {t.letter}
-            </span>
-          ))}
-
-          <div className="relative flex flex-col h-full">
-            <div
-              className="flex items-center gap-3"
-              style={{ animation: `sg-fade-right .7s ${EASE} .3s both` }}
-            >
+      {/* ── Antetul de pagină ──────────────────────────────────────── */}
+      <div className="flex items-start justify-between gap-6 flex-wrap">
+        <div className="min-w-0">
+          <p
+            className="text-[12px] font-extrabold uppercase tracking-[.22em] text-ink-400"
+            style={anim('sg-fade-right', 0.6, 0.08)}
+          >
+            Profil · Modul invitat
+          </p>
+          <h1
+            className="mt-2 text-[2rem] lg:text-[2.6rem] font-black text-ink-900
+              tracking-[-.025em] leading-[1.1] text-pretty"
+            style={anim('sg-fade-up', 0.7, 0.16)}
+          >
+            Ai deja{' '}
+            <span className="relative whitespace-nowrap tabular-nums">
+              {xp} XP
               <span
-                className="relative w-14 h-14 flex-none"
-                style={{ animation: 'sg-pop-avatar .78s cubic-bezier(.34,1.5,.64,1) .34s both' }}
+                aria-hidden
+                className="absolute left-0 right-1.5 bottom-1 h-2 rounded bg-signa-400/[.32] sg-underline"
+                style={{ transformOrigin: 'left', animationDuration: '.9s', animationDelay: '.9s' }}
+              />
+            </span>{' '}
+            de mutat pe cont.
+          </h1>
+        </div>
+
+        <div className="flex items-center gap-2.5 flex-none pt-1.5">
+          <span
+            className="flex items-center gap-[7px] px-[15px] py-[9px] rounded-full text-[13px] font-extrabold
+              bg-cream-100 border border-amber-500/[.18] text-[#b45309]"
+            style={anim('sg-scale-in', 0.5, 0.2)}
+          >
+            <LockIcon size={13} />
+            Doar pe acest dispozitiv
+          </span>
+          <span
+            className="px-[17px] py-[9px] rounded-full text-[13px] font-extrabold tabular-nums
+              bg-white border border-ink-900/[.08] text-ink-700"
+            style={anim('sg-scale-in', 0.5, 0.28)}
+          >
+            Nv. {level} · {xp} XP
+          </span>
+        </div>
+      </div>
+
+      {/* ── Heroul verde ───────────────────────────────────────────── */}
+      <div
+        className="relative overflow-hidden mt-[26px] rounded-3xl lg:rounded-[26px]
+          p-[22px] lg:p-[34px_36px] shadow-[0_20px_48px_rgba(8,74,52,.24)]
+          bg-[linear-gradient(125deg,#0f7d59_0%,#0b6446_58%,#075237_100%)]"
+        style={anim('sg-fade-up', 0.75, 0.34)}
+      >
+        <span
+          aria-hidden
+          className="absolute -top-[90px] -right-10 w-[300px] h-[300px] rounded-full blur-[46px]
+            pointer-events-none sg-aurora-a"
+          style={{ background: 'radial-gradient(circle, rgba(52,211,153,.5), transparent 70%)' }}
+        />
+        <span
+          aria-hidden
+          className="absolute -bottom-[110px] left-1/5 w-[280px] h-[280px] rounded-full blur-[50px]
+            pointer-events-none sg-aurora-b"
+          style={{ background: 'radial-gradient(circle, rgba(255,255,255,.18), transparent 72%)' }}
+        />
+        <span
+          aria-hidden
+          className="absolute inset-y-0 left-0 w-[34%] pointer-events-none"
+          style={{
+            background: 'linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent)',
+            animation: 'sg-sheen 6.5s cubic-bezier(.4,0,.2,1) 1.6s infinite',
+          }}
+        />
+
+        <div className="relative flex items-start justify-between gap-7">
+          <div className="min-w-0">
+            <p
+              className="mb-3 text-[11.5px] font-extrabold uppercase tracking-[.2em] text-[rgba(209,250,229,.85)]"
+              style={anim('sg-fade-right', 0.6, 0.5)}
+            >
+              Progres local · gata de transfer
+            </p>
+            <div className="flex items-center gap-3.5" style={anim('sg-fade-up', 0.7, 0.56)}>
+              <span
+                className="relative w-[52px] h-[52px] flex-none"
+                style={anim('sg-pop-avatar', 0.78, 0.6, POP)}
               >
                 <span
                   aria-hidden
@@ -197,93 +218,112 @@ export default function GuestConversionCard({
                 />
                 <span className="absolute inset-0 rounded-full bg-white/[.14] flex items-center
                   justify-center text-signa-100">
-                  <UserIcon width="26" height="26" />
-                </span>
-              </span>
-              <span>
-                <span className="block text-white font-black text-[19px] tracking-[-.01em]">Invitat</span>
-                <span className="block mt-0.5 text-[12.5px] font-bold text-[rgba(255,251,243,.66)]">
-                  Progres doar pe acest dispozitiv
-                </span>
-              </span>
-            </div>
-
-            <div
-              className="mt-[26px] flex items-center gap-[18px]"
-              style={{ animation: `sg-fade-up .8s ${EASE} .42s both` }}
-            >
-              <span className="relative w-[104px] h-[104px] flex-none">
-                <svg width="104" height="104" viewBox="0 0 104 104" className="-rotate-90">
-                  <circle cx="52" cy="52" r="48" fill="none" stroke="rgba(255,255,255,.16)" strokeWidth="8" />
-                  <circle
-                    cx="52" cy="52" r="48" fill="none" stroke="#34d399" strokeWidth="8"
-                    strokeLinecap="round" strokeDasharray={RING_C} strokeDashoffset={ringTo}
-                    style={{
-                      '--sg-ring-from': RING_C,
-                      '--sg-ring-to': ringTo,
-                      animation: `sg-ring-draw 1.4s ${EASE} .6s both`,
-                    }}
-                  />
-                </svg>
-                <span className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-white font-black text-2xl leading-none tabular-nums">{xpShown}</span>
-                  <span className="mt-[3px] text-[10.5px] font-extrabold tracking-[.14em] text-[rgba(255,251,243,.6)]">
-                    XP
-                  </span>
+                  <UserIcon width="24" height="24" />
                 </span>
               </span>
               <span className="min-w-0">
-                <span className="block text-white font-black text-[15px]">Nivel {level}</span>
-                <span className="block mt-[3px] text-[12.5px] font-bold text-[rgba(255,251,243,.66)] tabular-nums">
-                  {lessonsLabel} pregătite pentru transfer
-                </span>
-                <span className="flex gap-[5px] mt-2.5">
-                  {[0, 1, 2, 3].map((i) => {
-                    const filled = i < Math.round(pct * 4);
-                    return (
-                      <span
-                        key={i}
-                        className={`w-[26px] h-[5px] rounded-full ${filled ? 'bg-signa-400 sg-underline' : 'bg-white/20'}`}
-                        style={filled
-                          ? { transformOrigin: 'left', animationDuration: '.5s', animationDelay: `${0.9 + i * 0.1}s` }
-                          : undefined}
-                      />
-                    );
-                  })}
-                </span>
+                <h2 className="text-white text-[1.7rem] lg:text-[2.05rem] font-black tracking-[-.02em] leading-[1.08]">
+                  Invitat
+                </h2>
+                <p className="mt-1 text-[13.5px] font-bold text-[rgba(209,250,229,.66)] tabular-nums">
+                  {lessonsLabel} · {xp} XP · încă {xpToNext} XP până la Nv. {level + 1}
+                </p>
               </span>
             </div>
-
-            <div aria-hidden className="mt-7 h-px bg-white/[.14]" />
-
-            <p
-              className="mt-[18px] mb-3 text-[10.5px] font-extrabold uppercase tracking-[.18em] text-[rgba(209,250,229,.72)]"
-              style={{ animation: 'sg-fade-in .6s ease-out .5s both' }}
-            >
-              Se deblochează cu contul
-            </p>
-            <ul className="flex flex-col gap-[9px]">
-              {PERKS.map(({ icon: Icon, label, delay }) => (
-                <li
-                  key={label}
-                  className="flex items-center gap-[11px] px-3 py-2.5 rounded-[14px]
-                    bg-white/10 border border-white/[.16] hover:bg-white/20 hover:translate-x-1
-                    transition-[background-color,transform] duration-300"
-                  style={{
-                    animation: `sg-fade-up .7s ${EASE} ${delay} both`,
-                    transitionTimingFunction: EASE,
-                  }}
-                >
-                  <span className="flex text-signa-400"><Icon width="17" height="17" /></span>
-                  <span className="text-white font-extrabold text-[13px]">{label}</span>
-                </li>
-              ))}
-            </ul>
           </div>
+
+          <span
+            className="hidden sm:flex flex-col items-center gap-2 flex-none"
+            style={anim('sg-pop', 0.6, 0.66, POP)}
+          >
+            <span className="relative w-[78px] h-[78px]">
+              <span
+                aria-hidden
+                className="absolute -inset-1.5 rounded-full blur-[14px] bg-signa-400/[.35]"
+                style={{ animation: 'sg-ring-glow 3.4s ease-in-out infinite' }}
+              />
+              <svg width="78" height="78" viewBox="0 0 78 78" className="relative block -rotate-90">
+                <circle cx="39" cy="39" r="30" fill="rgba(255,255,255,.10)" />
+                <circle
+                  cx="39" cy="39" r="30" fill="none" stroke="#34d399" strokeWidth="3"
+                  strokeLinecap="round" strokeDasharray={RING_C} strokeDashoffset={ringTo}
+                  style={{
+                    '--sg-ring-from': RING_C,
+                    '--sg-ring-to': ringTo,
+                    animation: `sg-ring-draw 1.3s ${EASE} .7s both`,
+                  }}
+                />
+              </svg>
+              <span className="absolute inset-0 flex items-center justify-center text-white
+                text-[16px] font-black tabular-nums">
+                {Math.round(pct * 100)}%
+              </span>
+            </span>
+            <span className="text-[10.5px] font-extrabold uppercase tracking-[.14em] text-[rgba(209,250,229,.7)]">
+              Spre Nv. {level + 1}
+            </span>
+          </span>
         </div>
 
-        {/* ── Panoul alb: formularul ──────────────────────────────────── */}
-        <div className="bg-white px-8 pt-[30px] pb-8">
+        <p
+          className="relative mt-[26px] mb-3 text-[10.5px] font-extrabold uppercase
+            tracking-[.2em] text-[rgba(209,250,229,.72)]"
+          style={{ animation: 'sg-fade-in .6s ease-out .66s both' }}
+        >
+          Se deblochează cu contul
+        </p>
+        <div className="relative flex flex-wrap gap-2.5 mb-[26px]">
+          {PERKS.map((p) => <Perk key={p.label} {...p} />)}
+        </div>
+
+        <div aria-hidden className="relative h-px bg-white/[.14] mb-[22px]" />
+
+        <div className="relative flex items-center gap-3 flex-wrap">
+          <button
+            type="button"
+            onClick={() => goMode('signup')}
+            className="relative overflow-hidden flex items-center gap-2.5 px-7 py-[17px] rounded-[15px]
+              bg-white text-[#0b6446] text-[15px] font-extrabold
+              shadow-[0_10px_24px_rgba(4,44,32,.22)]
+              transition-[transform,box-shadow] duration-[160ms] ease-out
+              hover:-translate-y-0.5 hover:shadow-[0_16px_32px_rgba(4,44,32,.28)] active:scale-[.97]"
+            style={anim('sg-fade-up', 0.6, 1)}
+          >
+            <span
+              aria-hidden
+              className="absolute inset-y-0 left-0 w-2/5 pointer-events-none"
+              style={{
+                background: 'linear-gradient(90deg,transparent,rgba(11,100,70,.1),transparent)',
+                animation: 'sg-sheen 4.5s cubic-bezier(.4,0,.2,1) 2s infinite',
+              }}
+            />
+            <span className="relative">Creează cont</span>
+            <span className="relative flex" style={{ animation: 'sg-arrow 1.8s ease-in-out infinite' }}>
+              <ArrowIcon width="16" height="16" />
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => goMode('login')}
+            className="px-[26px] py-[17px] rounded-[15px] text-[15px] font-extrabold text-white
+              bg-white/[.12] border border-white/[.16]
+              transition-[transform,background-color] duration-[160ms] ease-out
+              hover:-translate-y-0.5 hover:bg-white/20 active:scale-[.97]"
+            style={anim('sg-fade-up', 0.6, 1.06)}
+          >
+            Am deja cont
+          </button>
+        </div>
+      </div>
+
+      {/* ── Rândul alb ─────────────────────────────────────────────── */}
+      <div className="mt-[22px] grid grid-cols-1 lg:grid-cols-[1.55fr_1fr] gap-[22px] items-start">
+
+        <div
+          className="bg-white border border-ink-900/[.05] rounded-[26px] px-8 pt-[30px] pb-8
+            shadow-[0_10px_30px_rgba(46,42,36,.06)]"
+          style={anim('sg-fade-up', 0.75, 0.44)}
+        >
           <div className="relative flex gap-[22px] border-b border-ink-900/[.06]">
             {[
               { key: 'signup', label: 'Cont nou' },
@@ -369,66 +409,69 @@ export default function GuestConversionCard({
               </div>
             </div>
 
-            <Field label="Email" error={fieldErrors.email}>
-              <AuthInput
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="nume@gmail.com"
-                autoComplete="email"
-                error={fieldErrors.email}
-                icon={<MailIcon />}
-              />
-            </Field>
-
-            <Field label="Parolă" error={fieldErrors.password}>
-              <span className="relative block">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Field label="Email" error={fieldErrors.email}>
                 <AuthInput
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  autoComplete={signup ? 'new-password' : 'current-password'}
-                  error={fieldErrors.password}
-                  icon={<LockIcon />}
-                  className="!pr-[74px]"
+                  id={EMAIL_ID}
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="nume@gmail.com"
+                  autoComplete="email"
+                  error={fieldErrors.email}
+                  icon={<MailIcon />}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[12px] font-extrabold
-                    text-ink-400 hover:text-ink-700 transition-colors"
-                >
-                  {showPassword ? 'Ascunde' : 'Arată'}
-                </button>
-              </span>
-              <span
-                className="block overflow-hidden"
-                style={{
-                  maxHeight: password ? 42 : 0,
-                  opacity: password ? 1 : 0,
-                  transition: `max-height .35s ${EASE}, opacity .3s ease-out`,
-                }}
-              >
-                <span className="block h-[5px] rounded-full bg-ink-900/[.08] mt-2 overflow-hidden">
-                  <span
-                    className={`block h-full rounded-full ${strength.bar}`}
-                    style={{
-                      width: strength.width,
-                      transition: `width .45s ${EASE}, background-color .3s ease-out`,
-                    }}
+              </Field>
+              <Field label="Parolă" error={fieldErrors.password}>
+                <span className="relative block">
+                  <AuthInput
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    autoComplete={signup ? 'new-password' : 'current-password'}
+                    error={fieldErrors.password}
+                    icon={<LockIcon />}
+                    className="!pr-[74px]"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[12px] font-extrabold
+                      text-ink-400 hover:text-ink-700 transition-colors"
+                  >
+                    {showPassword ? 'Ascunde' : 'Arată'}
+                  </button>
                 </span>
-                <span className="block text-[12px] text-ink-400 mt-[5px]">{strength.label}</span>
-              </span>
-            </Field>
+              </Field>
+            </div>
+
+            <div
+              className="overflow-hidden"
+              style={{
+                maxHeight: password ? 42 : 0,
+                opacity: password ? 1 : 0,
+                transition: `max-height .35s ${EASE}, opacity .3s ease-out`,
+              }}
+            >
+              <div className="h-[5px] rounded-full bg-ink-900/[.08] overflow-hidden">
+                <div
+                  className={`h-full rounded-full ${strength.bar}`}
+                  style={{
+                    width: strength.width,
+                    transition: `width .45s ${EASE}, background-color .3s ease-out`,
+                  }}
+                />
+              </div>
+              <p className="mt-[5px] text-[12px] text-ink-400">{strength.label}</p>
+            </div>
           </div>
 
           <button
             type="button"
             disabled={busy}
             onClick={signup ? submitSignup : submitLogin}
-            className="relative overflow-hidden w-full mt-5 rounded-[18px] py-[18px] text-[15.5px]
+            className="relative overflow-hidden w-full mt-5 rounded-2xl py-[17px] text-[15px]
               font-extrabold text-white bg-[linear-gradient(180deg,#10b981,#059669)]
               shadow-[0_10px_24px_rgba(16,185,129,.3)] disabled:opacity-60
               transition-[transform,box-shadow] duration-[160ms] ease-out
@@ -451,30 +494,81 @@ export default function GuestConversionCard({
             </span>
           </button>
 
-          {banner && <div className="mt-3.5"><MessageBanner tone={banner.tone}>{banner.text}</MessageBanner></div>}
+          {banner && <div className="mt-3"><MessageBanner tone={banner.tone}>{banner.text}</MessageBanner></div>}
 
-          <div className="mt-3.5 flex items-center gap-2.5 px-3.5 py-3 rounded-[14px]
-            bg-signa-50 border border-signa-500/[.18]">
-            <span className="flex flex-none text-[#047857]"><RepeatIcon width="17" height="17" /></span>
-            <span className="text-[12.5px] font-bold text-[#065f46] leading-[1.45] tabular-nums">
-              {lessonsLabel} și {xp} XP se mută pe cont imediat după conectare.
-            </span>
+          <p className="mt-3 text-center text-[12.5px] font-semibold text-ink-400">
+            Progresul rămâne pe dispozitiv — poți reveni oricând.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-3.5">
+          <div
+            className="bg-white border border-ink-900/[.05] rounded-[26px] px-7 py-[30px]
+              shadow-[0_10px_30px_rgba(46,42,36,.06)]"
+            style={anim('sg-fade-up', 0.75, 0.52)}
+          >
+            <p className="text-[11px] font-extrabold uppercase tracking-[.19em] text-ink-400">
+              Ce se mută pe cont
+            </p>
+            <div className="mt-[18px] grid grid-cols-2 gap-[18px]">
+              <div>
+                <p className="text-[23px] font-black text-ink-900 leading-none tabular-nums">{xpShown}</p>
+                <p className="mt-[5px] text-[11px] font-extrabold uppercase tracking-[.14em] text-ink-400">
+                  XP strâns
+                </p>
+              </div>
+              <div>
+                <p className="text-[23px] font-black text-ink-900 leading-none tabular-nums">
+                  {lessonsCount}<span className="text-[16px] text-ink-400">/{totalLessons}</span>
+                </p>
+                <p className="mt-[5px] text-[11px] font-extrabold uppercase tracking-[.14em] text-ink-400">
+                  Lecții făcute
+                </p>
+              </div>
+            </div>
+            <div className="mt-[18px] h-1.5 rounded-full bg-ink-900/[.07] overflow-hidden">
+              <div
+                className="h-full rounded-full bg-[linear-gradient(90deg,#34d399,#10b981)] sg-underline"
+                style={{
+                  width: `${lessonsPct * 100}%`,
+                  transformOrigin: 'left',
+                  animationDuration: '1s',
+                  animationDelay: '.8s',
+                }}
+              />
+            </div>
+            <div aria-hidden className="h-px bg-ink-900/[.07] mt-5 mb-[18px]" />
+            <div className="flex items-start gap-[11px]">
+              <span className="flex items-center justify-center w-[30px] h-[30px] flex-none
+                rounded-[10px] bg-signa-100 text-[#047857]">
+                <RepeatIcon width="16" height="16" />
+              </span>
+              <p className="text-[13px] font-bold text-ink-700 leading-[1.5]">
+                Transferul e automat, la prima conectare. Seria de zile pornește odată cu contul.
+              </p>
+            </div>
           </div>
 
-          <div className="mt-[22px] pt-[18px] border-t border-ink-900/[.06] flex flex-col gap-2">
+          <div
+            className="bg-white border border-ink-900/[.05] rounded-[26px] px-7 pt-6 pb-[26px]
+              shadow-[0_10px_30px_rgba(46,42,36,.06)]"
+            style={anim('sg-fade-up', 0.75, 0.6)}
+          >
+            <p className="text-[15px] font-black text-ink-900">Nu acum?</p>
+            <p className="mt-[5px] text-[13px] font-semibold text-ink-500 leading-[1.5]">
+              Poți continua ca invitat — camera și semnele rămân pe dispozitiv.
+            </p>
             <button
               type="button"
               disabled={busy}
               onClick={onExitGuest}
-              className="w-full py-3 rounded-2xl text-[13.5px] font-bold border border-ink-900/[.08]
-                bg-white text-ink-700 hover:bg-cream-100 transition-colors duration-200 ease-out
-                disabled:opacity-50"
+              className="w-full mt-3.5 py-[13px] rounded-[15px] text-[13.5px] font-bold
+                border border-ink-900/[.08] bg-white text-ink-700
+                hover:bg-cream-100 hover:-translate-y-px disabled:opacity-50
+                transition-[background-color,transform] duration-200 ease-out"
             >
               Ieși din modul invitat
             </button>
-            <p className="mt-0.5 text-center text-[12px] font-semibold text-ink-400">
-              Progresul rămâne pe dispozitiv — poți reveni oricând.
-            </p>
           </div>
         </div>
       </div>

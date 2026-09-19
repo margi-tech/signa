@@ -1,305 +1,293 @@
-# Handoff: Profil — cont de invitat (varianta 1b)
+# Handoff: Profil — cont de invitat, varianta `2a` („hero verde sus, rând alb dedesubt")
 
 ## Prompt de pornire pentru Claude Code
 
 > Citește `design_handoff_guest_profile/README.md` în întregime, apoi deschide
 > `design_handoff_guest_profile/Profil Invitat.dc.html` în browser. Implementează **doar
-> opțiunea cu badge-ul `1b`** (a doua din pagină, „Card de conversie") în aplicația Signa,
-> 1:1 cu designul: aceleași culori, dimensiuni, spațieri, copy și animații.
-> Ținta este ramura `isGuest` din `src/pages/ProfilePage.jsx`, refolosind componentele
-> existente din `src/components/auth/AuthUi.jsx` și logica de auth din
-> `src/components/auth/AuthPanel.jsx`. Nu copia HTML-ul din fișierul de design —
-> rescrie-l ca JSX + Tailwind, în stilul codului existent. Nu schimba ramura de utilizator
-> autentificat din ProfilePage și nu atinge fluxul Supabase.
+> opțiunea cu badge-ul `2a`** (prima din pagină, turul 2 — „Stivuit: verde sus, alb
+> dedesubt"), rescriind layoutul din `src/components/auth/GuestConversionCard.jsx`.
+> Păstrează logica existentă (`useAuthForm`, `useCountUp`, `AuthInput`, `MessageBanner`,
+> `onExitGuest`) — se schimbă **doar** structura vizuală și animațiile. Aliniază-te la
+> limbajul vizual din `src/pages/HomePage.jsx` (hero gradient + grilă `1.55fr / 1fr` de
+> carduri albe). Nu atinge fluxul Supabase și nici ramura de utilizator autentificat din
+> `ProfilePage.jsx`.
 
-## Overview
+## Ce se schimbă față de ce e pe main
 
-Ecranul de Profil în **modul invitat** din Signa. Astăzi afișează un card „Progres local",
-o listă de beneficii și formularul de auth generic — fără ierarhie, fără motiv clar de
-conversie. Designul nou transformă pagina într-un **card de conversie pe două coloane**:
+Pe main, `GuestConversionCard` e un card pe **două coloane** (panou verde 352px în stânga,
+formular în dreapta) — motivul pentru care ecranul nu seamănă cu restul aplicației.
+Varianta `2a` îl **stivuiește** și îl aduce în limbajul paginii Acasă:
 
-- **stânga (panou verde):** identitatea de invitat + progresul local (XP, nivel, lecții) +
-  ce se deblochează cu un cont;
-- **dreapta (panou alb):** formularul de cont nou / login, cu taburi, validare vizuală de
-  parolă și o notă explicită despre transferul progresului.
+```
+antet de pagină          (eyebrow + titlu + 2 pastile în dreapta)
+hero verde full-width    (identitate + progres + beneficii + 2 butoane)
+grilă 1.55fr / 1fr       (stânga: cardul de formular · dreapta: rezumat + „Nu acum?")
+```
 
-Obiectivul: utilizatorul vede **ce are de pierdut / de mutat** înainte de a vedea formularul.
+Panoul verde nu mai stă lângă formular, ci deasupra lui, pe toată lățimea, exact ca
+blocul „Continuă unde ai rămas" de pe Acasă.
 
 ## About the Design Files
 
-Fișierele din acest pachet sunt **referințe de design realizate în HTML** — prototipuri care
-arată aspectul și comportamentul dorit, **nu cod de producție care se copiază direct**.
-Sarcina este să **recreezi designul în codebase-ul existent** (React 18 + Vite + Tailwind,
-vezi `tailwind.config.js` și `src/index.css`), folosind pattern-urile și componentele deja
-stabilite acolo. Stilizarea din prototip e inline din motive de streaming al preview-ului;
-în aplicație folosește clase Tailwind și tokenii din temă (`bg-card`, `text-ink`,
-`shadow-card`, `rounded-2xl`, `text-brand-600` etc.).
+Fișierele din pachet sunt **referințe de design realizate în HTML** — arată aspectul și
+comportamentul dorit, **nu cod de producție care se copiază**. Recrează designul în
+codebase-ul existent (React 18 + Vite + Tailwind), cu clasele și tokenii din
+`tailwind.config.js` / `src/index.css`. Stilurile inline din prototip există doar pentru
+streamingul preview-ului.
 
-Prototipul conține **trei** opțiuni una lângă alta. Se implementează **numai `1b`**:
-- `1a` = recreare a stării actuale (doar pentru comparație — nu se implementează);
-- `1b` = **direcția aprobată**;
-- `1c` = direcție alternativă, respinsă.
+Prototipul conține mai multe opțiuni. Se implementează **numai `2a`**. `1a` e starea veche,
+`1b` e ce e pe main acum, `1c` a fost respinsă — rămân doar ca referință.
 
 ## Fidelity
 
-**High-fidelity.** Culorile, tipografia, spațierile, radiusurile, umbrele, copy-ul și
-animațiile sunt finale. Recrează UI-ul pixel-perfect cu Tailwind-ul existent. Unde o valoare
-din prototip nu are token în `tailwind.config.js`, folosește valoarea arbitrară Tailwind
-(ex. `rounded-[26px]`, `shadow-[0_18px_50px_rgba(46,42,36,0.12)]`) în loc să inventezi tokeni noi.
+**High-fidelity.** Culori, tipografie, spațieri, radiusuri, umbre, copy și animații sunt
+finale. Unde o valoare n-are token în temă, folosește valoarea arbitrară Tailwind
+(`rounded-[26px]`, `shadow-[0_20px_48px_rgba(8,74,52,.24)]`) în loc să inventezi tokeni noi.
 
-## Screens / Views
+## Layout
 
-### Profil — invitat (o singură vizualizare)
+Containerul invitatului e pe **toată lățimea conținutului** (nu mai e îngustat).
+Padding: `34px 44px 44px` desktop, `22px 16px 32px` mobil.
+Fundalul secțiunii: `radial-gradient(ellipse 70% 50% at 85% 0%, #FFFDF7, #FBF6ED)`.
 
-**Purpose:** invitatul își vede progresul local și își creează cont / se conectează, cu
-garanția că progresul se mută.
-
-**Layout (desktop, lățimea conținutului din shell):**
-
-```
-<main> padding: 26px 32px 40px, background #FFFBF3, position relative, overflow hidden
-├─ 2 blob-uri decorative (absolute, blur, animate — vezi „Animații")
-├─ eyebrow        „PROFIL · MODUL INVITAT"
-├─ h1             „Ai deja {XP} XP de mutat pe cont."   (cu subliniere animată pe „{XP} XP")
-├─ p              subtitlu, max-width 520px
-└─ card conversie   margin-top 24px
-   grid-template-columns: 352px 1fr
-   border-radius 26px, overflow hidden
-   border 1px rgba(46,42,36,.07)
-   box-shadow 0 18px 50px rgba(46,42,36,.12)
-   ├─ coloana stângă  (panou verde, padding 30px 28px)
-   └─ coloana dreaptă (panou alb,  padding 30px 32px 32px)
-```
-
-**Responsive:** sub ~880px lățime de container, grila devine o singură coloană
-(`grid-cols-1 lg:grid-cols-[352px_1fr]`), panoul verde deasupra formularului. Titlul scade
-de la `2.4rem` la ~`1.9rem`. Nimic din card nu are înălțime fixă.
+Ordinea verticală: antet → **26px** → hero verde → **22px** → grila de carduri albe.
 
 ---
 
-#### Header de pagină
+### 1. Antetul de pagină
 
-| Element | Valori |
-| --- | --- |
-| Eyebrow | „PROFIL · MODUL INVITAT" — 12px / 800 / uppercase / letter-spacing .22em / `#A69C8D` |
-| H1 | 2.4rem / 900 / letter-spacing −.02em / line-height 1.1 / `#2E2A24`. Text: „Ai deja **340 XP** de mutat pe cont." |
-| Subliniere | pe span-ul cu XP: absolut, `left:0;right:0;bottom:2px`, height 7px, radius 4px, `rgba(52,211,153,.5)`, `transform-origin:left`, animație de creștere pe X |
-| Subtitlu | 14px / 600 / `#8A8071` / line-height 1.5 / max-width 520px. Text: „Creează contul și lecțiile strânse pe acest dispozitiv se mută singure. Nu pierzi nimic — seria de zile pornește odată cu contul." |
+Rând `flex items-start justify-between gap-6`.
 
-#### Coloana stângă — panou „invitat"
+**Stânga:**
+- eyebrow „Profil · Modul invitat" — 12px / 800 / uppercase / tracking `.22em` / `#A69C8D`;
+- `h1` 2.6rem / 900 / tracking `-.025em` / line-height 1.1 / `text-wrap: pretty` /
+  `text-ink-900`: „Ai deja **{340 XP}** de mutat pe cont.". Span-ul cu XP e `relative`,
+  `whitespace-nowrap`, tabular-nums, cu subliniere absolută: `left:0;right:6px;bottom:4px`,
+  height 8px, radius 4px, `rgba(52,211,153,.32)`, `origin-left`, animată pe scaleX.
 
-- Fundal: `linear-gradient(160deg,#064e3b,#065f46 52%,#059669)`.
-- Aurora 1: absolut `top:-120px;right:-120px`, 360×360, radius 999px, `blur(50px)`,
-  `radial-gradient(circle, rgba(52,211,153,.55) 0%, transparent 70%)`.
-- Aurora 2: absolut `bottom:-88px;left:-68px`, 300×300, `blur(46px)`,
-  `radial-gradient(circle, rgba(255,251,243,.22) 0%, transparent 70%)`.
-- Grilă decorativă: `inset:0`, opacity .16, două `linear-gradient` de 1px
-  `rgba(255,255,255,.5)`, `background-size:64px 64px`, cu
-  `mask-image: radial-gradient(ellipse 70% 60% at 60% 40%, #000, transparent 75%)`.
-- Plăcuțe LSR plutitoare (decorative, `aria-hidden`): litera „A" 48×48 radius 16px la
-  `top:14px;right:18px`; litera „B" 36×36 radius 12px la `top:70px;right:74px`. Ambele:
-  `rgba(255,255,255,.1)`, border `1px rgba(255,255,255,.18)`, `backdrop-filter:blur(6px)`,
-  text `#d1fae5` / 900.
+**Dreapta** (două pastile, `flex gap-2.5`, `pt-1.5`):
+- ambru: `bg-[#FFF7E8]`, border `1px rgba(245,158,11,.18)`, text `#b45309`, radius 999px,
+  padding `9px 15px`, 13px / 800, cu `LockIcon` 13px — „Doar pe acest dispozitiv";
+- neutră: `bg-white`, border `1px rgba(46,42,36,.08)`, `text-ink-700`, tabular-nums —
+  „Nv. {3} · {340} XP".
 
-**Blocul de identitate** (rând, gap 12px):
-- Avatar 56×56: cerc `rgba(255,255,255,.14)`, icon user 26px `#d1fae5`; inel exterior
-  `2px solid rgba(52,211,153,.7)` care pulsează.
-- Nume „Invitat" — 19px / 900 / `#fff` / letter-spacing −.01em.
-- Sub el: „Progres doar pe acest dispozitiv" — 12.5px / 700 / `rgba(255,251,243,.66)`.
+Pe mobil pastilele trec sub titlu (`flex-wrap`), nu dispar.
 
-**Blocul de progres** (margin-top 26px, rând, gap 18px):
-- Inel XP: SVG 104×104, rotit −90°, `r=48`, `stroke-width 8`.
-  Track `rgba(255,255,255,.16)`; progres `#34d399`, `stroke-linecap round`,
-  `stroke-dasharray 302`, `stroke-dashoffset` calculat = `302 * (1 − xp%/100)`
-  (în prototip 163 ≈ 46%). În centru: numărul de XP (24px / 900 / tabular-nums) și
-  eticheta „XP" (10.5px / 800 / letter-spacing .14em / `rgba(255,251,243,.6)`).
-- Lângă: „Nivel 3" (15px / 900 / `#fff`), „6 lecții pregătite pentru transfer"
-  (12.5px / 700 / `rgba(255,251,243,.66)`), și 4 segmente 26×5px radius 999px —
-  primele 3 `#34d399`, ultimul `rgba(255,255,255,.2)`.
-- Separator: `height 1px`, `rgba(255,255,255,.14)`, margin-top 28px.
+### 2. Heroul verde (full width)
 
-**Lista „SE DEBLOCHEAZĂ CU CONTUL"** (label 10.5px / 800 / uppercase / .18em /
-`rgba(209,250,229,.72)`; listă cu `gap:9px`). Fiecare rând: padding 10px 12px,
-radius 14px, `rgba(255,255,255,.1)`, border `1px rgba(255,255,255,.16)`, icon 17px
-`#34d399`, text 13px / 800 / `#fff`. Conținut, în ordine:
-1. Locul tău în clasament (icon bare/chart)
-2. Prieteni și urmăriri (icon users)
-3. Progres pe orice dispozitiv (icon refresh)
-4. Profil cu poză și nume (icon user)
+Container: `rounded-[26px]`, padding `34px 36px`,
+`bg-[linear-gradient(125deg,#0f7d59_0%,#0b6446_58%,#075237_100%)]`,
+`shadow-[0_20px_48px_rgba(8,74,52,.24)]`, `relative overflow-hidden`.
 
-#### Coloana dreaptă — formular
+Decor (toate `aria-hidden`, `pointer-events-none`):
+- aurora verde: absolut `top:-90px;right:-40px`, 300×300, `blur(46px)`,
+  `radial-gradient(circle, rgba(52,211,153,.5), transparent 70%)`, `sg-aurora-a` 16s;
+- aurora albă: absolut `bottom:-110px;left:20%`, 280×280, `blur(50px)`,
+  `radial-gradient(circle, rgba(255,255,255,.18), transparent 72%)`, `sg-aurora-b` 21s;
+- sheen: bandă verticală de 34% lățime, `linear-gradient(90deg, transparent,
+  rgba(255,255,255,.14), transparent)`, `sg-sheen 6.5s cubic-bezier(.4,0,.2,1) 1.6s infinite`.
 
-- **Taburi:** rând cu `gap:22px`, border-bottom `1px rgba(46,42,36,.06)`. Butoane
-  14px / 700, `padding-bottom 11px`, `white-space:nowrap`; activ `#2E2A24`, inactiv `#A69C8D`.
-  Indicator: bară absolută `bottom:0`, height 2px, `#10b981`, a cărei **lățime și poziție X
-  sunt măsurate din DOM** (offsetWidth/offsetLeft ale butonului activ) — nu hardcodate.
+**Rândul de sus** — `flex items-start justify-between gap-7`:
+
+*Stânga:*
+- eyebrow „Progres local · gata de transfer" — 11.5px / 800 / uppercase / tracking `.2em` /
+  `rgba(209,250,229,.85)`, margin-bottom 12px;
+- rând identitate (`flex items-center gap-3.5`):
+  - avatar 52px: cerc `bg-white/[.14]` cu `UserIcon` 24px `#d1fae5`, plus inel exterior
+    `2px solid rgba(52,211,153,.7)` care pulsează;
+  - `h2` „Invitat" — **2.05rem** / 900 / alb / tracking `-.02em` / line-height 1.08;
+  - sub nume, 13.5px / 700 / `rgba(209,250,229,.66)` / tabular-nums:
+    „{6 lecții} · {340 XP} · încă {60} XP până la Nv. {4}".
+
+*Dreapta:* coloană centrată cu inelul de nivel:
+- 78×78, glow: `inset:-6px`, radius 999px, `rgba(52,211,153,.35)`, `blur(14px)`,
+  `sg-ring-glow 3.4s ease-in-out infinite`;
+- SVG rotit −90°, `r=30`: disc de fundal `rgba(255,255,255,.10)`, arc `#34d399`,
+  `stroke-width 3`, `linecap round`, `dasharray 189`,
+  `dashoffset = 189 * (1 − xpIntoLevel/xpNeeded)` (în prototip 102 ≈ 46%);
+- în centru procentul — 16px / 900 / alb / tabular-nums;
+- sub inel: „SPRE NV. {4}" — 10.5px / 800 / uppercase / tracking `.14em` /
+  `rgba(209,250,229,.7)`.
+
+**Beneficiile** (margin-top 26px): label „SE DEBLOCHEAZĂ CU CONTUL" — 10.5px / 800 /
+uppercase / tracking `.2em` / `rgba(209,250,229,.72)`, apoi un rând `flex flex-wrap gap-2.5`
+de chip-uri: padding `11px 17px`, radius 12px, `bg-white/10`, border
+`1px rgba(255,255,255,.15)`, text `#ECFDF5` 13.5px / 700, icon 16px. Hover:
+`bg-white/20` + `translateY(-2px)`, 280ms `cubic-bezier(.22,1,.36,1)`.
+Conținut (iconițele există deja în `src/components/icons.jsx`):
+`ChartIcon` Clasament · `UsersIcon` Prieteni · `RepeatIcon` Progres sincronizat ·
+`UserIcon` Poză și nume.
+
+**Hairline** `height 1px`, `rgba(255,255,255,.14)`, `margin: 26px 0 22px`.
+
+**Butoanele** (`flex items-center gap-3`):
+- primar: `bg-white`, text `#0b6446`, padding `17px 28px`, radius 15px, 15px / 800,
+  `shadow-[0_10px_24px_rgba(4,44,32,.22)]`, cu sheen discret și săgeată 16px care
+  oscilează (`sg-arrow 1.8s ease-in-out infinite`) — „Creează cont";
+  hover `translateY(-2px)` + umbră mai mare, active `scale(.97)`;
+- secundar: `bg-white/[.12]`, border `1px rgba(255,255,255,.16)`, text alb —
+  „Am deja cont"; hover `bg-white/20` + `translateY(-2px)`.
+
+**Comportament:** ambele butoane **setează `mode`** (`signup` / `login`) **și focusează
+câmpul de email** din cardul de formular de mai jos (`requestAnimationFrame(() =>
+emailRef.current?.focus())`). Nu fac submit și nu navighează.
+
+### 3. Grila albă de dedesubt
+
+`grid grid-cols-[1.55fr_1fr] gap-[22px] items-start`. Sub ~900px → o singură coloană.
+Toate cardurile: `bg-white`, border `1px rgba(46,42,36,.05)`, `rounded-[26px]`,
+`shadow-[0_10px_30px_rgba(46,42,36,.06)]`.
+
+#### 3a. Cardul de formular (stânga) — padding `30px 32px 32px`
+
+- **Taburi:** rând `gap-[22px]`, border-bottom `1px rgba(46,42,36,.06)`, butoane
+  14px / 700 `whitespace-nowrap`, activ `text-ink-900` / inactiv `text-ink-400`.
+  Indicator: bară absolută `bottom:0`, height 2px, `bg-signa-500`, cu **lățimea și X-ul
+  măsurate din DOM** (`offsetWidth` / `offsetLeft` ale butonului activ, remăsurate la
+  `document.fonts.ready` și la resize) — logica există deja pe main, se păstrează.
   Etichete: „Cont nou" / „Am deja cont".
-- **Titlu:** 27px / 900 / −.02em — „Creează-ți contul" (signup) sau „Bine ai revenit" (login).
-- **Subtitlu:** 14px / 600 / `#8A8071` — signup: „Un minut, și progresul de invitat devine al
-  contului tău."; login: „Intră în cont — progresul de invitat se mută automat."
-- **Câmpuri** (gap 14px):
-  - Grup doar-signup (Prenume + Nume în grilă 1fr 1fr gap 12px, apoi Username cu hint
-    „Așa te vor găsi prietenii în Signa.") — colapsează cu `max-height` + `opacity`.
-  - Email (icon mail 18px la stânga, padding-left 46px).
-  - Parolă (icon lock la stânga, padding-right 74px, buton text „Arată" 12px / 800 la dreapta).
-  - Stil input: `width:100%`, border `1px rgba(46,42,36,.09)`, radius 16px, fundal `#FDFCF9`,
-    padding 14px 16px, 15px / 600, text `#2E2A24`, placeholder `#A69C8D`.
-  - Label: 13.5px / 700 / `#4F473C`, margin-bottom 6px.
-  - **Focus:** `border-color:#10b981`, `box-shadow:0 0 0 4px rgba(16,185,129,.14)`,
-    `background:#fff`, `transform:translateY(-1px)`, tranziție 180ms.
-- **Indicator de parolă** (apare doar când câmpul are conținut): bară 5px radius 999px pe
-  `rgba(46,42,36,.08)`; umplere cu lățime + culoare după regulile din „Form validation".
-  Etichetă 12px / `#A69C8D`.
-- **CTA:** lățime 100%, radius 18px, padding 18px, 15.5px / 800 / `#fff`,
-  `linear-gradient(180deg,#10b981,#059669)`, `box-shadow:0 10px 24px rgba(16,185,129,.3)`,
-  cu sheen animat și săgeată 18px la dreapta textului.
-  Text: „Creează cont" / „Intră în cont".
-- **Nota de transfer:** padding 12px 14px, radius 14px, fundal `#ecfdf5`,
-  border `1px rgba(16,185,129,.18)`, icon refresh `#047857`, text 12.5px / 700 / `#065f46`:
-  „6 lecții și 340 XP se mută pe cont imediat după conectare." (numerele din progresul real).
-- **Acțiuni distructive** (după separator `1px rgba(46,42,36,.06)`, gap 8px):
-  - „Ieși din modul invitat" — border `rgba(46,42,36,.08)`, text `#4F473C`, hover `#FFF7E8`;
-  - „Șterge progresul de pe acest dispozitiv" — border `#fee2e2`, text `#dc2626`, hover `#fef2f2`;
-  - notă centrată 12px / 600 / `#A69C8D`: „Progresul rămâne pe dispozitiv — poți reveni oricând."
-  - Ambele acțiuni păstrează **confirmarea existentă** din `ProfilePage.jsx` — nu executa
-    ștergerea fără pasul de confirmare deja implementat.
+- **Titlu** 27px / 900 / tracking `-.02em`: „Creează-ți contul" / „Bine ai revenit".
+- **Subtitlu** 14px / 600 / `text-ink-500`: „Un minut, și progresul de invitat devine al
+  contului tău." / „Intră în cont — progresul de invitat se mută automat."
+- **Câmpuri** (margin-top 20px, `flex flex-col gap-3.5`):
+  - grup doar-signup: Prenume + Nume (`grid-cols-2 gap-3`), apoi Username cu hint
+    „Așa te vor găsi prietenii în Signa."; colapsează cu `max-height 232px → 0` +
+    `opacity 1 → 0`, `pointerEvents:none` când e ascuns;
+  - **Email și Parolă stau pe două coloane** (`grid-cols-2 gap-3`) — diferență față de main,
+    unde sunt una sub alta; pe mobil trec pe o coloană;
+  - bara de putere a parolei, pe toată lățimea, sub grila celor două câmpuri.
+  - Folosește `AuthInput` din `AuthUi.jsx` (are deja fundalul `#FDFCF9`, radius 16px,
+    focus `border-signa-500` + `ring-4 ring-signa-500/[.14]` + `-translate-y-px`).
+    Padding vertical 15px.
+- **CTA:** lățime 100%, margin-top 20px, radius 16px, padding 17px, 15px / 800, alb pe
+  `linear-gradient(180deg,#10b981,#059669)`, `shadow-[0_10px_24px_rgba(16,185,129,.3)]`,
+  sheen animat, săgeată 18px. Text „Creează cont" / „Intră în cont"; stările `busy`
+  („Se creează…" / „Se conectează…") rămân ca azi.
+- Sub CTA: `MessageBanner` (dacă există), apoi nota centrată 12.5px / 600 / `text-ink-400`:
+  „Progresul rămâne pe dispozitiv — poți reveni oricând."
 
-## Interactions & Behavior
+#### 3b. Coloana din dreapta (`flex flex-col gap-3.5`)
 
-- **Taburi:** click comută între `signup` și `login`; grupul de câmpuri doar-signup
-  colapsează prin `max-height 232px → 0` (500ms `cubic-bezier(.22,1,.36,1)`) +
-  `opacity 1 → 0` (350ms). Indicatorul de tab glisează 420ms pe același easing.
-- **Inputuri:** focus 180ms pe `border-color`, `box-shadow`, `transform`.
-- **Rânduri de perks (panou verde):** hover → `background rgba(255,255,255,.2)` +
-  `translateX(4px)`, 300ms `cubic-bezier(.22,1,.36,1)`.
-- **CTA:** hover → `translateY(-2px)` + `box-shadow 0 16px 34px rgba(16,185,129,.38)`;
-  active → `scale(.985)`; 160ms.
-- **Stări de încărcare/eroare:** refolosește exact ce există în `AuthPanel.jsx`
-  (buton dezactivat + `MessageBanner`). Bannerul de eroare se montează **sub CTA**,
-  deasupra notei de transfer.
+**Card „Ce se mută pe cont"** — padding `30px 28px`:
+- label 11px / 800 / uppercase / tracking `.19em` / `text-ink-400`;
+- două statistici (`grid-cols-2 gap-[18px]`, margin-top 18px): XP-ul (23px / 900 /
+  tabular-nums, animat cu `useCountUp`) cu eticheta „XP STRÂNS"; și „{6}**/17**"
+  (numărul mic în `text-ink-400`) cu eticheta „LECȚII FĂCUTE". Etichetele: 11px / 800 /
+  uppercase / tracking `.14em` / `text-ink-400`;
+- bară de progres lecții: height 6px, radius 999px, track `rgba(46,42,36,.07)`, umplere
+  `linear-gradient(90deg,#34d399,#10b981)`, lățime `lessonsCount / totalLessons`,
+  animată `sg-grow-x 1s` cu delay `.8s`;
+- separator `1px rgba(46,42,36,.07)`, apoi rând cu chip `RepeatIcon` (30px, radius 10px,
+  `bg-signa-100`, icon `#047857`) și textul 13px / 700 / `text-ink-700`: „Transferul e
+  automat, la prima conectare. Seria de zile pornește odată cu contul."
 
-### Animații de intrare (o singură dată, la montare)
+**Card „Nu acum?"** — padding `24px 28px 26px`: titlu 15px / 900; paragraf 13px / 600 /
+`text-ink-500` — „Poți continua ca invitat — camera și semnele rămân pe dispozitiv.";
+buton full-width, padding 13px, radius 15px, border `1px rgba(46,42,36,.08)`,
+`text-ink-700`, hover `bg-cream-100` + `translateY(-1px)` — „Ieși din modul invitat"
+(`onExitGuest`).
 
-| Nume | Keyframes | Aplicat pe | Durată / easing / delay |
-| --- | --- | --- | --- |
-| `fade-up` | `opacity 0→1`, `translateY(18px→0)` | eyebrow, h1, subtitlu, card | .7–.9s `cubic-bezier(.22,1,.36,1)`, delay 0 / .06 / .14 / .2s |
-| `fade-right` | `opacity 0→1`, `translateX(-22px→0)` | bloc identitate | .7s, delay .3s |
-| `pop-avatar` | `scale(.72) rotate(-7deg) → scale(1) rotate(0)` | avatar | .78s `cubic-bezier(.34,1.5,.64,1)`, delay .34s |
-| `ring-draw` | `stroke-dashoffset 302 → 163` | inel XP | 1.4s `cubic-bezier(.22,1,.36,1)`, delay .6s |
-| `grow-x` | `scaleX(0→1)`, origin left | subliniere h1; cele 3 segmente | .5–.9s, delay .9 / 1.0 / 1.1s |
-| `fade-up` (stagger) | idem | cele 4 rânduri de perks | .7s, delay .56 / .64 / .72 / .80s |
-| numărător XP | `requestAnimationFrame`, easing `1-(1-p)³` | numărul din inel | 1400ms, 0 → XP real |
+**Ștergerea progresului local:** adaug-o aici **doar dacă** handlerul cu confirmare există
+deja pe main; altfel nu introduce fluxul.
 
-### Animații continue
+## Animații
 
-| Nume | Descriere | Durată |
+Keyframes noi de adăugat în `src/index.css` (restul există deja din implementarea `1b`):
+
+```css
+@keyframes sg-pop       { 0% {opacity:0;transform:scale(.7)} 60% {transform:scale(1.06)} 100% {opacity:1;transform:scale(1)} }
+@keyframes sg-scale-in  { from {opacity:0;transform:scale(.92)} to {opacity:1;transform:scale(1)} }
+@keyframes sg-arrow     { 0%,100% {transform:translateX(0)} 50% {transform:translateX(4px)} }
+@keyframes sg-ring-glow { 0%,100% {opacity:.28;transform:scale(1)} 50% {opacity:.55;transform:scale(1.1)} }
+```
+
+### Intrare (o dată, la montare) — `cubic-bezier(.22,1,.36,1)` dacă nu scrie altfel
+
+| Element | Animație | Durată / delay |
 | --- | --- | --- |
-| `aurora-a` | translate + scale + opacity pe blob-ul verde | 16s ease-in-out infinite |
-| `aurora-b` | idem, blob crem | 21s ease-in-out infinite |
-| `float` | `translateY(0→-14px)` + 2deg | plăcuțele A / B (7.5s și 9.5s, delay .8s) |
-| `pulse-ring` | `scale(.85→1.5)`, `opacity .55→0` | inelul avatarului | 3.4s |
-| `sheen` | `translateX(-130%→320%) skewX(-18deg)` pe un gradient alb de 38% lățime | CTA | 3.6s |
-| `drift` | translate + scale pe blob-urile de fundal ale paginii | 14s / 18s reverse |
+| eyebrow antet | `sg-fade-right` | .6s / .08s |
+| h1 | `sg-fade-up` | .7s / .16s |
+| pastila ambru / pastila Nv. | `sg-scale-in` | .5s / .2s · .28s |
+| heroul verde | `sg-fade-up` | .75s / .34s |
+| eyebrow hero | `sg-fade-right` | .6s / .5s |
+| rând identitate | `sg-fade-up` | .7s / .56s |
+| avatar | `sg-pop-avatar` (`cubic-bezier(.34,1.5,.64,1)`) | .78s / .6s |
+| inelul de nivel | `sg-pop` (`cubic-bezier(.34,1.5,.64,1)`) | .6s / .66s |
+| arcul inelului | `sg-ring-draw` | 1.3s / .7s |
+| label „se deblochează" | `sg-fade-in` | .6s / .66s |
+| cele 4 chip-uri | `sg-pop` | .5s / .72s, .78s, .84s, .9s |
+| butoanele hero | `sg-fade-up` | .6s / 1s · 1.06s |
+| cardul de formular | `sg-fade-up` | .75s / .44s |
+| cardul de rezumat | `sg-fade-up` | .75s / .52s |
+| cardul „Nu acum?" | `sg-fade-up` | .75s / .6s |
+| sublinierea din h1 · bara de lecții | `sg-grow-x` (origin left) | .9s / .9s · 1s / .8s |
+| numărătorul XP | `useCountUp` | 1400ms, 0 → XP real |
 
-**Accesibilitate:** totul se oprește sub `@media (prefers-reduced-motion: reduce)`
-(animații reduse la ~0ms, 1 iterație); numărătorul de XP sare direct la valoarea finală.
-Decorațiunile (blob-uri, plăcuțe A/B) sunt `aria-hidden`. Contrast: text alb pe verde
-`#065f46` ≥ 4.5:1; nu folosi text cu opacitate sub `rgba(255,251,243,.66)`.
+### Continue
+
+`sg-aurora-a` (16s) · `sg-aurora-b` (21s) · `sg-sheen` pe hero (6.5s, delay 1.6s), pe
+butonul primar (4.5s, delay 2s) și pe CTA (3.6s) · `sg-pulse-ring` pe avatar (3.4s) ·
+`sg-ring-glow` (3.4s) · `sg-arrow` (1.8s).
+
+`@media (prefers-reduced-motion: reduce)` există deja global și oprește tot; `useCountUp`
+respectă deja preferința.
 
 ## State Management
 
-Stare locală în componenta de profil-invitat:
-
-| Stare | Tip | Trigger / rol |
+| Stare | Tip | Rol |
 | --- | --- | --- |
-| `mode` | `'signup' \| 'login'` | click pe taburi; determină titlu, subtitlu, CTA, câmpuri vizibile |
-| `password` | `string` | input; alimentează indicatorul de putere |
+| `mode` | `'signup' \| 'login'` | comută copy, CTA, câmpurile de signup |
 | `showPassword` | `boolean` | butonul „Arată" |
-| `xpDisplay` | `number` | animația numărătorului (rAF), 0 → XP real |
-| `tabRect` | `{w,x}` | măsurat din refs pe taburi (+ la `document.fonts.ready` și la resize) pentru indicator |
+| `tabRect` | `{w,x}` | indicatorul de tab, măsurat din refs (logica existentă) |
+| `emailRef` | ref | focusat de butoanele din hero |
+| `busy`, `banner`, câmpurile | din `useAuthForm` | neschimbate |
 
-Date citite din progresul local existent (aceleași surse pe care le folosește deja
-`ProfilePage.jsx` în ramura `isGuest`): `xp`, `level`, numărul de lecții finalizate.
-`nivel = floor(xp/100) + 1`, procentul inelului = `xp % 100`.
-**Nu sunt necesare fetch-uri noi.** Submit-ul folosește exact handlerele existente
-de signup/login din `AuthPanel.jsx` / Supabase.
+Props: `xp`, `level`, `xpIntoLevel`, `xpNeeded`, `lessonsCount`, `onExitGuest` — toate
+folosite. Procentul inelului = `xpIntoLevel / xpNeeded`; „încă N XP" = `xpNeeded - xpIntoLevel`;
+nivelul următor = `level + 1`. **Fără fetch-uri noi.**
 
 ## Form validation rules
 
-- Username: 3–20 caractere, litere / cifre / `.` / `_` (regula existentă din cod).
-- Parolă: minimum 8 caractere. Indicator:
-  - gol sau `< 8` → lățime 33% (gol: 0%), `#f59e0b`, „Minim 8 caractere";
-  - `≥ 8`, doar litere → 68%, `#34d399`, „Bună";
-  - `≥ 8` + cel puțin un caracter non-literă → 100%, `#059669`, „Puternică".
-- Restul validărilor (email luat, username luat, erori Supabase) rămân cele existente.
+Neschimbate față de main: username 3–20 caractere (litere/cifre/`.`/`_`); parolă minimum
+8 caractere; bara: `< 8` → 33% ambru „Minim 8 caractere"; `≥ 8` doar litere → 68%
+`signa-400` „Bună"; `≥ 8` cu un caracter non-literă → 100% `signa-600` „Puternică".
 
 ## Design Tokens
 
-**Culori**
-
-| Rol | Hex |
+| Rol | Valoare |
 | --- | --- |
-| Fundal pagină | `#FFFBF3` |
-| Card / suprafață | `#FFFFFF` |
+| Fundal secțiune | `radial-gradient(ellipse 70% 50% at 85% 0%, #FFFDF7, #FBF6ED)` |
+| Suprafață card | `#FFFFFF` |
 | Fundal input | `#FDFCF9` |
 | Hover crem | `#FFF7E8` |
-| Text principal | `#2E2A24` |
-| Text label | `#4F473C` |
-| Text secundar | `#8A8071` |
-| Text terțiar | `#A69C8D` |
-| Borduri | `rgba(46,42,36,.06 / .07 / .09)` |
-| Brand 400 | `#34d399` |
-| Brand 500 | `#10b981` |
-| Brand 600 | `#059669` |
-| Brand 700 | `#047857` |
-| Brand 800 | `#065f46` |
-| Brand 900 | `#064e3b` |
-| Verde deschis | `#d1fae5` / `#ecfdf5` |
-| Avertisment | `#f59e0b` |
+| Text principal / label / secundar / terțiar | `#2E2A24` / `#4F473C` / `#8A8071` / `#A69C8D` |
+| Borduri | `rgba(46,42,36,.05 / .06 / .07 / .08)` |
+| Verde hero | `#0f7d59` `#0b6446` `#075237` |
+| Verde UI | `#047857` `#059669` `#10b981` `#34d399` `#d1fae5` `#ECFDF5` |
+| Ambru | `#FFF7E8` / `rgba(245,158,11,.18)` / `#b45309` |
 | Distructiv | `#dc2626`, border `#fee2e2`, hover `#fef2f2` |
 
-**Tipografie** — Nunito (deja importat în `src/index.css`), greutăți 500/600/700/800/900.
-Scale: 10.5 · 11 · 12 · 12.5 · 13 · 13.5 · 14 · 15 · 15.5 · 19 · 21 · 22 · 24 · 27px · 2.4rem.
-Tabular-nums pe toate cifrele de XP.
+Tipografie: Nunito, greutăți 600/700/800/900. Scale: 10.5 · 11 · 11.5 · 12 · 12.5 · 13 ·
+13.5 · 14 · 15 · 16 · 23 · 27px · 2.05rem · 2.6rem. Tabular-nums pe toate cifrele.
+Radius: 10 · 12 · 13 · 15 · 16 · 26 · 999.
+Umbre: `0 20px 48px rgba(8,74,52,.24)` (hero) · `0 10px 30px rgba(46,42,36,.06)` (carduri) ·
+`0 10px 24px rgba(4,44,32,.22)` (buton alb pe verde) · `0 10px 24px rgba(16,185,129,.3)` (CTA).
+Easing: `cubic-bezier(.22,1,.36,1)` standard · `cubic-bezier(.34,1.5,.64,1)` pop ·
+`cubic-bezier(.4,0,.2,1)` sheen.
 
-**Spațiere** (px): 4 · 6 · 8 · 9 · 10 · 12 · 14 · 16 · 18 · 20 · 22 · 24 · 26 · 28 · 30 · 32.
+## Accesibilitate
 
-**Radius** (px): 10 · 11 · 12 · 14 · 16 · 18 · 20 · 26 · 999.
-
-**Umbre**
-- card mare: `0 18px 50px rgba(46,42,36,.12)`
-- card mic: `0 2px 10px rgba(46,42,36,.05)`
-- CTA: `0 10px 24px rgba(16,185,129,.3)` → hover `0 16px 34px rgba(16,185,129,.38)`
-- inel de focus: `0 0 0 4px rgba(16,185,129,.14)`
-
-**Easing:** `cubic-bezier(.22,1,.36,1)` (standard), `cubic-bezier(.34,1.5,.64,1)` (pop),
-`cubic-bezier(.4,0,.2,1)` (sheen).
-
-## Assets
-
-- `icon.svg` — logo-ul Signa, copiat din `public/icon.svg` al aplicației. Folosește-l
-  pe cel din aplicație, nu copia din pachet.
-- Toate iconițele sunt SVG inline, `stroke-width` 1.9–2.6, `stroke-linecap/linejoin round`,
-  `currentColor`. În aplicație folosește setul existent din `src/components/icons.jsx` și
-  adaugă acolo doar iconițele care lipsesc (mail, lock, refresh, users).
-- Fără imagini raster. Fără librării de animație.
+Tot decorul (aurora, sheen, glow) e `aria-hidden` + `pointer-events-none`. Contrastul
+textului pe verde: alb și `rgba(209,250,229,.85)` sunt ok pe `#0b6446`; nu coborî sub
+`rgba(209,250,229,.66)`. Butoanele din hero sunt `<button type="button">`.
 
 ## Files
 
-În acest pachet:
-- `Profil Invitat.dc.html` — designul (deschide-l în browser; implementează **doar `1b`**).
-- `support.js`, `icon.svg` — necesare ca prototipul să ruleze local.
+Pachet: `Profil Invitat.dc.html` (designul — implementează **doar `2a`**), `support.js`,
+`icon.svg`.
 
 În aplicație, fișierele atinse:
-- `src/pages/ProfilePage.jsx` — ramura `isGuest` (ținta principală).
-- `src/components/auth/AuthPanel.jsx` — logica de signup/login, validări, reset parolă.
-- `src/components/auth/AuthUi.jsx` — `Field`, `SectionCard`, `MessageBanner` etc.
-- `src/components/icons.jsx` — iconițe noi.
-- `src/index.css` / `tailwind.config.js` — `@keyframes` noi și eventuale tokenuri.
-
-## De reținut
-
-- Un bug real vizibil în recrearea stării actuale (`1a`): `SectionCard` n-are padding intern,
-  deci conținutul atinge marginea cardului. Designul nou presupune padding-ul corect.
-- Nu duplica logica de auth — designul e un **layout nou peste fluxul existent**.
-- `@keyframes` se declară o singură dată în `src/index.css`, nu per componentă.
+- `src/components/auth/GuestConversionCard.jsx` — rescris cu noul layout (ținta principală);
+- `src/pages/ProfilePage.jsx` — containerul invitatului pe toată lățimea;
+- `src/index.css` — cele 4 `@keyframes` noi;
+- `src/components/icons.jsx` — nimic nou.
