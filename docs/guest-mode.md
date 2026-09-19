@@ -504,6 +504,7 @@ npm test && npx vite build
    `record_lesson_completion`. **Invitatul nu are serie de zile** — n-ar putea fi
    transferată, deci n-o promitem (§7).
 4. **La ieșirea din modul invitat, progresul local se păstrează** — utilizatorul poate
-   reveni și continua. În ecranul de conversie din Profil stau două butoane:
-   „Ieși din modul invitat" (`exitGuest()` → înapoi la `AuthGate`, datele rămân) și,
-   separat, un „Șterge progresul de pe acest dispozitiv" explicit, cu confirmare.
+   reveni și continua. Cardul de conversie are un singur buton pentru asta,
+   „Ieși din modul invitat" (`exitGuest()` → înapoi la `AuthGate`, datele rămân).
+   Fără acțiune de ștergere: nimic din UI nu distruge progresul de invitat, iar un
+   slate uitat expiră oricum singur după fereastra din §6.3.

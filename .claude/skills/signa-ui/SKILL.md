@@ -58,18 +58,24 @@ unul existent face treaba.**
 |---|---|
 | `sg-fade-up`, `sg-fade-right`, `sg-fade-in`, `sg-scale-in` | intrări |
 | `sg-pop` | pop cu overshoot (badge-uri, cipuri, inele) |
-| `sg-pop-avatar` | pop cu rotație — **doar** avatarul din Profil, via `.sg-popin` |
+| `sg-pop-avatar` | pop cu rotație — avatarul din Profil (via `.sg-popin`) și cel din cardul de invitat |
 | `sg-sheen`, `sg-shine` | reflexie care traversează |
 | `sg-aurora-a/b/c`, `sg-drift`, `sg-float` | halouri și fundal ambiental |
 | `sg-pulse-ring` | inel care pulsează (logo, punct de status, avatar) |
 | `sg-spin` | rotație continuă (spinner, inel punctat) |
 | `sg-chip-cue` | pistă de lumină secvențială pe cipuri |
-| `sg-ring-draw`, `sg-ring-glow` | inelul obiectivului zilei |
+| `sg-ring-draw`, `sg-ring-glow` | inele de progres (obiectivul zilei, profil, invitat) |
 | `sg-arrow`, `sg-underline`, `sg-topbar`, `sg-flame`, `sg-ripple`, `sg-grow` | micro |
 | `sg-page-in-down/up`, `sg-page-out-down/up` | tranziția între ecrane (doar AppShell) |
 
 ⚠ `sg-pop` și `sg-pop-avatar` sunt **diferite intenționat**. Au fost cândva
 ambele `sg-pop` și una o suprascria pe cealaltă. Nu le reunifica.
+
+`sg-ring-draw` e parametrizat prin variabile CSS, nu duplicat per rază:
+`--sg-ring-from` (circumferința, implicit 214 pentru r=34) și `--sg-ring-to`
+(offset-ul final). Inelul de invitat are r=48, deci trimite `302`. Când ai nevoie
+de același keyframe cu alte valori, adaugă o variabilă cu default — nu un al
+doilea keyframe aproape identic.
 
 ### Cum le aplici
 
@@ -120,8 +126,9 @@ aplică oricărei animații care suprascrie o stare vizuală purtătoare de info
   când sosește inventarul din cloud. E intenționat.
 - Camera folosește `videoFit="cover"`: fără benzi sau margini în jurul fluxului.
   `HandCanvas` trebuie să folosească același fit.
-- Cadranul de față e un oval subțire în treimea de sus (funcțional, nu decorativ).
-  Nu adăuga o mască întunecată peste corp sau mâini.
+- Cadranul de față a fost **scos**: detectoarele pornesc cu
+  `requireFaceFrame={false}`, iar indicatorul raportează direct prezența feței.
+  Ovalul mai există în cod, dar e opt-in. Nu-l reintroduce ca obligatoriu.
 - Numerele seriei și inventarului folosesc `tabular-nums`.
 
 ### Profil și social
@@ -129,6 +136,50 @@ aplică oricărei animații care suprascrie o stare vizuală purtătoare de info
 - Profilul este o identitate de jucător: avatar/nivel/XP, statistici, alfabet,
   `FriendsSection`, apoi atelierul de cont.
 - Nu reintroduce „Prieteni” în sidebar și nu crea `FriendsPage`.
+- Pentru invitat, `ProfilePage` randează `GuestConversionCard` și **nu montează
+  deloc** `ProfileDashboard` — aia e granița, nu ascunderea de butoane. Ramura de
+  invitat merge pe toată lățimea conținutului; plafonul de 1180px e doar pentru
+  profilul cu cont. Vezi `signa-guest`.
+
+### Scroll orizontal
+
+Halourile decorative (`sg-drift`, aurora) sunt poziționate cu valori negative
+(`right-[-6%]`) și **ies din pagină**. Rădăcina ecranului care le conține are
+nevoie de clip, altfel pagina se poate trage lateral — s-a întâmplat pe Profil.
+
+Folosește `overflow-x-clip`, **nu** `overflow-hidden`: al doilea creează un
+container de scroll și rupe `position: sticky` pentru descendenți (bara compactă
+din Profil). Verifică cu `main.scrollWidth === main.clientWidth`.
+
+## Pachete de design handoff
+
+Designul vine ca un folder `design_handoff_*` cu un `README.md`, un prototip
+`*.dc.html` și fișierele lui de suport. De obicei ajunge ca `.zip` în `~/Downloads`
+și **nu e încă în proiect** — dacă nu găsești folderul, caută arhiva înainte să
+raportezi că lipsește.
+
+Pașii care contează:
+
+1. **Citește README-ul integral întâi.** Are valorile finale (culori, dimensiuni,
+   spațieri, copy, animații) și spune care opțiune se implementează. Prototipul
+   conține de regulă mai multe variante, dintre care una singură e aprobată.
+2. **Servește prototipul prin dev server**, nu din `file://`. Deschis ca fișier,
+   `support.js` nu se încarcă și vezi placeholder-e `{{ ctaWithXp }}` în loc de
+   conținut. Pune folderul în rădăcina proiectului și deschide
+   `http://localhost:5199/design_handoff_*/…`.
+3. **Citește și sursa prototipului**, nu doar captura: textele exacte și valorile
+   din spatele template-urilor (`renderVals()`) sunt acolo.
+4. **Nu copia HTML-ul.** Rescrie ca JSX + Tailwind, cu tokenii din
+   `tailwind.config.js` și keyframe-urile existente. Verifică întâi ce ai deja:
+   la cardul de invitat, `AuthInput` avea deja exact stilul cerut de handoff
+   (`#FDFCF9`, radius 16, ring de focus 4px), iar toate iconițele existau în
+   `icons.jsx` cu aceleași path-uri. Zero componente noi, zero keyframes noi.
+5. Unde o valoare n-are token, folosește valoare arbitrară Tailwind
+   (`rounded-[26px]`, `shadow-[0_18px_50px_rgba(46,42,36,.12)]`), nu inventa tokeni.
+
+Fidelitatea e a aspectului, nu a datelor hardcodate din mock: dacă prototipul
+desenează „3 din 4 segmente" cu un progres de 46%, leagă segmentele de progresul
+real și spune ce ai interpretat.
 
 ## Reguli fixe
 
@@ -151,6 +202,7 @@ aplică oricărei animații care suprascrie o stare vizuală purtătoare de info
 - `signa-collect` — camera, seriile automate, datasetul și sincronizarea în cloud
 - `signa-train` — antrenare, split pe sesiuni, export de modele
 - `signa-auth` — ecranul de login/signup, resetare parolă, login cu Google
+- `signa-guest` — modul invitat: slate separat, cardul de conversie din Profil
 - `signa-social` — follow reciproc și prietenii din Profil
 
 ## Înainte să spui că e gata

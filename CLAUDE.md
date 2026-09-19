@@ -22,7 +22,9 @@ src/
 │   ├── collect/               # LetterSelector
 │   ├── lesson/                # ReferenceHand (static + animat) + ReferenceHand3D
 │   ├── prediction/            # PredictionOverlay
-│   ├── auth/                  # AuthPanel, AuthUi, ProfileDashboard, AuthGate
+│   ├── auth/                  # AuthGate, AuthPanel, AuthUi, ProfileDashboard,
+│   │                          # useAuthForm (logica de login/signup, partajată),
+│   │                          # GuestConversionCard (ecranul de invitat)
 │   ├── collect/               # selector + inventar permanent pentru dataset
 │   ├── FriendsSection.jsx     # social integrat în Profil
 │   ├── FriendsList.jsx, UserSearch.jsx, UserProfile.jsx, UserRow.jsx, FollowButton.jsx
@@ -43,6 +45,7 @@ src/
 ├── lib/
 │   ├── supabase.js            # client + profil, avatar, social
 │   ├── dataset.js             # dataset colaborativ: coadă, loturi, RPC-uri
+│   ├── guest.js               # modul invitat: flag, marcaj de conversie, slate
 │   └── authErrors.js          # erori Supabase → mesaje în română
 └── utils/
     ├── normalize.js           # ⚠ CRITICĂ — VECTOR_SIZE 199
@@ -93,12 +96,17 @@ direct din `App.jsx`.
 13. `session_id`-ul din loturi e grupul pe care se face split-ul train/test.
     Nu-l unifica și nu-l genera o singură dată per user — altfel acuratețea
     raportată devine falsă (vezi skill-ul `signa-train`).
+14. Modul invitat: cheia de progres e o funcție de identitate —
+    `signa-progress-guest-v1` pentru invitat, `signa-progress-v2` pentru cont.
+    Nu le uni: invitatul ar moșteni progresul ultimului cont logat și i l-ar
+    re-emite la conversie. Invitatul n-are `user_id`, deci nici profil, social,
+    sincronizare, unelte de dataset sau serie de zile. Vezi `signa-guest`.
 
 ## Verificare
 ```bash
 npm install
 npm run dev
-npm test          # vitest — 60 de teste, 13 fișiere
+npm test          # vitest — 106 de teste, 19 fișiere
 npx vite build
 ```
 **Nu există `npm run lint` și nici `tsc`** — proiectul e JS curat. Dacă o cerință
@@ -112,6 +120,7 @@ le menționează, spune că nu se aplică și rulează testele + build-ul.
 - **signa-collect** — cameră holistică, serii automate, dataset local + cloud
 - **signa-train** — MLP/GRU, split pe sesiuni, augmentare, export în `public/models/`
 - **signa-auth** — login/signup, resetare parolă, login cu Google, `handle_new_user`
+- **signa-guest** — mod invitat: slate separat, cardul de conversie, mutarea progresului
 - **signa-social** — follow reciproc, prieteni în Profil, Supabase/RLS
 
 ## Faze
@@ -120,6 +129,9 @@ le menționează, spune că nu se aplică și rulează testele + build-ul.
 - Faza 5 ✅ Supabase live, aplicația publică pe `https://signa-lsr.online`
 - Faza 5.5 ✅ dataset colaborativ: echipa colectează în același set din cloud,
   cu capabilități și consimțământ, iar antrenarea face split pe sesiuni
+- Faza 5.6 ✅ mod invitat: se învață fără cont, cu slate propriu de progres, iar
+  la creare de cont lecțiile se mută prin `record_lesson_completion`
+  (vezi `docs/guest-mode.md`)
 - În curs: login cu Google (cod gata, provider neconfigurat încă în Supabase —
   vezi `docs/supabase-setup.md` §8)
 

@@ -59,6 +59,9 @@ Bariera e profundă: înainte de recunoașterea legală, peste 20 de ani, sub 1%
   numerici, cu consimțământ explicit), iar antrenarea îl încarcă de acolo.
 - Diagnosticul e rezervat adminilor; colectarea și antrenarea merg pe capabilități
   acordate individual, separate de rol.
+- Mod invitat: se poate învăța fără cont, iar progresul strâns așa se mută pe cont
+  la prima conectare. Reduce bariera de intrare fără să deschidă nimic din ce ține
+  de identitate — profil, clasament, prieteni și datasetul rămân după cont.
 
 ### 4.3. Non-goals (asumate explicit)
 - Traducere completă, în timp real, a propozițiilor.
