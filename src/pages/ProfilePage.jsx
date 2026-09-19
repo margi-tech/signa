@@ -10,17 +10,20 @@ import { pullAndMergeProgress, pushProgress } from '../hooks/useProgressSync';
 import AuthPanel from '../components/auth/AuthPanel';
 import ProfileDashboard from '../components/auth/ProfileDashboard';
 import { MessageBanner, SectionCard } from '../components/auth/AuthUi';
+import GuestConversionCard from '../components/auth/GuestConversionCard';
 
 /**
  * Profil / autentificare — funcțional doar cu VITE_SUPABASE_* setate.
  * Fără chei: arată starea locală (XP, streak) și instrucțiuni.
+ * Pentru invitat, `ProfileDashboard` nu se montează deloc: nicio cale prin UI
+ * nu ajunge la profil, avatar, social sau sincronizare. Vezi `docs/guest-mode.md`.
  */
-export default function ProfilePage({ onProfileUpdated }) {
+export default function ProfilePage({ onProfileUpdated, isGuest = false, onExitGuest }) {
   const {
     xp, streak, level, xpIntoLevel, xpNeeded,
     completedLessonsCount, totalLessonsCount, letterMastery, persist, syncNow,
   } = useProgress();
-  const [authMode, setAuthMode] = useState('login');
+  const [authMode, setAuthMode] = useState(isGuest ? 'signup' : 'login');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [username, setUsername] = useState('');
@@ -72,11 +75,13 @@ export default function ProfilePage({ onProfileUpdated }) {
       setUser(session?.user ?? null);
       if (!session?.user) {
         setProfile(null);
-        setAuthMode('login');
+        // Resetul e pentru sign-out. Invitatul n-are din ce ieși, iar pentru
+        // el panoul trebuie să rămână pe „cont nou".
+        setAuthMode(isGuest ? 'signup' : 'login');
       }
     });
     return () => sub.subscription.unsubscribe();
-  }, []);
+  }, [isGuest]);
 
   useEffect(() => {
     if (!user) {
@@ -113,9 +118,17 @@ export default function ProfilePage({ onProfileUpdated }) {
     .toUpperCase().slice(0, 2)) || (username || '?')[0]?.toUpperCase() || '?';
 
   return (
-    <div className="min-h-full flex flex-col relative">
+    // `overflow-x-clip`, nu `overflow-hidden`: halourile decorative ies în
+    // dreapta și făceau pagina trăgibilă lateral, dar `clip` nu creează un
+    // container de scroll, deci bara sticky de mai jos rămâne funcțională.
+    <div className={`min-h-full flex flex-col relative overflow-x-clip ${isGuest
+      ? 'lg:bg-[radial-gradient(ellipse_70%_50%_at_85%_0%,#FFFDF7,#FBF6ED)]' : ''}`}
+    >
 
-      {/* Fundal ambiental — două halouri difuze care plutesc lent, în spatele conținutului. */}
+      {/* Fundal ambiental — două halouri difuze care plutesc lent, în spatele
+          conținutului. Invitatul are fundalul lui de secțiune, ca pe Acasă. */}
+      {!isGuest && (
+      <>
       <span
         aria-hidden
         className="absolute top-[6%] left-[-8%] w-[420px] h-[420px] rounded-full pointer-events-none sg-drift"
@@ -135,6 +148,8 @@ export default function ProfilePage({ onProfileUpdated }) {
           animationDirection: 'reverse',
         }}
       />
+      </>
+      )}
 
       {/* Bară sticky compactă — apare după ~130px de scroll, cu avatar mic + nume + XP. */}
       {/* Înveliș `sticky` de înălțime zero: bara plutește peste conținut
@@ -164,8 +179,14 @@ export default function ProfilePage({ onProfileUpdated }) {
       {/* max-w-[1180px]: pe desktop bannerul + cele două coloane au loc să respire,
           pe mobil containerul e lățimea ecranului. */}
       <div ref={scrollRef} className="flex-1 relative z-10">
-        <div className="max-w-[1180px] mx-auto px-4 pt-4 pb-8 md:px-8 md:pt-6 md:pb-10">
-        {!user && (
+        {/* Invitatul merge pe toată lățimea conținutului, cu padding-ul de pe
+            Acasă — plafonul de 1180px e pentru profilul cu cont. */}
+        <div className={isGuest
+          ? 'px-4 pt-[22px] pb-8 lg:px-11 lg:pt-[34px] lg:pb-11'
+          : 'max-w-[1180px] mx-auto px-4 pt-4 pb-8 md:px-8 md:pt-6 md:pb-10'}
+        >
+        {/* Invitatul are propriul antet, în cardul de conversie. */}
+        {!user && !isGuest && (
           <div className="mb-5">
             <p className="text-[10.5px] lg:text-xs font-extrabold uppercase tracking-[.14em] lg:tracking-[.22em] text-ink-400">
               Profil · Pe dispozitiv
@@ -199,6 +220,16 @@ export default function ProfilePage({ onProfileUpdated }) {
             <code className="text-ink-700">.env.local</code>, pune URL + anon key, rulează{' '}
             <code className="text-ink-700">supabase/schema.sql</code>.
           </p>
+        ) : isGuest ? (
+          <GuestConversionCard
+            xp={xp}
+            level={level}
+            xpIntoLevel={xpIntoLevel}
+            xpNeeded={xpNeeded}
+            lessonsCount={completedLessonsCount}
+            totalLessons={totalLessonsCount}
+            onExitGuest={onExitGuest}
+          />
         ) : authLoading ? (
           <div className="flex justify-center py-12">
             <div className="w-7 h-7 rounded-full border-2 border-ink-900/10 border-t-signa-500 animate-spin" />

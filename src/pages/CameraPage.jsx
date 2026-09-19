@@ -126,7 +126,7 @@ export default function CameraPage() {
   const [live,       setLive]       = useState(null); // top3 + mișcare, mereu
   const [cameraOn,   setCameraOn]   = useState(false);
   const [session,    setSession]    = useState([]);   // semnele din sesiune
-  const [guide,      setGuide]      = useState({ framed: false, hasHand: false });
+  const [guide,      setGuide]      = useState({ hasHand: false });
 
   const { isReady, isDynReady, predict, predictSequence } = useClassifier();
   // Refs stabili — nu recreează handleLandmarks la fiecare schimbare
@@ -223,7 +223,6 @@ export default function CameraPage() {
 
   const handleTracking = useCallback((subject) => {
     setGuide({
-      framed: Boolean(subject?.faceFrame?.ok),
       hasHand: (subject?.hands?.length ?? 0) > 0,
     });
   }, []);
@@ -239,7 +238,7 @@ export default function CameraPage() {
     lastLoggedRef.current = null;
     setPrediction(null);
     setLive(null);
-    setGuide({ framed: false, hasHand: false });
+    setGuide({ hasHand: false });
   }, [cameraOn]);
 
   const motionPct = live ? Math.min(100, (live.motion / MOTION_FULL) * 100) : 0;
@@ -351,8 +350,7 @@ export default function CameraPage() {
             }}
           />
 
-          {/* Fantomă doar după ce fața e în cadran — altfel ovalul e ghidul. */}
-          {cameraOn && guide.framed && !guide.hasHand && <GhostHand />}
+          {cameraOn && !guide.hasHand && <GhostHand />}
 
           {cameraOn && (
             <span
@@ -515,7 +513,7 @@ export default function CameraPage() {
               {!live?.top3 && (
                 <p className="text-[13px] font-semibold text-ink-400 py-2">
                   {cameraOn
-                    ? (guide.framed ? 'Arată o mână în cadru.' : 'Pune fața în cadran.')
+                    ? 'Arată o mână în cadru.'
                     : 'Camera e oprită.'}
                 </p>
               )}

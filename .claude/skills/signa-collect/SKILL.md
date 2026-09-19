@@ -59,10 +59,10 @@ datasetul local existent — util o singură dată, la intrarea unui coleg în e
 
 - `HandTracker` urmărește mâini + față + trunchi și trimite subiectul complet.
 - Colectarea cere cel puțin o mână; fața și trunchiul îmbogățesc vectorul.
-- Fața trebuie să umple cadranul oval (treimea de sus). Fără față în cadran,
-  `onLandmarks` e `null` — captura și recunoașterea stau. Seria automată
-  poate porni oricum; countdown-ul dă timp de așezare. Diagnosticul folosește
-  `requireFaceFrame={false}`.
+- **Cadranul de față a fost scos.** `requireFaceFrame` e implicit `false` peste
+  tot, deci captura cere doar o mână, iar ovalul se desenează numai dacă pagina îl
+  cere explicit. Indicatorul din vizor raportează prezența feței, nu încadrarea.
+  Nu-l reintroduce ca obligatoriu fără cerere — a fost o decizie de produs.
 - În `CollectPage`, vizorul folosește `videoFit="cover"`: utilizatorul a cerut
   explicit zero benzi/margini în jurul camerei.
 - `HandCanvas` trebuie să primească același `videoFit` ca video-ul, altfel
@@ -79,7 +79,7 @@ datasetul local existent — util o singură dată, la intrarea unui coleg în e
 - Prima captură are countdown de 3 secunde. `Escape`, schimbarea etichetei/modului
   și butonul Oprește trebuie să anuleze seria și timer-ele.
 - Dacă tracking-ul mâinii lipsește 1,5 secunde, oprește seria; nu reutiliza
-  coordonate vechi. Același timeout se aplică dacă fața iese din cadran.
+  coordonate vechi.
 
 ## UI
 
@@ -87,9 +87,8 @@ datasetul local existent — util o singură dată, la intrarea unui coleg în e
   elemente decorative care acoperă corpul.
 - Inventarul afișează mereu numărul per literă/cuvânt și pragul recomandat:
   50 foto statice / 30 secvențe dinamice.
-- Butonul seriei rămâne accesibil fără mână detectată; countdown-ul oferă timp
-  pentru cadran + mâini. Captura manuală statică stă dezactivată până când
-  fața e în cadran și o mână e vizibilă.
+- Butonul seriei rămâne accesibil fără mână detectată; countdown-ul oferă timp să
+  ridici mâna. Captura manuală statică stă dezactivată până când o mână e vizibilă.
 
 ## Verificare
 

@@ -2,14 +2,21 @@ import { createContext, createElement, useCallback, useContext, useEffect, useMe
 import { LESSONS, levelFromXp, xpForLevel } from '../data/lessons';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import {
+  consumeGuestConversion, exitGuest, isGuestSession, touchGuestConversion,
+} from '../lib/guest';
+import {
+  GUEST_PROGRESS_KEY,
+  clearGuestSlate,
+  loadSlate,
   pendingLessonCount,
+  progressKey,
   pullAndMergeProgress,
   pushProgress,
   pushProgressBestEffort,
+  queueGuestProgress,
   queueLessonCompletion,
 } from './useProgressSync';
 
-const STORAGE_KEY = 'signa-progress-v2';
 const LEGACY_KEY  = 'signa-progress-v1';
 
 const ProgressContext = createContext(null);
@@ -50,12 +57,15 @@ function migrate(raw) {
 
 function loadStored() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const key = progressKey();
+    const raw = localStorage.getItem(key);
     if (raw) return migrate(JSON.parse(raw));
+    // Migrarea din v1 e a contului — un invitat pornește de la zero.
+    if (key === GUEST_PROGRESS_KEY) return emptyProgress();
     const legacy = localStorage.getItem(LEGACY_KEY);
     if (legacy) {
       const migrated = migrate(JSON.parse(legacy));
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+      localStorage.setItem(key, JSON.stringify(migrated));
       return migrated;
     }
   } catch { /* ignore */ }
@@ -72,21 +82,31 @@ function useProgressState() {
     setUnsyncedLessons(pendingLessonCount(userIdRef.current));
   }, []);
 
+  // Cât timp învață ca invitat, dreptul de a-și muta progresul pe un cont
+  // rămâne proaspăt; fereastra de expirare măsoară inactivitate, nu vechime.
+  const writeSlate = (next) => {
+    try {
+      localStorage.setItem(progressKey(), JSON.stringify(next));
+      if (isGuestSession()) touchGuestConversion();
+    } catch { /* storage plin — rămâne în sesiune */ }
+  };
+
   const persist = useCallback((next) => {
     setProgress(next);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    } catch { /* storage plin — rămâne în sesiune */ }
+    writeSlate(next);
   }, []);
 
   const update = useCallback((fn) => {
     setProgress((prev) => {
       const next = fn(prev);
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      } catch { /* ignore */ }
+      writeSlate(next);
       return next;
     });
+  }, []);
+
+  /** Re-citește slate-ul activ — la intrarea/ieșirea din modul invitat. */
+  const reloadFromStorage = useCallback(() => {
+    setProgress(loadStored());
   }, []);
 
   const starsFor = useCallback(
@@ -118,7 +138,11 @@ function useProgressState() {
     });
   }, [update]);
 
+  // Invitatul n-are serie de zile: n-ar avea ce transfera pe cont (serverul o
+  // calculează din `last_practice_date`, iar completările replayate cad toate
+  // pe ziua curentă), deci mai bine nu i-o promitem deloc.
   const recordPractice = useCallback(() => {
+    if (isGuestSession()) return;
     update((prev) => {
       const today = todayKey();
       if (prev.lastPracticeDate === today) return prev;
@@ -140,7 +164,7 @@ function useProgressState() {
       let streak = prev.streak || 0;
       let lastPracticeDate = prev.lastPracticeDate;
 
-      if (lastPracticeDate !== today) {
+      if (!isGuestSession() && lastPracticeDate !== today) {
         if (lastPracticeDate && daysBetween(lastPracticeDate, today) === 1) {
           streak += 1;
         } else {
@@ -160,6 +184,10 @@ function useProgressState() {
             stars: Math.max(prevStars, stars),
             completedAt: new Date().toISOString(),
             lastAwardDate: today,
+            // Cea mai bună recompensă obținută la lecția asta. Doar slate-ul
+            // de invitat o folosește, la conversie: altfel XP-ul ar trebui
+            // ghicit din stele, ceea ce subestimează și ratează repetițiile.
+            xp: Math.max(prev.lessons[lessonId]?.xp ?? 0, xpGained),
           },
         },
       };
@@ -167,7 +195,7 @@ function useProgressState() {
     queueMicrotask(() => {
       queueLessonCompletion(lessonId, stars, xpGained)
         .then(() => {
-          const raw = localStorage.getItem(STORAGE_KEY);
+          const raw = localStorage.getItem(progressKey());
           if (raw) return pushProgressBestEffort(JSON.parse(raw));
           return undefined;
         })
@@ -217,8 +245,23 @@ function useProgressState() {
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       userIdRef.current = session?.user?.id ?? null;
       refreshUnsynced();
-      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
-        pushProgress()
+      // `session?.user` e obligatoriu: `INITIAL_SESSION` se emite la fiecare
+      // încărcare de pagină, inclusiv fără sesiune. Fără garda asta, un
+      // refresh în modul invitat stingea flag-ul și ștergea slate-ul.
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
+        // Slate-ul de invitat se citește ÎNAINTE de a stinge flag-ul, iar
+        // flag-ul se stinge sincron, aici: de la linia asta încolo tot ce
+        // scrie progres merge în slate-ul contului, indiferent în ce ordine
+        // au fost înregistrați ceilalți ascultători de auth.
+        const converting = consumeGuestConversion();
+        const guestSlate = converting ? loadSlate(GUEST_PROGRESS_KEY) : null;
+        const wasGuest = isGuestSession();
+        exitGuest();
+        if (wasGuest) reloadFromStorage();
+
+        Promise.resolve(guestSlate ? queueGuestProgress(guestSlate) : 0)
+          .then(() => { if (guestSlate) clearGuestSlate(); })
+          .then(() => pushProgress())
           .then(() => pullAndMergeProgress())
           .then((merged) => {
             if (merged) persist(merged);
@@ -228,7 +271,7 @@ function useProgressState() {
       }
     });
     return () => sub.subscription.unsubscribe();
-  }, [persist, refreshUnsynced]);
+  }, [persist, refreshUnsynced, reloadFromStorage]);
 
   const reviewLetters = useMemo(() => {
     const mastered = Object.entries(progress.letterMastery)
@@ -280,6 +323,7 @@ function useProgressState() {
     finishOnboarding,
     setSoundEnabled,
     persist,
+    reloadFromStorage,
     syncNow,
     unsyncedLessons,
   };

@@ -13,6 +13,7 @@ import { LESSONS } from './data/lessons.js';
 import { useProgress } from './hooks/useProgress.js';
 import { useProfileSummary } from './hooks/useProfileSummary.js';
 import { isSupabaseConfigured, supabase } from './lib/supabase.js';
+import { enterGuest, exitGuest, isGuestSession } from './lib/guest.js';
 import { useDatasetAccess } from './hooks/useDatasetAccess.js';
 
 function pageFromHash() {
@@ -24,9 +25,11 @@ export default function App() {
   const [lessonId, setLessonId] = useState(null);
   const [reviewLesson, setReviewLesson] = useState(null);
   const [user, setUser] = useState(undefined);
+  const [guest, setGuest] = useState(isGuestSession);
   const [passwordRecovery, setPasswordRecovery] = useState(false);
-  const { onboardingDone, finishOnboarding, xp } = useProgress();
-  const profileSummary = useProfileSummary(xp, user?.id);
+  const { onboardingDone, finishOnboarding, xp, reloadFromStorage } = useProgress();
+  // `?? null`: cu `undefined`, useProfileSummary rămâne blocat pe loading.
+  const profileSummary = useProfileSummary(xp, user?.id ?? null);
   const datasetAccess = useDatasetAccess(user?.id);
 
   useEffect(() => {
@@ -57,6 +60,9 @@ export default function App() {
     supabase.auth.getUser().then(({ data }) => setUser(data.user ?? null));
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
+      // Nu există „invitat logat". Stingerea flag-ului o face useProgress, ca
+      // să fie sigur că se întâmplă înainte de orice scriere de progres.
+      if (session?.user) setGuest(false);
       if (event === 'PASSWORD_RECOVERY') setPasswordRecovery(true);
       if (event === 'SIGNED_OUT') setPasswordRecovery(false);
     });
@@ -85,18 +91,27 @@ export default function App() {
     );
   }
 
-  if (isSupabaseConfigured && !user) {
-    return <AuthGate onAuth={() => {}} />;
+  if (isSupabaseConfigured && !user && !guest) {
+    return (
+      <AuthGate
+        onAuth={() => {}}
+        onGuest={() => { enterGuest(); reloadFromStorage(); setGuest(true); }}
+      />
+    );
   }
+
+  const isGuest = guest && !user;
 
   if (!onboardingDone) {
     return <Onboarding onDone={finishOnboarding} />;
   }
 
   const isAdmin = profileSummary.role === 'admin';
-  const canCollect = !isSupabaseConfigured || isAdmin || datasetAccess.can_collect;
-  const canTrain = !isSupabaseConfigured || isAdmin || datasetAccess.can_train;
-  const canDiagnostic = !isSupabaseConfigured || isAdmin;
+  // Invitatul n-are identitate, deci nici capabilități de dataset — inclusiv
+  // pe un build fără Supabase, unde uneltele rămân altfel deschise.
+  const canCollect = !isGuest && (!isSupabaseConfigured || isAdmin || datasetAccess.can_collect);
+  const canTrain = !isGuest && (!isSupabaseConfigured || isAdmin || datasetAccess.can_train);
+  const canDiagnostic = !isGuest && (!isSupabaseConfigured || isAdmin);
   const needsDatasetAccess = page === 'collect' || page === 'train';
   const internalTool = ['collect', 'train', 'diagnostic'].includes(page);
   const allowedTool = (
@@ -208,6 +223,8 @@ export default function App() {
       onDiagnostic={() => setPage('diagnostic')}
       onReferinte={openReferinte}
       profileSummary={profileSummary}
+      isGuest={isGuest}
+      onExitGuest={() => { exitGuest(); reloadFromStorage(); setGuest(false); }}
       canCollect={canCollect}
       canTrain={canTrain}
       canDiagnostic={canDiagnostic}

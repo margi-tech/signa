@@ -201,10 +201,11 @@ function drawFaceGuide(ctx, px, py, faceFrame) {
 }
 
 /**
- * Canvas transparent: cadran față + schelet mâini / față / trunchi (object-cover aware).
+ * Canvas transparent: schelet mâini / față / trunchi (object-cover aware).
+ * Ovalul de cadran se desenează doar dacă pagina îl cere explicit.
  */
 export default function HandCanvas({
-  landmarks, face, pose, videoRef, videoFit = 'cover', faceFrame = null, showFaceFrame = true,
+  landmarks, face, pose, videoRef, videoFit = 'cover', faceFrame = null, showFaceFrame = false,
 }) {
   const canvasRef = useRef(null);
 

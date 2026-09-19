@@ -1,6 +1,6 @@
 # Signa — Foaie de parcurs către o aplicație funcțională
 
-Document de lucru, actualizat 27 aug 2026.
+Document de lucru, actualizat 19 sep 2026.
 Organizat pe priorități, nu pe faze cronologice — unele lucruri se pot face în paralel.
 
 ---
@@ -18,6 +18,9 @@ Organizat pe priorități, nu pe faze cronologice — unele lucruri se pot face 
 - **Predicție live**: `CameraPage` — static + dinamic, confidence + margin
 - **Lecții**: 6 lecții (5 static + 1 dinamic), hold-to-validate, XP + stele + streak + nivel
 - **Extra MVP**: Scrie cuvântul, onboarding, repetiție, diagnostic, confetti/sunete
+- **Mod invitat**: se învață fără cont, cu slate propriu de progres; la creare de
+  cont lecțiile se mută pe el prin `record_lesson_completion`. Profilul, socialul,
+  sincronizarea și uneltele de dataset rămân închise (`docs/guest-mode.md`)
 - **⚠ Dataset/modele vechi** — arhivate în `public/models/_legacy-hand-only-63dim/` — **recolectare încă necesară**
 
 ---
@@ -87,6 +90,9 @@ Organizat pe priorități, nu pe faze cronologice — unele lucruri se pot face 
 - [x] Dataset colaborativ: consimțământ, loturi validate server-side, rate limit,
       inventar comun și descărcare paginată pentru antrenare
 - [x] Deploy public — aplicația e live pe `https://signa-lsr.online`
+- [x] Mod invitat: intrare fără cont din ecranul de login, slate de progres
+      separat de cel al contului, card de conversie în Profil și mutarea
+      lecțiilor pe cont la primul login, probată pe Supabase live
 - [ ] Login cu Google — cod gata (`VITE_ENABLE_OAUTH`, `redirectTo`), rămâne de
       configurat providerul în Supabase; pași în `docs/supabase-setup.md` §8
 - [ ] Apple Sign In — decis **NU** (cere Apple Developer Program, 99 USD/an)

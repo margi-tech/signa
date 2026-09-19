@@ -5,21 +5,43 @@
  * favorites / soundEnabled / onboardingDone rămân doar pe dispozitiv.
  */
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
+import { GUEST_PROGRESS_KEY, isGuestSession } from '../lib/guest';
+import { LESSONS, lessonResult } from '../data/lessons';
 
-const STORAGE_KEY = 'signa-progress-v2';
+/**
+ * Invitatul are propriul slate (`GUEST_PROGRESS_KEY`, definit în lib/guest).
+ * Altfel ar moșteni progresul lăsat pe dispozitiv de ultimul cont logat — și
+ * l-ar și re-emite la conversie.
+ */
+export const ACCOUNT_PROGRESS_KEY = 'signa-progress-v2';
+export { GUEST_PROGRESS_KEY };
 const PENDING_KEY = 'signa-progress-pending-v1';
 
-function loadLocal() {
+export function progressKey() {
+  return isGuestSession() ? GUEST_PROGRESS_KEY : ACCOUNT_PROGRESS_KEY;
+}
+
+export function loadSlate(key) {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+    return JSON.parse(localStorage.getItem(key) || 'null');
   } catch {
     return null;
   }
 }
 
+export function clearGuestSlate() {
+  try {
+    localStorage.removeItem(GUEST_PROGRESS_KEY);
+  } catch { /* ignore */ }
+}
+
+function loadLocal() {
+  return loadSlate(progressKey());
+}
+
 function saveLocal(data) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    localStorage.setItem(progressKey(), JSON.stringify(data));
   } catch { /* ignore */ }
 }
 
@@ -83,6 +105,70 @@ export async function queueLessonCompletion(lessonId, stars, xp) {
     events.push({ key, userId, lessonId: String(lessonId), stars, xp });
   }
   savePending(events);
+}
+
+/**
+ * Plafonul pe care îl acceptă `record_lesson_completion` pentru o repetiție
+ * (allowlist-ul din `supabase/schema.sql`). ReviewPage taie la 8 semne, deci
+ * 8 × XP_PER_LETTER + bonusul de sesiune perfectă.
+ */
+const REVIEW_MAX_XP = 90;
+
+function maxXpFor(lessonId, lesson) {
+  if (lessonId === 'review') return REVIEW_MAX_XP;
+  return lessonResult(lesson.letters.length, 0).xp;
+}
+
+/**
+ * Doar pentru intrări scrise înainte ca slate-ul să rețină XP-ul câștigat.
+ * Reconstruiește din numărul minim de litere care produce acele stele, deci
+ * subestimează, niciodată invers.
+ */
+function xpFromStars(lesson, stars) {
+  const total = lesson.letters.length;
+  const skipped = stars >= 3 ? 0 : stars === 2 ? 1 : 2;
+  return lessonResult(total, Math.min(skipped, total)).xp;
+}
+
+/**
+ * Mută progresul strâns ca invitat pe contul tocmai conectat, re-emițându-l
+ * prin `record_lesson_completion`. Clientul nu scrie XP nicăieri: serverul
+ * plafonează per lecție (allowlist) și dedupe-ază pe ziua curentă, deci
+ * replay-ul nu poate acorda mai mult decât o zi de joc. Streak-ul nu se
+ * transferă — toate completările cad pe `current_date`.
+ *
+ * Citește explicit slate-ul de invitat, niciodată „cel curent": la momentul
+ * conversiei flag-ul de invitat e deja stins, iar un `loadLocal()` ar apuca
+ * progresul contului și i-ar re-emite lecțiile vechi ca și cum ar fi de azi.
+ */
+export async function queueGuestProgress(progress = loadSlate(GUEST_PROGRESS_KEY)) {
+  const lessons = progress?.lessons;
+  if (!lessons) return 0;
+
+  let queued = 0;
+  for (const [lessonId, entry] of Object.entries(lessons)) {
+    const stars = Math.min(entry?.stars ?? 0, 3);
+    if (stars <= 0) continue;
+
+    // `LESSONS[].id` e număr (1.1), cheia din `lessons` e string ("1.1").
+    // 'review' n-are intrare în LESSONS, dar serverul îl acceptă.
+    const lesson = LESSONS.find((l) => String(l.id) === lessonId);
+    const known = Boolean(lesson) || lessonId === 'review';
+    // XP-ul câștigat e reținut la completare; fără el (lecție scoasă din
+    // curriculum, sau slate scris de o versiune mai veche) n-avem din ce-l
+    // reconstrui decât pentru o lecție care încă există.
+    const earned = Number.isFinite(entry?.xp)
+      ? entry.xp
+      : (lesson ? xpFromStars(lesson, stars) : null);
+    if (!known || earned === null) continue;
+
+    // Peste plafon RPC-ul aruncă `Invalid lesson reward`, iar evenimentul ar
+    // rămâne blocat în coadă, reîncercat la fiecare flush.
+    const xp = Math.max(0, Math.min(earned, maxXpFor(lessonId, lesson)));
+    await queueLessonCompletion(lessonId, stars, xp);
+    queued += 1;
+  }
+  return queued;
 }
 
 /** Câte lecții ale contului așteaptă încă să ajungă pe server. */
