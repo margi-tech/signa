@@ -1,17 +1,7 @@
 import { useState } from 'react';
-import {
-  isUsernameTaken,
-  requestPasswordReset,
-  supabase,
-} from '../../lib/supabase';
-import { authErrorMessage } from '../../lib/authErrors';
-import {
-  validateEmail,
-  validateName,
-  validatePassword,
-  validatePasswordConfirm,
-  validateUsername,
-} from '../../utils/username';
+import { requestPasswordReset, supabase } from '../../lib/supabase';
+import { validateEmail, validatePassword, validatePasswordConfirm } from '../../utils/username';
+import { useAuthForm } from './useAuthForm';
 import {
   AuthField,
   AuthInput,
@@ -77,61 +67,16 @@ export default function AuthPanel({
   onRecoveryComplete,
   onGuest,
 }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [username, setUsername] = useState('');
-  const [passwordConfirm, setPasswordConfirm] = useState('');
-  const [fieldErrors, setFieldErrors] = useState({});
-
-  const run = async (fn) => {
-    onBusy(true);
-    onMessage(null);
-    setFieldErrors({});
-    try {
-      await fn();
-    } catch (err) {
-      onMessage({ tone: 'error', text: authErrorMessage(err) });
-    } finally {
-      onBusy(false);
-    }
-  };
-
-  const validateLogin = () => {
-    const errs = {};
-    const emailErr = validateEmail(email);
-    if (emailErr) errs.email = emailErr;
-    if (!password) errs.password = 'Parola e obligatorie.';
-    setFieldErrors(errs);
-    return Object.keys(errs).length === 0;
-  };
-
-  const validateSignup = () => {
-    const errs = {};
-    const fnErr = validateName(firstName, 'Prenumele');
-    const lnErr = validateName(lastName, 'Numele');
-    if (fnErr) errs.firstName = fnErr;
-    if (lnErr) errs.lastName = lnErr;
-    const userErr = validateUsername(username);
-    if (userErr) errs.username = userErr;
-    const emailErr = validateEmail(email);
-    if (emailErr) errs.email = emailErr;
-    const passErr = validatePassword(password);
-    if (passErr) errs.password = passErr;
-    const confirmErr = validatePasswordConfirm(password, passwordConfirm);
-    if (confirmErr) errs.passwordConfirm = confirmErr;
-    setFieldErrors(errs);
-    return Object.keys(errs).length === 0;
-  };
-
-  const signInWithProvider = (provider) => run(async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: { redirectTo: window.location.origin },
-    });
-    if (error) throw error;
-  });
+  const {
+    email, setEmail,
+    password, setPassword,
+    firstName, setFirstName,
+    lastName, setLastName,
+    username, setUsername,
+    passwordConfirm, setPasswordConfirm,
+    fieldErrors, setFieldErrors,
+    run, submitLogin, submitSignup, signInWithProvider,
+  } = useAuthForm({ onBusy, onMessage, afterAuth });
 
   if (mode === 'forgot') {
     return (
@@ -337,55 +282,11 @@ export default function AuthPanel({
       </div>
 
       {mode === 'login' ? (
-        <PrimaryButton
-          disabled={busy}
-          busy={busy}
-          onClick={() => run(async () => {
-            if (!validateLogin()) throw new Error('Verifică câmpurile marcate.');
-            const { error } = await supabase.auth.signInWithPassword({
-              email: email.trim().toLowerCase(),
-              password,
-            });
-            if (error) throw error;
-            await afterAuth();
-            onMessage({ tone: 'success', text: 'Bine ai revenit.' });
-          })}
-        >
+        <PrimaryButton disabled={busy} busy={busy} onClick={submitLogin}>
           {busy ? 'Se conectează…' : 'Intră în cont'}
         </PrimaryButton>
       ) : (
-        <PrimaryButton
-          disabled={busy}
-          busy={busy}
-          onClick={() => run(async () => {
-            if (!validateSignup()) throw new Error('Verifică câmpurile marcate.');
-            if (await isUsernameTaken(username.trim())) {
-              setFieldErrors({ username: 'Username-ul e deja luat.' });
-              throw new Error('Username-ul e deja luat.');
-            }
-            const { data, error } = await supabase.auth.signUp({
-              email: email.trim().toLowerCase(),
-              password,
-              options: {
-                data: {
-                  first_name: firstName.trim(),
-                  last_name: lastName.trim(),
-                  username: username.trim(),
-                },
-              },
-            });
-            if (error) throw error;
-            if (data.session) {
-              await afterAuth();
-              onMessage({ tone: 'success', text: 'Cont creat.' });
-            } else {
-              onMessage({
-                tone: 'info',
-                text: 'Verifică emailul pentru confirmare, apoi revino să te conectezi.',
-              });
-            }
-          })}
-        >
+        <PrimaryButton disabled={busy} busy={busy} onClick={submitSignup}>
           {busy ? 'Se creează…' : 'Creează cont'}
         </PrimaryButton>
       )}
