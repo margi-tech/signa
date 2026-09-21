@@ -59,6 +59,7 @@ export default function Sidebar({
   chapters, selectedChapterId, onSelectChapter, starsFor,
   level, xpIntoLevel, xpNeeded, totalLessonsCount, rank,
   firstName, initials, avatarUrl, streak, unsyncedLessons = 0,
+  isGuest = false, onProfile,
   onCollect, onTrain, onDiagnostic, onReferinte,
   canCollect = false, canTrain = false, canDiagnostic = false,
 }) {
@@ -159,7 +160,7 @@ export default function Sidebar({
       icon: ChartIcon,
       label: 'Clasament',
       page: 'leaderboard',
-      badge: rank ? (
+      badge: rank && !isGuest ? (
         <span className="text-[11px] font-extrabold text-amber-700 bg-[#FFF7E8] rounded-full px-[9px] py-[3px] tabular-nums">
           #{rank.place}
         </span>
@@ -394,25 +395,49 @@ export default function Sidebar({
           )}
         </div>
 
-        <div
-          style={anim('sg-fade-up', 0.6, 0.68)}
-          className="mt-3.5 pt-4 border-t border-ink-900/[.07] flex items-center gap-[11px]"
-        >
-          <span className="flex items-center justify-center w-[34px] h-[34px] flex-none rounded-[11px]
-            bg-signa-500 text-white text-sm font-black overflow-hidden">
-            {avatarUrl
-              ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
-              : (initials || firstName[0] || 'S').toUpperCase()}
-          </span>
-          <span className="min-w-0 flex flex-col">
-            <span className="text-[13.5px] font-extrabold text-ink-900 leading-tight truncate">
-              {firstName || 'Jucător'}
+        {isGuest ? (
+          <button
+            type="button"
+            onClick={onProfile}
+            style={anim('sg-fade-up', 0.6, 0.68)}
+            className="group w-full text-left mt-3.5 pt-4 border-t border-ink-900/[.07]
+              flex items-center gap-[11px]"
+          >
+            <span className="flex items-center justify-center w-[34px] h-[34px] flex-none
+              rounded-[11px] bg-ink-900/[.06] text-ink-400">
+              <UserIcon width="18" height="18" />
             </span>
-            <span className="text-[11.5px] font-semibold text-ink-400 leading-tight tabular-nums">
-              {streakLabel} la rând
+            <span className="min-w-0 flex flex-col">
+              <span className="text-[13.5px] font-extrabold text-ink-900 leading-tight">
+                Invitat
+              </span>
+              <span className="text-[11.5px] font-bold text-signa-600 leading-tight
+                transition-colors duration-[160ms] group-hover:text-signa-500">
+                Creează cont
+              </span>
             </span>
-          </span>
-        </div>
+          </button>
+        ) : (
+          <div
+            style={anim('sg-fade-up', 0.6, 0.68)}
+            className="mt-3.5 pt-4 border-t border-ink-900/[.07] flex items-center gap-[11px]"
+          >
+            <span className="flex items-center justify-center w-[34px] h-[34px] flex-none rounded-[11px]
+              bg-signa-500 text-white text-sm font-black overflow-hidden">
+              {avatarUrl
+                ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+                : (initials || firstName[0] || 'S').toUpperCase()}
+            </span>
+            <span className="min-w-0 flex flex-col">
+              <span className="text-[13.5px] font-extrabold text-ink-900 leading-tight truncate">
+                {firstName || 'Jucător'}
+              </span>
+              <span className="text-[11.5px] font-semibold text-ink-400 leading-tight tabular-nums">
+                {streakLabel} la rând
+              </span>
+            </span>
+          </div>
+        )}
       </div>
     </aside>
   );

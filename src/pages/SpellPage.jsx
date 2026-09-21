@@ -4,12 +4,11 @@ import ReferencePreview from '../components/lesson/ReferencePreview';
 import Confetti from '../components/ui/Confetti';
 import { useClassifier } from '../hooks/useClassifier';
 import { useProgress } from '../hooks/useProgress';
-import { HOLD_DURATION_MS } from '../data/lessons';
+import { HOLD_DURATION_MS, HOLD_DECAY } from '../data/lessons';
 import { DEMO_WORDS, ALL_WORDS } from '../data/words';
 import REFERENCE_POSES from '../data/reference-poses.json';
 import { playSuccess, playSkip } from '../utils/sounds';
-
-const MIN_CONFIDENCE = 0.7;
+import { matchesLessonTarget } from '../utils/signMatch';
 
 function pickWord(preferDemo = true) {
   const pool = preferDemo && DEMO_WORDS.length ? DEMO_WORDS : ALL_WORDS;
@@ -89,11 +88,11 @@ export default function SpellPage({ onBack, wordId }) {
     if (!p) return;
     setDetected(p.label);
 
-    const isMatch = p.label === targetRef.current && p.confidence >= MIN_CONFIDENCE;
+    const isMatch = matchesLessonTarget(p, targetRef.current);
     const step = Math.min(elapsed, 200);
     holdMsRef.current = isMatch
       ? holdMsRef.current + step
-      : Math.max(0, holdMsRef.current - step * 2);
+      : Math.max(0, holdMsRef.current - step * HOLD_DECAY);
     setHoldPct(Math.min(holdMsRef.current / HOLD_DURATION_MS, 1));
 
     if (holdMsRef.current >= HOLD_DURATION_MS) {
@@ -212,7 +211,7 @@ export default function SpellPage({ onBack, wordId }) {
             {target}
           </div>
           <div className="w-16 h-16 bg-cream-100 rounded-2xl p-1 flex-shrink-0">
-            <ReferencePreview target={target} pose={REFERENCE_POSES[target]} className="w-full h-full" />
+            <ReferencePreview target={target} pose={REFERENCE_POSES[target]} className="w-full h-full" fit="cover" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-ink-900 font-semibold text-sm mb-0.5">Fă semnul „{target}"</p>

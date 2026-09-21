@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ReferenceHand from './ReferenceHand';
 import { referenceMediaFor } from '../../data/reference-media';
 
@@ -19,11 +19,17 @@ function MotionIcon() {
 
 /**
  * Preview comun pentru pose statice și imagini/GIF-uri ale semnelor dinamice.
+ * `contain` păstrează tot semnul vizibil — `cover` tăia degetele în thumbnail-uri mici.
  */
-export default function ReferencePreview({ target, pose, className = '' }) {
+export default function ReferencePreview({ target, pose, className = '', fit = 'contain' }) {
   const media = referenceMediaFor(target);
   const [mediaFailed, setMediaFailed] = useState(false);
   const isVideo = /\.(mp4|webm|ogg)$/i.test(media ?? '');
+  const fitClass = fit === 'cover' ? 'object-cover' : 'object-contain';
+
+  useEffect(() => {
+    setMediaFailed(false);
+  }, [target, media]);
 
   if (media && !mediaFailed) {
     if (isVideo) {
@@ -35,7 +41,7 @@ export default function ReferencePreview({ target, pose, className = '' }) {
           muted
           playsInline
           aria-label={`Demonstrație pentru semnul ${target}`}
-          className={`w-full h-full object-cover rounded-xl ${className}`}
+          className={`w-full h-full ${fitClass} ${className}`}
           onError={() => setMediaFailed(true)}
         />
       );
@@ -45,7 +51,7 @@ export default function ReferencePreview({ target, pose, className = '' }) {
       <img
         src={media}
         alt={`Demonstrație pentru semnul ${target}`}
-        className={`w-full h-full object-cover rounded-xl ${className}`}
+        className={`w-full h-full ${fitClass} ${className}`}
         onError={() => setMediaFailed(true)}
       />
     );

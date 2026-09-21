@@ -1,17 +1,7 @@
 import { useState } from 'react';
-import {
-  isUsernameTaken,
-  requestPasswordReset,
-  supabase,
-} from '../../lib/supabase';
-import { authErrorMessage } from '../../lib/authErrors';
-import {
-  validateEmail,
-  validateName,
-  validatePassword,
-  validatePasswordConfirm,
-  validateUsername,
-} from '../../utils/username';
+import { requestPasswordReset, supabase } from '../../lib/supabase';
+import { validateEmail, validatePassword, validatePasswordConfirm } from '../../utils/username';
+import { useAuthForm } from './useAuthForm';
 import {
   AuthField,
   AuthInput,
@@ -21,6 +11,7 @@ import {
   PasswordInput,
   PasswordStrength,
   PrimaryButton,
+  SecondaryButton,
   SocialButtons,
 } from './AuthUi';
 
@@ -63,6 +54,8 @@ function Collapsible({ open, maxHeight, children }) {
 
 /**
  * Panou autentificare: login, signup, reset parolă.
+ * `onGuest` vine doar din AuthGate — în ProfilePage, unde același panou e
+ * montat pentru cineva deja intrat, butonul de invitat nu are ce căuta.
  */
 export default function AuthPanel({
   mode,
@@ -72,62 +65,18 @@ export default function AuthPanel({
   onMessage,
   afterAuth,
   onRecoveryComplete,
+  onGuest,
 }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [username, setUsername] = useState('');
-  const [passwordConfirm, setPasswordConfirm] = useState('');
-  const [fieldErrors, setFieldErrors] = useState({});
-
-  const run = async (fn) => {
-    onBusy(true);
-    onMessage(null);
-    setFieldErrors({});
-    try {
-      await fn();
-    } catch (err) {
-      onMessage({ tone: 'error', text: authErrorMessage(err) });
-    } finally {
-      onBusy(false);
-    }
-  };
-
-  const validateLogin = () => {
-    const errs = {};
-    const emailErr = validateEmail(email);
-    if (emailErr) errs.email = emailErr;
-    if (!password) errs.password = 'Parola e obligatorie.';
-    setFieldErrors(errs);
-    return Object.keys(errs).length === 0;
-  };
-
-  const validateSignup = () => {
-    const errs = {};
-    const fnErr = validateName(firstName, 'Prenumele');
-    const lnErr = validateName(lastName, 'Numele');
-    if (fnErr) errs.firstName = fnErr;
-    if (lnErr) errs.lastName = lnErr;
-    const userErr = validateUsername(username);
-    if (userErr) errs.username = userErr;
-    const emailErr = validateEmail(email);
-    if (emailErr) errs.email = emailErr;
-    const passErr = validatePassword(password);
-    if (passErr) errs.password = passErr;
-    const confirmErr = validatePasswordConfirm(password, passwordConfirm);
-    if (confirmErr) errs.passwordConfirm = confirmErr;
-    setFieldErrors(errs);
-    return Object.keys(errs).length === 0;
-  };
-
-  const signInWithProvider = (provider) => run(async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: { redirectTo: window.location.origin },
-    });
-    if (error) throw error;
-  });
+  const {
+    email, setEmail,
+    password, setPassword,
+    firstName, setFirstName,
+    lastName, setLastName,
+    username, setUsername,
+    passwordConfirm, setPasswordConfirm,
+    fieldErrors, setFieldErrors,
+    run, submitLogin, submitSignup, signInWithProvider,
+  } = useAuthForm({ onBusy, onMessage, afterAuth });
 
   if (mode === 'forgot') {
     return (
@@ -333,55 +282,11 @@ export default function AuthPanel({
       </div>
 
       {mode === 'login' ? (
-        <PrimaryButton
-          disabled={busy}
-          busy={busy}
-          onClick={() => run(async () => {
-            if (!validateLogin()) throw new Error('Verifică câmpurile marcate.');
-            const { error } = await supabase.auth.signInWithPassword({
-              email: email.trim().toLowerCase(),
-              password,
-            });
-            if (error) throw error;
-            await afterAuth();
-            onMessage({ tone: 'success', text: 'Bine ai revenit.' });
-          })}
-        >
+        <PrimaryButton disabled={busy} busy={busy} onClick={submitLogin}>
           {busy ? 'Se conectează…' : 'Intră în cont'}
         </PrimaryButton>
       ) : (
-        <PrimaryButton
-          disabled={busy}
-          busy={busy}
-          onClick={() => run(async () => {
-            if (!validateSignup()) throw new Error('Verifică câmpurile marcate.');
-            if (await isUsernameTaken(username.trim())) {
-              setFieldErrors({ username: 'Username-ul e deja luat.' });
-              throw new Error('Username-ul e deja luat.');
-            }
-            const { data, error } = await supabase.auth.signUp({
-              email: email.trim().toLowerCase(),
-              password,
-              options: {
-                data: {
-                  first_name: firstName.trim(),
-                  last_name: lastName.trim(),
-                  username: username.trim(),
-                },
-              },
-            });
-            if (error) throw error;
-            if (data.session) {
-              await afterAuth();
-              onMessage({ tone: 'success', text: 'Cont creat.' });
-            } else {
-              onMessage({
-                tone: 'info',
-                text: 'Verifică emailul pentru confirmare, apoi revino să te conectezi.',
-              });
-            }
-          })}
-        >
+        <PrimaryButton disabled={busy} busy={busy} onClick={submitSignup}>
           {busy ? 'Se creează…' : 'Creează cont'}
         </PrimaryButton>
       )}
@@ -390,6 +295,20 @@ export default function AuthPanel({
         <div className="space-y-4">
           <OrSeparator />
           <SocialButtons onProvider={signInWithProvider} disabled={busy} />
+        </div>
+      )}
+
+      {/* Separatorul e al blocului social când OAuth e pornit — două „SAU"
+          unul sub altul ar rupe ecranul. */}
+      {onGuest && (
+        <div className="space-y-3">
+          {!OAUTH_ENABLED && <OrSeparator />}
+          <SecondaryButton disabled={busy} onClick={onGuest}>
+            Continuă ca invitat
+          </SecondaryButton>
+          <p className="text-center text-[12.5px] text-ink-400 leading-relaxed">
+            Înveți fără cont. Progresul rămâne pe acest dispozitiv.
+          </p>
         </div>
       )}
 

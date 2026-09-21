@@ -30,7 +30,7 @@ const firstNameOf = (name) => (name || 'Jucător').trim().split(/\s+/)[0];
  * Clasament — live din view-ul `leaderboard` când Supabase e activ,
  * altfel afișează doar scorul local.
  */
-export default function LeaderboardPage() {
+export default function LeaderboardPage({ isGuest = false, onCreateAccount }) {
   const { xp, streak } = useProgress();
   const [rows, setRows] = useState([]);
   const [err, setErr] = useState('');
@@ -60,6 +60,9 @@ export default function LeaderboardPage() {
       if (error) setErr(error.message);
       else setRows(data ?? []);
 
+      // Invitatul n-are sesiune: `get_own_profile()` e doar pentru
+      // `authenticated`, deci ar da un 401 la fiecare intrare pe ecran.
+      if (isGuest) return;
       try {
         const [profile, user] = await Promise.all([getOwnProfile(), getSessionUser()]);
         if (cancelled) return;
@@ -70,7 +73,7 @@ export default function LeaderboardPage() {
       }
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [isGuest]);
 
   const podium = rows.slice(0, 3);
   const totalXp = useMemo(() => rows.reduce((s, r) => s + (r.xp ?? 0), 0), [rows]);
@@ -78,7 +81,10 @@ export default function LeaderboardPage() {
 
   const myIndex = meId ? rows.findIndex((r) => r.id === meId) : -1;
   const me = myIndex >= 0 ? rows[myIndex] : null;
-  const myXp = me?.xp ?? xp;
+  // Invitatul nu e în clasament: sub „poziția ta" nu-i arătăm scorul local,
+  // că ar părea că participă cu el.
+  const myXp = me?.xp ?? (isGuest ? 0 : xp);
+  const myStreak = me?.streak ?? (isGuest ? 0 : streak);
   const ahead = myIndex > 0 ? rows[myIndex - 1] : null;
   const xpToNext = ahead ? Math.max(ahead.xp - myXp, 0) : 0;
   const lessonsToNext = Math.max(Math.ceil(xpToNext / XP_PER_LESSON), 1);
@@ -150,6 +156,26 @@ export default function LeaderboardPage() {
         <p className="text-ink-500 text-[13px] leading-relaxed">
           Profilul tău e privat — nu apari în clasament. Îl poți face public din Profil.
         </p>
+      )}
+      {isGuest && (
+        <div
+          style={anim('sg-fade-up', 0.6, 0.18)}
+          className="flex flex-wrap items-center gap-x-4 gap-y-2.5 rounded-[18px] px-4 py-3.5
+            border border-signa-500/20 bg-[linear-gradient(135deg,#ecfdf5,#fff7e8)]"
+        >
+          <p className="flex-1 min-w-[200px] text-[13px] font-semibold text-ink-600 leading-relaxed">
+            Ești invitat, deci încă nu apari aici. Cu un cont, XP-ul tău intră în clasament.
+          </p>
+          <button
+            type="button"
+            onClick={onCreateAccount}
+            className="rounded-xl bg-signa-500 px-4 py-2.5 text-[13px] font-bold text-white
+              transition-[transform,background-color] duration-[160ms] ease-out
+              hover:-translate-y-px hover:bg-signa-600 active:translate-y-0"
+          >
+            Creează cont
+          </button>
+        </div>
       )}
 
       {/* 2 · Podium + poziția ta */}
@@ -306,7 +332,11 @@ export default function LeaderboardPage() {
             >
               {ahead
                 ? `${xpToNext} XP până la locul ${myIndex}`
-                : myIndex === 0 ? 'Ești pe primul loc.' : 'Intră în clasament ca să vezi decalajul.'}
+                : myIndex === 0
+                  ? 'Ești pe primul loc.'
+                  : isGuest
+                    ? 'Progresul tău de invitat se mută pe cont când îți faci unul.'
+                    : 'Intră în clasament ca să vezi decalajul.'}
             </p>
           </div>
 
@@ -322,7 +352,7 @@ export default function LeaderboardPage() {
             <div style={anim('sg-fade-up', 0.6, 0.8)}>
               <p className="text-[19px] lg:text-[23px] font-black text-amber-700 leading-none tabular-nums flex items-center gap-1.5">
                 <span aria-hidden style={{ animation: 'sg-flame 1.9s ease-in-out infinite' }}>🔥</span>
-                {me?.streak ?? streak}
+                {myStreak}
               </p>
               <p className="mt-1.5 lg:mt-[5px] text-[9.5px] lg:text-[11px] font-extrabold uppercase tracking-[.14em] text-ink-400">
                 Zile la rând

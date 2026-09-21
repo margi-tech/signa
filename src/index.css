@@ -162,8 +162,10 @@ body {
 }
 /* Inelul obiectivului se „desenează”; ținta vine din --sg-ring-to,
    ca să meargă și la progres parțial, nu doar la cerc plin. */
+/* `--sg-ring-from` = circumferința inelului; 214 e r=34, cât folosesc
+   obiectivul zilei și profilul. Inelul de invitat are r=48, deci 302. */
 @keyframes sg-ring-draw {
-  from { stroke-dashoffset: 214; }
+  from { stroke-dashoffset: var(--sg-ring-from, 214); }
   to   { stroke-dashoffset: var(--sg-ring-to, 0); }
 }
 @keyframes sg-ring-glow {

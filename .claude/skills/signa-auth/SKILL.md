@@ -5,16 +5,18 @@ description: Modifică autentificarea Signa — ecranul de login/signup, resetar
 
 # Autentificare în Signa
 
-Cu Supabase configurat, autentificarea e **obligatorie**: `App.jsx` randează
-`AuthGate` până există sesiune, apoi `Onboarding` dacă `onboardingDone` e fals.
-Fără chei Supabase, aplicația rămâne offline și nu cere cont.
+Cu Supabase configurat, `App.jsx` randează `AuthGate` până există **sesiune sau
+mod invitat**, apoi `Onboarding` dacă `onboardingDone` e fals. Fără chei Supabase,
+aplicația rămâne offline și nu cere cont.
 
 ## Harta fișierelor
 
 | Fișier | Rol |
 |---|---|
 | `components/auth/AuthGate.jsx` | ecran full-screen: coloană de brand (desktop) + formular |
-| `components/auth/AuthPanel.jsx` | logica celor 4 moduri și apelurile Supabase |
+| `components/auth/AuthPanel.jsx` | markup-ul celor 4 moduri |
+| `components/auth/useAuthForm.js` | **câmpurile, validările și apelurile Supabase** |
+| `components/auth/GuestConversionCard.jsx` | ecranul de invitat din Profil (vezi `signa-guest`) |
 | `components/auth/AuthUi.jsx` | piese reutilizabile: câmpuri, taburi, butoane, bannere |
 | `lib/authErrors.js` | traducerea erorilor Supabase în română |
 | `utils/username.js` | validatori pentru nume, username, email, parolă |
@@ -22,6 +24,23 @@ Fără chei Supabase, aplicația rămâne offline și nu cere cont.
 `AuthPanel` are patru moduri: `login`, `signup`, `forgot`, `reset`. Nu adăuga un
 al cincilea ecran fără să verifici că `AuthGate` îl poate selecta prin
 `initialMode`.
+
+**Logica de auth stă în `useAuthForm`, nu în `AuthPanel`.** Hook-ul ține starea
+câmpurilor, validările și `submitLogin` / `submitSignup` / `signInWithProvider`.
+`AuthPanel` și `GuestConversionCard` sunt două layout-uri peste același flux — un
+al treilea ecran de auth folosește tot hook-ul, nu-și rescrie apelurile Supabase.
+`requireConfirm: false` e pentru formularele fără câmp de confirmare a parolei
+(cazul cardului de invitat).
+
+## Intrarea ca invitat
+
+Sub CTA-ul principal din `AuthGate` stă „Continuă ca invitat" — buton secundar,
+alb; singurul CTA plin rămâne cel de cont. Apare **doar prin prezența prop-ului
+`onGuest`**: același `AuthPanel` e montat și în `ProfilePage`, pentru cineva deja
+intrat, iar acolo prop-ul lipsește. Nu adăuga un flag separat.
+
+Când `VITE_ENABLE_OAUTH` e pornit, separatorul „SAU" e al blocului social, iar
+butonul de invitat vine după `SocialButtons` fără un al doilea separator.
 
 ## Cele patru fluxuri
 
@@ -66,6 +85,8 @@ flux; fără ea, contul următor moștenește progresul afișat.
 4. **Validarea stă în `utils/username.js`.** Aceleași reguli la signup și la
    editarea profilului; nu duplica praguri în JSX.
 5. Nu trimite `role`, XP sau streak în `updateOwnProfile()`.
+6. **Nu duplica apelurile de auth.** Un ecran nou de login/signup consumă
+   `useAuthForm`; dacă îi lipsește ceva, extinde hook-ul, nu-l ocoli.
 
 ## Capcane cunoscute
 
@@ -78,8 +99,14 @@ flux; fără ea, contul următor moștenește progresul afișat.
   colapsează, cu `maxHeight` fix. Un text de eroare lung sub un câmp poate fi
   tăiat — dacă adaugi erori noi acolo, verifică vizual înălțimea.
 - Indicatorul din `AuthTabs` are lățimi/poziții hardcodate (42/72px, x 0/64px),
-  calibrate pe Nunito. Dacă schimbi textul taburilor, recalibrează-l.
+  calibrate pe Nunito. Dacă schimbi textul taburilor, recalibrează-l. Taburile din
+  `GuestConversionCard` fac invers, și e varianta bună: măsoară `offsetWidth` /
+  `offsetLeft` din DOM, remăsurând la `document.fonts.ready` și la resize — Nunito
+  se încarcă după primul cadru, deci o măsurătoare la montare iese greșită.
 - Sub 768px coloana de brand dispare complet; verifică formularul și acolo.
+- `AuthPanel` e montat în **două** locuri: `AuthGate` și `ProfilePage`. Orice
+  props nou trebuie gândit pentru amândouă — de aici și butonul de invitat legat
+  de prezența lui `onGuest`.
 
 ## Verificare
 

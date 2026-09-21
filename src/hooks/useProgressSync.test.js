@@ -1,5 +1,7 @@
 import { beforeEach, describe, it, expect, vi } from 'vitest';
-import { mergeProgress, pendingLessonCount, pushProgress } from '../hooks/useProgressSync.js';
+import {
+  mergeProgress, pendingLessonCount, pushProgress, queueGuestProgress,
+} from '../hooks/useProgressSync.js';
 
 const PENDING_KEY = 'signa-progress-pending-v1';
 
@@ -103,6 +105,85 @@ describe('mergeProgress', () => {
     expect(m.lessons[3].stars).toBe(1);
     expect(m.letterMastery.A).toBeTruthy();
     expect(m.letterMastery.B).toBeTruthy();
+  });
+});
+
+describe('slate-ul de invitat e separat de cel al contului', () => {
+  it('nu re-emite lecțiile contului când slate-ul de invitat e gol', async () => {
+    // Contul a terminat tot pe acest dispozitiv, invitatul n-a făcut nimic.
+    localStorage.setItem('signa-progress-v2', JSON.stringify({
+      xp: 900, lessons: { '1.1': { stars: 3 }, '1.2': { stars: 3 } },
+    }));
+
+    const queued = await queueGuestProgress();
+
+    expect(queued).toBe(0);
+    expect(getPending()).toEqual([]);
+  });
+
+  it('re-emite doar ce a strâns invitatul', async () => {
+    localStorage.setItem('signa-progress-v2', JSON.stringify({
+      lessons: { '3.1': { stars: 3 } },
+    }));
+    localStorage.setItem('signa-progress-guest-v1', JSON.stringify({
+      lessons: { '1.1': { stars: 3 } },
+    }));
+
+    await queueGuestProgress();
+
+    expect(getPending().map((e) => e.lessonId)).toEqual(['1.1']);
+  });
+});
+
+describe('conversia progresului de invitat', () => {
+  it('re-emite fiecare lecție cu stele, cu XP-ul plafonat al lecției', async () => {
+    const queued = await queueGuestProgress({
+      xp: 999,
+      lessons: {
+        '1.1': { stars: 3 },   // 5 litere, perfect → 60
+        '2.1': { stars: 2 },   // 6 litere, una sărită → 50
+        '1.3': { stars: 0 },   // fără stele — nu se trimite
+      },
+    });
+
+    expect(queued).toBe(2);
+    expect(getPending()).toEqual([
+      { key: expect.any(String), userId: 'user-b', lessonId: '1.1', stars: 3, xp: 60 },
+      { key: expect.any(String), userId: 'user-b', lessonId: '2.1', stars: 2, xp: 50 },
+    ]);
+  });
+
+  it('folosește XP-ul chiar câștigat, nu unul ghicit din stele', async () => {
+    // O stea la o lecție de 10 litere: din stele am deduce 80, dar omul a
+    // făcut 9 din 10.
+    await queueGuestProgress({ lessons: { '3.1': { stars: 1, xp: 90 } } });
+    expect(getPending()[0].xp).toBe(90);
+  });
+
+  it('transferă și repetițiile, care n-au intrare în LESSONS', async () => {
+    await queueGuestProgress({ lessons: { review: { stars: 3, xp: 70 } } });
+    expect(getPending()).toEqual([
+      { key: expect.any(String), userId: 'user-b', lessonId: 'review', stars: 3, xp: 70 },
+    ]);
+  });
+
+  it('taie XP-ul la plafonul lecției, ca RPC-ul să nu respingă evenimentul', async () => {
+    await queueGuestProgress({ lessons: { '1.1': { stars: 3, xp: 5000 } } });
+    expect(getPending()[0].xp).toBe(60);
+  });
+
+  it('sare peste lecții care nu mai există în curriculum', async () => {
+    const queued = await queueGuestProgress({
+      lessons: { 9.9: { stars: 3 }, 8.8: { stars: 3, xp: 40 } },
+    });
+    expect(queued).toBe(0);
+    expect(getPending()).toEqual([]);
+  });
+
+  it('nu scrie niciodată XP direct — doar coada pentru RPC', async () => {
+    await queueGuestProgress({ xp: 5000, lessons: { '1.1': { stars: 3 } } });
+    expect(mocks.upsert).not.toHaveBeenCalled();
+    expect(mocks.rpc).not.toHaveBeenCalled();
   });
 });
 

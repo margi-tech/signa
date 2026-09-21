@@ -8,7 +8,7 @@ description: Verifică o modificare în Signa — ce comenzi există de fapt, cu
 ## Comenzile care există de fapt
 
 ```bash
-npm test          # vitest run — 60 de teste, 13 fișiere
+npm test          # vitest run — 106 de teste, 19 fișiere
 npx vite build    # verificarea de compilare
 npm run dev       # server de dev
 ```
@@ -33,11 +33,16 @@ Apoi `preview_start` cu `{url: "http://localhost:5199/"}`.
 
 ### Aplicația cere login
 
-`App.jsx` randează `AuthGate` când Supabase e configurat și nu ai sesiune, apoi
-`Onboarding` dacă `onboardingDone` e fals. **Nu adăuga parametri URL care sar
-peste autentificare** — un astfel de bypass ajunge ușor în build-ul de producție.
-Pentru verificări vizuale, randează componenta cu props stub într-un harness
-temporar izolat și scoate harness-ul înainte de commit.
+`App.jsx` randează `AuthGate` când Supabase e configurat și nu ai nici sesiune,
+nici mod invitat, apoi `Onboarding` dacă `onboardingDone` e fals. **Nu adăuga
+parametri URL care sar peste autentificare** — un astfel de bypass ajunge ușor în
+build-ul de producție.
+
+Pentru majoritatea verificărilor de UI, **intră ca invitat**: e o cale reală, în
+produs, nu un bypass. Îți dă lecții, cameră, clasament și ecranul de conversie
+fără cont și fără să atingi date reale. Ce cere cont rămâne dincolo de ea
+(profil, social, sincronizare) — pentru alea, props stub într-un harness temporar
+izolat, scos înainte de commit.
 
 ### Capcană: panoul raportează tab-ul ca ascuns
 
@@ -106,6 +111,22 @@ componentelor (ProfileDashboard, LessonsPage) primesc tot ce le trebuie prin pro
 Dacă totuși ai scris local pe o origine autentificată, curăță imediat ambele:
 `signa-progress-v2` și `signa-progress-pending-v1`. Fiecare origine (localhost,
 preview și producție) are storage separat.
+
+### Cheile de progres, în întregime
+
+Sunt două slate-uri, alese de `progressKey()` după `isGuestSession()`:
+
+| Cheie | Ce ține |
+|---|---|
+| `signa-progress-v2` | progresul contului (și al unei origini fără Supabase) |
+| `signa-progress-guest-v1` | progresul invitatului — separat intenționat |
+| `signa-progress-pending-v1` | lecții netrimise, fiecare legată de `userId` |
+| `signa-guest-v1` | flag: sesiunea curentă e de invitat |
+| `signa-guest-convert-v1` | marcaj + timestamp: progresul mai poate fi mutat pe cont |
+
+Când seed-uiești progres pentru preview, scrie în slate-ul care chiar e activ —
+altfel „nu se vede nimic" deși cheia există. Și nu uni cele două chei: vezi
+`signa-guest`, e bug-ul care putea umfla clasamentul live.
 
 ## Siguranța datasetului
 
@@ -188,3 +209,6 @@ După o migrare de schemă:
 - [ ] ce n-ai putut verifica (timing, mobil real, cameră) — spus explicit
 - [ ] datele reale din `signa-dataset-v1` nu au fost șterse sau fabricate
 - [ ] nicio captură de test n-a plecat în `dataset_batches` (setul e comun)
+- [ ] dacă ai atins progresul: un **refresh** păstrează starea (invitat rămâne
+      invitat, cu slate-ul intact) — vezi capcana `INITIAL_SESSION` din `signa-guest`
+- [ ] nicio pagină nu se poate trage lateral: `main.scrollWidth === main.clientWidth`
