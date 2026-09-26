@@ -6,8 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { LESSONS } from '../data/lessons';
 import { useProgress } from '../hooks/useProgress';
 import {
-  ArrowIcon, BarsIcon, BookIcon, CamIcon, FlameIcon, HomeIcon,
-  LinesIcon, RepeatIcon, SoundIcon, UserIcon,
+  ArrowIcon, BarsIcon, CamIcon, FlameIcon, LinesIcon, RepeatIcon, SoundIcon,
 } from '../components/icons.jsx';
 
 const EASE = 'cubic-bezier(.22,1,.36,1)';
@@ -99,21 +98,6 @@ function Tile({ icon: Icon, tone, title, subtitle, onClick, spin = false, delay 
   );
 }
 
-/** Element din bara de jos (mobil) — minim 44px zonă de tap. */
-function NavItem({ icon: Icon, label, active, onClick }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex flex-col items-center justify-center gap-1 min-h-[44px] px-2 text-[10px] font-extrabold
-        transition-colors duration-[160ms] ${active ? 'text-signa-600' : 'text-ink-400 hover:text-signa-600'}`}
-    >
-      <Icon className="w-5 h-5" strokeWidth="2.1" />
-      {label}
-    </button>
-  );
-}
-
 /* ── Pagina ────────────────────────────────────────────────────── */
 
 const DAILY_GOAL = 5;
@@ -125,8 +109,8 @@ function todayKey() {
 }
 
 export default function HomePage({
-  onLessons, onStart, onSpell, onReview, onProfile, onLeaderboard, onOpenLesson,
-  firstName = '', initials = '', rank = null,
+  onLessons, onStart, onSpell, onReview, onLeaderboard, onOpenLesson,
+  firstName = '', rank = null,
 }) {
   const {
     xp, streak, level, completedLessonsCount, totalLessonsCount,
@@ -229,45 +213,6 @@ export default function HomePage({
     <div className="min-h-full flex flex-col
       bg-[radial-gradient(110%_45%_at_50%_0%,#F3FBF6_0%,#FFFBF3_62%)]
       lg:bg-[radial-gradient(ellipse_70%_50%_at_85%_0%,#FFFDF7,#FBF6ED)]">
-
-          {/* Header mobil */}
-          <header className="lg:hidden flex items-center justify-between px-5 pt-2">
-            <div className="flex items-center gap-2.5">
-              <img src="/icon.svg" alt="" className="w-[30px] h-[30px] rounded-[9px] block" />
-              <span className="font-black text-[15px] tracking-[.16em] text-ink-900">SIGNA</span>
-            </div>
-            <div className="flex items-center gap-2">
-              {streak > 0 && (
-                <span
-                  className="flex items-center gap-[5px] bg-amber-50 border border-amber-600/[.16] text-amber-700
-                    rounded-full px-[11px] py-1.5 text-[12px] font-extrabold tabular-nums"
-                  title="Zile consecutive"
-                >
-                  <FlameIcon className="w-[13px] h-[13px]" />
-                  {streak}
-                </span>
-              )}
-              <button
-                type="button"
-                onClick={() => setSoundEnabled(!soundEnabled)}
-                className="w-[34px] h-[34px] rounded-xl flex items-center justify-center text-ink-400
-                  hover:text-ink-700 transition-colors duration-[160ms]"
-                aria-label={soundEnabled ? 'Oprește sunetul' : 'Pornește sunetul'}
-                title={soundEnabled ? 'Sunet pornit' : 'Sunet oprit'}
-              >
-                <SoundIcon on={soundEnabled} className="w-[18px] h-[18px]" />
-              </button>
-              <button
-                type="button"
-                onClick={onProfile}
-                className="w-[34px] h-[34px] rounded-xl bg-signa-100 text-signa-900 font-black text-[12.5px]
-                  flex items-center justify-center transition-transform duration-[160ms] active:scale-95"
-                aria-label="Deschide profilul"
-              >
-                {initials || <UserIcon className="w-4 h-4" />}
-              </button>
-            </div>
-          </header>
 
           {/* Salut */}
           <div className="px-5 pt-[22px] lg:px-11 lg:pt-[34px] lg:flex lg:items-start lg:justify-between lg:gap-6">
@@ -698,15 +643,6 @@ export default function HomePage({
           )}
 
           <div className="flex-1 min-h-[26px] lg:min-h-[44px]" />
-
-          {/* Bară de jos — doar mobil */}
-          <nav className="lg:hidden sticky bottom-0 bg-cream/90 backdrop-blur-[14px] border-t border-ink-900/[.07]
-            px-[26px] pt-3 pb-2.5 flex justify-between">
-            <NavItem icon={HomeIcon} label="Acasă" active />
-            <NavItem icon={BookIcon} label="Lecții" onClick={onLessons} />
-            <NavItem icon={CamIcon} label="Cameră" onClick={onStart} />
-            <NavItem icon={UserIcon} label="Profil" onClick={onProfile} />
-      </nav>
     </div>
   );
 }

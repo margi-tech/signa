@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import Sidebar, { PAGE_ORDER } from './Sidebar.jsx';
+import MobileHeader from './MobileHeader.jsx';
+import MobileTabBar from './MobileTabBar.jsx';
 import HomePage from '../pages/HomePage.jsx';
 import LessonsPage from '../pages/LessonsPage.jsx';
 import ProfilePage from '../pages/ProfilePage.jsx';
@@ -43,6 +45,7 @@ export default function AppShell({
 }) {
   const {
     streak, level, xpIntoLevel, xpNeeded, totalLessonsCount, starsFor, unsyncedLessons,
+    soundEnabled, setSoundEnabled,
   } = useProgress();
   const {
     firstName, initials, avatarUrl, rank, refresh: refreshProfile,
@@ -145,58 +148,75 @@ export default function AppShell({
           canDiagnostic={canDiagnostic}
         />
 
-        <div className="relative min-w-0 flex-1 min-h-0 overflow-hidden">
-          {shows('home') && (
-            <main className={mainClass} style={layer('home')} onAnimationEnd={onLayerAnimEnd}>
-              <HomePage
-                firstName={firstName}
-                initials={initials}
-                rank={rank}
-                onLessons={() => go('lessons')}
-                onOpenLesson={onOpenLesson}
-                onStart={() => go('camera')}
-                onProfile={() => go('profile')}
-                onLeaderboard={() => go('leaderboard')}
-                onSpell={onSpell}
-                onReview={onReview}
-              />
-            </main>
-          )}
+        <div className="relative min-w-0 flex-1 min-h-0 flex flex-col">
+          <MobileHeader
+            streak={streak}
+            soundEnabled={soundEnabled}
+            onToggleSound={() => setSoundEnabled(!soundEnabled)}
+            initials={initials}
+            avatarUrl={avatarUrl}
+            onProfile={() => go('profile')}
+          />
 
-          {shows('lessons') && (
-            <main className={mainClass} style={layer('lessons')} onAnimationEnd={onLayerAnimEnd}>
-              <LessonsPage
-                chapters={chapters}
-                selectedChapterId={selectedChapterId}
-                onSelectChapter={setSelectedChapterId}
-                rank={rank}
-                onBack={() => go('home')}
-                onOpenLesson={onOpenLesson}
-              />
-            </main>
-          )}
+          <div className="relative min-w-0 flex-1 min-h-0 overflow-hidden">
+            {shows('home') && (
+              <main className={mainClass} style={layer('home')} onAnimationEnd={onLayerAnimEnd}>
+                <HomePage
+                  firstName={firstName}
+                  rank={rank}
+                  onLessons={() => go('lessons')}
+                  onOpenLesson={onOpenLesson}
+                  onStart={() => go('camera')}
+                  onLeaderboard={() => go('leaderboard')}
+                  onSpell={onSpell}
+                  onReview={onReview}
+                />
+              </main>
+            )}
 
-          {shows('camera') && (
-            <main className={mainClass} style={layer('camera')} onAnimationEnd={onLayerAnimEnd}>
-              <CameraPage />
-            </main>
-          )}
+            {shows('lessons') && (
+              <main className={mainClass} style={layer('lessons')} onAnimationEnd={onLayerAnimEnd}>
+                <LessonsPage
+                  chapters={chapters}
+                  selectedChapterId={selectedChapterId}
+                  onSelectChapter={setSelectedChapterId}
+                  rank={rank}
+                  onBack={() => go('home')}
+                  onOpenLesson={onOpenLesson}
+                />
+              </main>
+            )}
 
-          {shows('leaderboard') && (
-            <main className={mainClass} style={layer('leaderboard')} onAnimationEnd={onLayerAnimEnd}>
-              <LeaderboardPage isGuest={isGuest} onCreateAccount={() => go('profile')} />
-            </main>
-          )}
+            {shows('camera') && (
+              <main className={mainClass} style={layer('camera')} onAnimationEnd={onLayerAnimEnd}>
+                <CameraPage />
+              </main>
+            )}
 
-          {shows('profile') && (
-            <main className={mainClass} style={layer('profile')} onAnimationEnd={onLayerAnimEnd}>
-              <ProfilePage
-                onProfileUpdated={refreshProfile}
-                isGuest={isGuest}
-                onExitGuest={onExitGuest}
-              />
-            </main>
-          )}
+            {shows('leaderboard') && (
+              <main className={mainClass} style={layer('leaderboard')} onAnimationEnd={onLayerAnimEnd}>
+                <LeaderboardPage isGuest={isGuest} onCreateAccount={() => go('profile')} />
+              </main>
+            )}
+
+            {shows('profile') && (
+              <main className={mainClass} style={layer('profile')} onAnimationEnd={onLayerAnimEnd}>
+                <ProfilePage
+                  onProfileUpdated={refreshProfile}
+                  isGuest={isGuest}
+                  onExitGuest={onExitGuest}
+                />
+              </main>
+            )}
+          </div>
+
+          <MobileTabBar
+            page={page}
+            onNavigate={go}
+            totalLessonsCount={totalLessonsCount}
+            rank={rank}
+            isGuest={isGuest}
+          />
         </div>
       </div>
     </div>
