@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#EFE9DE;font-family:'Nunito',ui-rounded,system-ui,sans-serif;color:#2E2A24;-webkit-font-smoothing:antialiased}
+a{color:#059669;text-decoration:none}a:hover{color:#064e3b}
+button{font-family:inherit;border:0;background:none;padding:0;cursor:pointer;color:inherit}
+@keyframes sg-fade-up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes sg-fade-right{from{opacity:0;transform:translateX(-22px)}to{opacity:1;transform:translateX(0)}}
+@keyframes sg-fade-in{from{opacity:0}to{opacity:1}}
+@keyframes sg-scale-in{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+@keyframes sg-pop{0%{opacity:0;transform:scale(.7)}60%{transform:scale(1.06)}100%{opacity:1;transform:scale(1)}}
+@keyframes sg-aurora-a{0%{transform:translate3d(0,0,0) scale(1);opacity:.5}33%{transform:translate3d(-70px,54px,0) scale(1.16);opacity:.72}66%{transform:translate3d(46px,86px,0) scale(.95);opacity:.44}100%{transform:translate3d(0,0,0) scale(1);opacity:.5}}
+@keyframes sg-aurora-b{0%{transform:translate3d(0,0,0) scale(1.04);opacity:.34}50%{transform:translate3d(90px,-72px,0) scale(1.3);opacity:.6}100%{transform:translate3d(0,0,0) scale(1.04);opacity:.34}}
+@keyframes sg-sheen{0%{transform:translateX(-130%) skewX(-18deg)}100%{transform:translateX(320%) skewX(-18deg)}}
+@keyframes sg-pulse-ring{0%{transform:scale(.85);opacity:.55}70%{transform:scale(1.5);opacity:0}100%{transform:scale(1.5);opacity:0}}
+@keyframes sg-underline{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes sg-topbar{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+@keyframes sg-arrow{0%,100%{transform:translateX(0)}50%{transform:translateX(4px)}}
+@keyframes sg-flame{0%,100%{transform:scale(1) rotate(-3deg)}50%{transform:scale(1.18) rotate(5deg)}}
+@keyframes sg-page-in-down{from{opacity:0;transform:translateY(28px) scale(.986);filter:blur(4px)}to{opacity:1;transform:none;filter:blur(0)}}
+@keyframes sg-page-in-up{from{opacity:0;transform:translateY(-28px) scale(.986);filter:blur(4px)}to{opacity:1;transform:none;filter:blur(0)}}
+@keyframes sg-crown{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-5px) rotate(4deg)}}
+@keyframes sg-row-in{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:translateX(0)}}
+@keyframes sg-rec{0%,100%{opacity:1}50%{opacity:.25}}
+@keyframes sg-scan{0%{transform:translateY(var(--sg-scan-from,298px));opacity:0}8%{opacity:1}82%{opacity:1}100%{transform:translateY(4px);opacity:0}}
+@keyframes sg-tip{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.28);opacity:.72}}
+@keyframes sg-halo{0%,100%{transform:scale(.9);opacity:.5}50%{transform:scale(1.5);opacity:.1}}
+@keyframes sg-draw{from{stroke-dashoffset:320}to{stroke-dashoffset:0}}
+@keyframes sg-bracket{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.035);opacity:1}}
+@keyframes sg-float-y{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-14px) rotate(1deg)}}
+@keyframes sg-ring-glow{0%,100%{opacity:.28;transform:scale(1)}50%{opacity:.55;transform:scale(1.1)}}
+@keyframes sg-chip-cue{0%,62%,100%{background-color:rgba(255,255,255,.07);transform:translateY(0)}70%{background-color:rgba(255,255,255,.22);transform:translateY(-3px)}}
+@keyframes sg-dot{0%{transform:scale(.85);opacity:.55}70%{transform:scale(1.5);opacity:0}100%{transform:scale(1.5);opacity:0}}
+@keyframes sg-confetti-0{0%{transform:translate3d(0,-10px,0) rotate(0);opacity:1}100%{transform:translate3d(24px,860px,0) rotate(720deg);opacity:.85}}
+@keyframes sg-confetti-1{0%{transform:translate3d(0,-10px,0) rotate(0);opacity:1}100%{transform:translate3d(-30px,860px,0) rotate(-540deg);opacity:.85}}
+@keyframes sg-float{0%,100%{transform:translateY(0) rotate(var(--r,0deg))}50%{transform:translateY(-14px) rotate(calc(var(--r,0deg) + 2deg))}}
+@keyframes sg-spin{to{transform:rotate(360deg)}}
+input::placeholder{color:#A69C8D;font-weight:500}
+.sg-scroll::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+
+<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;gap:22px;padding:32px 20px 48px;box-sizing:border-box">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:12px;max-width:560px;text-align:center">
+    <div style="display:flex;align-items:center;gap:10px">
+      <img src="assets/icon.svg" alt="" style="width:30px;height:30px;border-radius:9px;display:block">
+      <span style="font-weight:900;font-size:15px;letter-spacing:.16em;color:#2E2A24">SIGNA</span>
+      <span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#A69C8D;white-space:nowrap">· v2 · minimal</span>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px">
+      <sc-for list="{{ jumps }}" as="j" hint-placeholder-count="8">
+        <button onClick="{{ j.go }}" style="white-space:nowrap;border-radius:999px;padding:7px 13px;font-size:12px;font-weight:800;border:1px solid {{ j.border }};background:{{ j.bg }};color:{{ j.color }};transition:all .16s ease-out">{{ j.label }}</button>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- Telefon -->
+  <div style="position:relative;width:390px;height:844px;flex:none;border-radius:58px;background:#1d1b18;padding:11px;box-sizing:border-box;box-shadow:0 40px 90px rgba(46,42,36,.28),0 0 0 1.5px #3a3630 inset">
+    <div style="position:relative;width:100%;height:100%;border-radius:47px;overflow:hidden;background:{{ screenBg }};display:flex;flex-direction:column">
+
+      <!-- status bar -->
+      <div style="position:relative;z-index:40;height:50px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:4px 30px 0 34px;box-sizing:border-box;color:{{ statusColor }};background:{{ statusBg }}">
+        <span style="font-size:15px;font-weight:800;letter-spacing:-.01em">9:41</span>
+        <span style="position:absolute;left:50%;top:11px;transform:translateX(-50%);width:118px;height:33px;border-radius:20px;background:#000"></span>
+        <span style="display:flex;align-items:center;gap:6px">
+          <span style="display:flex;align-items:flex-end;gap:2px;height:11px">
+            <span style="width:3px;height:4px;border-radius:1px;background:currentColor"></span>
+            <span style="width:3px;height:6px;border-radius:1px;background:currentColor"></span>
+            <span style="width:3px;height:8px;border-radius:1px;background:currentColor"></span>
+            <span style="width:3px;height:11px;border-radius:1px;background:currentColor"></span>
+          </span>
+          <span style="width:24px;height:11px;border-radius:3.5px;border:1.5px solid currentColor;opacity:.9;box-sizing:border-box;padding:1.5px;display:flex"><span style="flex:1;border-radius:1.5px;background:currentColor"></span></span>
+        </span>
+      </div>
+      <div style="height:3px;flex:none;background:linear-gradient(90deg,#34d399,rgba(16,185,129,.4),transparent,#34d399,rgba(16,185,129,.4),transparent);background-size:200% 100%;animation:sg-topbar 9s linear infinite;opacity:{{ topbarOpacity }}"></div>
+
+      <!-- ═════════════ SHELL (5 taburi) ═════════════ -->
+      <sc-if value="{{ inShell }}" hint-placeholder-val="{{ true }}">
+        <div ref="{{ scrollRef }}" class="sg-scroll" style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;background:radial-gradient(110% 45% at 50% 0%,#F3FBF6 0%,#FFFBF3 62%)">
+
+          <!-- header mobil comun -->
+          <header style="position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:8px 20px 10px;background:rgba(255,251,243,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="position:relative;width:30px;height:30px;flex:none">
+                <span style="position:absolute;inset:0;border-radius:9px;border:2px solid rgba(16,185,129,.55);animation:sg-pulse-ring 3.6s cubic-bezier(.22,1,.36,1) infinite"></span>
+                <img src="assets/icon.svg" alt="" style="position:relative;width:30px;height:30px;border-radius:9px;display:block">
+              </span>
+              <span style="font-weight:900;font-size:15px;letter-spacing:.16em;color:#2E2A24">SIGNA</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span title="Zile consecutive" style="display:flex;align-items:center;gap:5px;background:#fffbeb;border:1px solid rgba(217,119,6,.16);color:#b45309;border-radius:999px;padding:6px 11px;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums">
+                <svg viewBox="0 0 24 24" fill="currentColor" style="width:13px;height:13px;animation:sg-flame 1.9s ease-in-out infinite"><path d="M12 2s5 4.6 5 9.3A5 5 0 0 1 7 11.5C7 8 9 6 9 6s-.5 2.5 1 3.5c0-3 2-6.5 2-7.5Z"></path></svg>
+                {{ streak }}
+              </span>
+              <button onClick="{{ toggleSound }}" aria-label="Sunet" style="width:34px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#A69C8D">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px">
+                  <path d="M11 5.5 6.5 9.5H3.5v5h3L11 18.5z"></path>
+                  <sc-if value="{{ sound }}" hint-placeholder-val="{{ true }}"><path d="M15.5 9.2a4 4 0 0 1 0 5.6"></path><path d="M18.4 6.6a8 8 0 0 1 0 10.8"></path></sc-if>
+                  <sc-if value="{{ soundOff }}" hint-placeholder-val="{{ false }}"><path d="m15.5 10 5 4"></path><path d="m20.5 10-5 4"></path></sc-if>
+                </svg>
+              </button>
+              <button onClick="{{ goProfile }}" aria-label="Profil" style="width:34px;height:34px;border-radius:12px;background:#d1fae5;color:#064e3b;font-weight:900;font-size:12.5px;display:flex;align-items:center;justify-content:center">AP</button>
+            </div>
+          </header>
+
+          <div style="animation:{{ pageAnim }}">
+
+          <!-- ─── ACASĂ ─── -->
+          <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-direction:column;padding-bottom:26px">
+              <div style="padding:14px 20px 0">
+                
+                <h1 style="margin:0;font-size:26px;font-weight:900;color:#2E2A24;letter-spacing:-.02em;line-height:1.15;text-wrap:pretty">
+                  <span style="display:inline-block;animation:sg-fade-up .7s cubic-bezier(.22,1,.36,1) .16s both">Salut,&nbsp;</span><span style="display:inline-block;position:relative;animation:sg-fade-up .7s cubic-bezier(.22,1,.36,1) .4s both">Andrei.<span style="position:absolute;left:0;right:6px;bottom:4px;height:8px;border-radius:4px;background:rgba(52,211,153,.32);transform-origin:left;animation:sg-underline .9s cubic-bezier(.22,1,.36,1) 1s both"></span></span>
+                </h1>
+              </div>
+
+              <!-- Continuă -->
+              <div style="padding:18px 20px 0">
+                <div style="position:relative;overflow:hidden;border-radius:24px;padding:22px;background:linear-gradient(140deg,#064e3b,#065f46 52%,#047857);box-shadow:0 18px 38px rgba(6,78,59,.28);animation:sg-fade-up .75s cubic-bezier(.22,1,.36,1) .34s both">
+                  <span style="position:absolute;top:-120px;right:-70px;width:280px;height:280px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(52,211,153,.5),transparent 70%);filter:blur(46px);animation:sg-aurora-a 16s ease-in-out infinite"></span>
+                  <div style="position:relative;display:flex;align-items:flex-start;justify-content:space-between;gap:14px">
+                    <div style="min-width:0">
+                      <p style="margin:0;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:rgba(209,250,229,.7)">{{ next.title }}</p>
+                      <h2 style="margin:8px 0 0;font-size:21px;font-weight:900;color:#fff;letter-spacing:-.01em;line-height:1.2">{{ next.subtitle }}</h2>
+                      
+                    </div>
+                    <div style="flex:none;width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:{{ next.ring }};animation:sg-pop .6s cubic-bezier(.22,1,.36,1) .66s both">
+                      <div style="width:44px;height:44px;border-radius:50%;background:#064e3b;display:flex;align-items:center;justify-content:center">
+                        <span style="font-size:12.5px;font-weight:900;color:#fff;font-variant-numeric:tabular-nums">{{ next.pctText }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:7px;margin-top:16px">
+                    <sc-for list="{{ next.chips }}" as="c" hint-placeholder-count="5">
+                      <span style="flex:1;min-width:0;text-align:center;padding:9px 0;border-radius:11px;font-weight:900;font-size:14px;border:1px solid {{ c.border }};background:{{ c.bg }};color:{{ c.color }};animation:{{ c.anim }}">{{ c.ch }}</span>
+                    </sc-for>
+                  </div>
+                  <button onClick="{{ openNext }}" style="position:relative;overflow:hidden;margin-top:16px;width:100%;padding:16px 0;border-radius:16px;background:#FFFBF3;color:#064e3b;font-weight:800;font-size:15px;box-shadow:0 8px 20px rgba(0,0,0,.16);display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .16s ease-out" style-active="transform:scale(.97)">
+                    <span>Continuă</span>
+                    <span style="display:flex;animation:sg-arrow 1.8s ease-in-out infinite"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M5 12h13"></path><path d="m12.5 6 6 6-6 6"></path></svg></span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Statistici -->
+              <div style="padding:14px 20px 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px">
+                <div style="background:#fff;border:1px solid rgba(46,42,36,.06);border-radius:22px;padding:14px 12px;text-align:center;box-shadow:0 1px 2px rgba(46,42,36,.04),0 8px 22px rgba(46,42,36,.045);animation:sg-fade-up .6s cubic-bezier(.22,1,.36,1) .5s both">
+                  <p style="margin:0;font-size:20px;font-weight:900;line-height:1;color:#064e3b;font-variant-numeric:tabular-nums">{{ xp }}</p>
+                  <p style="margin:6px 0 0;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#A69C8D">XP total</p>
+                </div>
+                <div style="background:#fff;border:1px solid rgba(46,42,36,.06);border-radius:22px;padding:14px 12px;text-align:center;box-shadow:0 1px 2px rgba(46,42,36,.04),0 8px 22px rgba(46,42,36,.045);animation:sg-fade-up .6s cubic-bezier(.22,1,.36,1) .56s both">
+                  <p style="margin:0;font-size:20px;font-weight:900;line-height:1;color:#b45309;font-variant-numeric:tabular-nums">{{ streak }}</p>
+                  <p style="margin:6px 0 0;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#A69C8D">Zi la rând</p>
+                </div>
+                <div style="background:#fff;border:1px solid rgba(46,42,36,.06);border-radius:22px;padding:14px 12px;text-align:center;box-shadow:0 1px 2px rgba(46,42,36,.04),0 8px 22px rgba(46,42,36,.045);animation:sg-fade-up .6s cubic-bezier(.22,1,.36,1) .62s both">
+                  <p style="margin:0;font-size:20px;font-weight:900;line-height:1;color:#2E2A24;font-variant-numeric:tabular-nums">{{ doneCount }}<span style="font-size:13px;color:#A69C8D">/{{ totalLessons }}</span></p>
+                  <p style="margin:6px 0 0;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#A69C8D">Lecții</p>
+                </div>
+              </div>
+
+              <!-- Exersează -->
+              <div style="padding:22px 20px 0">
+                <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:11px">
+                  <h3 style="margin:0;font-size:14.5px;font-weight:900;color:#2E2A24">Exersează</h3>
+                  <button onClick="{{ goLessons }}" style="font-size:12px;font-weight:800;color:#059669">Toate lecțiile</button>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+                  <button onClick="{{ goSpell }}" style="text-align:left;background:#fff;border:1px solid rgba(46,42,36,.05);border-radius:20px;padding:16px;box-shadow:0 6px 20px rgba(46,42,36,.05);transition:transform .22s ease-out;animation:sg-fade-up .65s cubic-bezier(.22,1,.36,1) .62s both" style-active="transform:scale(.97)">
+                    <span style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:12px;background:#ecfdf5;color:#059669"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M4 7h16"></path><path d="M4 12h11"></path><path d="M4 17h7"></path></svg></span>
+                    <p style="margin:11px 0 0;font-size:14px;font-weight:800;color:#2E2A24">Scrie</p>
+                    
+                  </button>
+                  <button onClick="{{ goCamera }}" style="text-align:left;background:#fff;border:1px solid rgba(46,42,36,.05);border-radius:20px;padding:16px;box-shadow:0 6px 20px rgba(46,42,36,.05);transition:transform .22s ease-out;animation:sg-fade-up .65s cubic-bezier(.22,1,.36,1) .7s both" style-active="transform:scale(.97)">
+                    <span style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:12px;background:#E8F1FD;color:#2563eb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><rect x="2.5" y="6.5" width="13" height="11" rx="2.5"></rect><path d="m15.5 11.5 6-3v7l-6-3z"></path></svg></span>
+                    <p style="margin:11px 0 0;font-size:14px;font-weight:800;color:#2E2A24">Cameră</p>
+                    
+                  </button>
+                  <button onClick="{{ goReview }}" style="text-align:left;background:#fff;border:1px solid rgba(46,42,36,.05);border-radius:20px;padding:16px;box-shadow:0 6px 20px rgba(46,42,36,.05);transition:transform .22s ease-out;animation:sg-fade-up .65s cubic-bezier(.22,1,.36,1) .78s both" style-active="transform:scale(.97)">
+                    <span style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:12px;background:#FDF3E3;color:#d97706"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M20 12a8 8 0 1 1-2.6-5.9"></path><path d="M20 4v4h-4"></path></svg></span>
+                    <p style="margin:11px 0 0;font-size:14px;font-weight:800;color:#2E2A24">Repetiție</p>
+                    
+                  </button>
+                  <button onClick="{{ goLeaderboard }}" style="text-align:left;background:#fff;border:1px solid rgba(46,42,36,.05);border-radius:20px;padding:16px;box-shadow:0 6px 20px rgba(46,42,36,.05);transition:transform .22s ease-out;animation:sg-fade-up .65s cubic-bezier(.22,1,.36,1) .86s both" style-active="transform:scale(.97)">
+                    <span style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:12px;background:#F1ECFB;color:#7c3aed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M5 19v-7"></path><path d="M12 19V6"></path><path d="M19 19v-4"></path></svg></span>
+                    <p style="margin:11px 0 0;font-size:14px;font-weight:800;color:#2E2A24">Clasament</p>
+                    
+                  </button>
+                </div>
+              </div>
+
+              <!-- De revăzut azi -->
+              <div style="padding:22px 20px 0;animation:sg-fade-up .7s cubic-bezier(.22,1,.36,1) .94s both">
+                <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:11px">
+                  <h3 style="margin:0;font-size:14.5px;font-weight:900;color:#2E2A24">De revăzut</h3>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <sc-for list="{{ reviewChips }}" as="r" hint-placeholder-count="6">
+                    <button onClick="{{ goReview }}" style="display:flex;align-items:center;justify-content:center;min-width:46px;height:46px;padding:0 8px;box-sizing:border-box;border-radius:14px;background:#fff;border:1px solid rgba(46,42,36,.09);font-size:16px;font-weight:900;color:#2E2A24;animation:{{ r.anim }};transition:transform .2s ease-out" style-active="transform:translateY(-4px)">{{ r.ch }}</button>
+                  </sc-for>
+                  <button onClick="{{ goReview }}" style="display:flex;align-items:center;justify-content:center;height:46px;padding:0 14px;border-radius:14px;background:#fff;border:1px dashed rgba(46,42,36,.14);font-size:12.5px;font-weight:800;color:#A69C8D">+{{ reviewRest }}</button>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ─── LECȚII ─── -->
+          <sc-if value="{{ isLessons }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:22px;padding:12px 20px 32px">
+              <div class="sg-scroll" style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 -20px;padding:0 20px">
+                <sc-for list="{{ chapterRows }}" as="ch" hint-placeholder-count="8">
+                  <button onClick="{{ ch.select }}" style="flex:none;display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:11px;font-size:13.5px;white-space:nowrap;background:{{ ch.bg }};color:{{ ch.color }};font-weight:{{ ch.weight }};transition:background-color .16s ease-out">
+                    <span style="width:8px;height:8px;border-radius:3px;flex:none;background:{{ ch.dot }}"></span>
+                    <span>{{ ch.title }}</span>
+                    <span style="font-size:11px;color:#A69C8D;font-variant-numeric:tabular-nums">{{ ch.stars }}</span>
+                  </button>
+                </sc-for>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:16px">
+                <div>
+                  
+                  <h1 style="margin:0;font-size:29px;font-weight:900;color:#2E2A24;letter-spacing:-.02em;line-height:1.25;animation:sg-fade-up .7s cubic-bezier(.22,1,.36,1) .14s both">{{ chap.name }}</h1>
+                  
+                </div>
+                <div style="display:flex;gap:8px">
+                  <sc-for list="{{ filters }}" as="f" hint-placeholder-count="3">
+                    <button onClick="{{ f.pick }}" style="white-space:nowrap;border-radius:999px;padding:8px 14px;font-size:12.5px;font-weight:800;border:1px solid {{ f.border }};background:{{ f.bg }};color:{{ f.color }};transition:all .16s ease-out">{{ f.label }}</button>
+                  </sc-for>
+                </div>
+              </div>
+
+              <div style="position:relative;overflow:hidden;border-radius:24px;padding:22px;background:linear-gradient(135deg,#064e3b,#065f46 52%,#047857);box-shadow:0 18px 38px rgba(6,78,59,.24);animation:sg-fade-up .75s cubic-bezier(.22,1,.36,1) .3s both">
+                <span style="position:absolute;top:-140px;right:-60px;width:320px;height:320px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(52,211,153,.48),transparent 70%);filter:blur(48px);animation:sg-aurora-a 16s ease-in-out infinite"></span>
+                <span style="position:absolute;bottom:-110px;left:20%;width:280px;height:280px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(255,255,255,.18),transparent 72%);filter:blur(50px);animation:sg-aurora-b 21s ease-in-out infinite"></span>
+                <sc-if value="{{ chap.hasNext }}" hint-placeholder-val="{{ true }}">
+                  <div style="position:relative;display:flex;align-items:flex-start;justify-content:space-between;gap:16px">
+                    <div style="min-width:0">
+                      
+                      <h2 style="margin:0;font-size:22px;font-weight:900;color:#fff;letter-spacing:-.01em">{{ chap.nextTitle }}</h2>
+                      <p style="margin:6px 0 0;font-size:13px;font-weight:600;color:rgba(255,251,243,.65)">{{ chap.minutesShort }}</p>
+                    </div>
+                    <div style="flex:none;width:62px;height:62px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:{{ chap.ring }};animation:sg-pop .6s cubic-bezier(.22,1,.36,1) .6s both">
+                      <div style="width:48px;height:48px;border-radius:50%;background:#064e3b;display:flex;align-items:center;justify-content:center"><span style="font-size:12.5px;font-weight:900;color:#fff">{{ chap.pctText }}</span></div>
+                    </div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:8px;margin-top:20px">
+                    <sc-for list="{{ chap.chips }}" as="c" hint-placeholder-count="5">
+                      <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;padding:10px 2px;border-radius:12px;font-weight:900;font-size:14px;border:1px solid {{ c.border }};background:{{ c.bg }};color:{{ c.color }};animation:{{ c.anim }}">{{ c.ch }}</span>
+                    </sc-for>
+                  </div>
+                  <button onClick="{{ chap.open }}" style="position:relative;margin-top:20px;border-radius:16px;padding:14px 26px;background:#FFFBF3;color:#064e3b;font-weight:800;font-size:14.5px;box-shadow:0 10px 22px rgba(0,0,0,.18);display:flex;align-items:center;gap:8px;transition:transform .16s ease-out" style-active="transform:scale(.985)">
+                    <span>Continuă</span>
+                    <span style="display:flex;animation:sg-arrow 1.8s ease-in-out infinite"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M9 6l6 6-6 6"></path></svg></span>
+                  </button>
+                </sc-if>
+                <sc-if value="{{ chap.locked }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:relative">
+                    <p style="margin:0;display:flex;color:rgba(209,250,229,.75)"><svg width="18" height="18" viewBox="0 0 16 16" fill="none"><rect x="3" y="7" width="10" height="7" rx="2" stroke="currentColor" stroke-width="1.5"></rect><path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.5"></path></svg></p>
+                    <h2 style="margin:8px 0 0;font-size:22px;font-weight:900;color:#fff">{{ chap.name }}</h2>
+                    
+                  </div>
+                </sc-if>
+              </div>
+
+              <div style="background:#fff;border:1px solid rgba(46,42,36,.05);border-radius:22px;box-shadow:0 10px 30px rgba(46,42,36,.06);padding:22px 24px;display:flex;flex-direction:column;gap:16px;animation:sg-fade-up .75s cubic-bezier(.22,1,.36,1) .4s both">
+                <div>
+                  
+                  <p style="margin:0;display:flex;align-items:baseline;gap:6px"><span style="font-size:32px;font-weight:900;color:#2E2A24;line-height:1">{{ chap.stars }}</span><span style="font-size:15px;font-weight:700;color:#A69C8D">/ {{ chap.maxStars }} stele</span></p>
+                  <div style="position:relative;margin-top:14px;height:9px;border-radius:999px;background:rgba(46,42,36,.07);overflow:hidden">
+                    <div style="height:100%;border-radius:999px;background:linear-gradient(90deg,#34d399,#059669);width:{{ chap.starsPct }};transition:width .5s"></div>
+                    <div style="position:absolute;top:0;bottom:0;left:0;width:34%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.85),transparent);animation:sg-sheen 4.2s cubic-bezier(.4,0,.2,1) 2s infinite"></div>
+                  </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;border-top:1px solid rgba(46,42,36,.06);padding-top:18px">
+                  <div>
+                    <p style="margin:0;font-size:19px;font-weight:900;color:#064e3b;line-height:1">{{ chap.lessonsDone }}<span style="font-size:13px;color:#A69C8D">/{{ chap.lessonCount }}</span></p>
+                    <p style="margin:6px 0 0;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#A69C8D">Lecții</p>
+                  </div>
+                  <div>
+                    <p style="margin:0;font-size:19px;font-weight:900;color:#2E2A24;line-height:1">{{ chap.learned }}<span style="font-size:13px;color:#A69C8D">/{{ chap.letterCount }}</span></p>
+                    <p style="margin:6px 0 0;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#A69C8D">Litere</p>
+                  </div>
+                </div>
+                
+              </div>
+
+              <div>
+                <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px">
+                  <h3 style="margin:0;font-size:15px;font-weight:900;color:#2E2A24">Lecții</h3>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:14px">
+                  <sc-for list="{{ lessonCards }}" as="l" hint-placeholder-count="3">
+                    <sc-if value="{{ l.unlocked }}" hint-placeholder-val="{{ true }}">
+                      <div onClick="{{ l.open }}" style="cursor:pointer;display:flex;flex-direction:column;padding:20px 22px;border-radius:22px;background:#fff;border:1px solid rgba(46,42,36,.05);box-shadow:0 6px 20px rgba(46,42,36,.05);transition:transform .22s ease-out;animation:{{ l.anim }}" style-active="transform:scale(.99)">
+                        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+                          <span style="width:40px;height:40px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;background:{{ l.idBg }};color:{{ l.idColor }}">{{ l.id }}</span>
+                          <span style="display:flex;align-items:center;gap:8px">
+                            <sc-if value="{{ l.hasStars }}" hint-placeholder-val="{{ false }}">
+                              <span style="display:flex;gap:2px">
+                                <sc-for list="{{ l.starFills }}" as="s" hint-placeholder-count="3">
+                                  <svg width="13" height="13" viewBox="0 0 24 24" fill="{{ s }}"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.2 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8L12 2z"></path></svg>
+                                </sc-for>
+                              </span>
+                            </sc-if>
+                            <sc-if value="{{ l.inProgress }}" hint-placeholder-val="{{ true }}">
+                              <span style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#059669;background:#ecfdf5;border-radius:7px;padding:4px 8px">{{ l.pct }}%</span>
+                            </sc-if>
+                            <button onClick="{{ l.fav }}" aria-label="Favorite" style="display:flex;padding:2px;color:{{ l.favColor }}">
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="{{ l.favFill }}" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round"><path d="M6 3.5h12a1 1 0 011 1V21l-7-4-7 4V4.5a1 1 0 011-1z"></path></svg>
+                            </button>
+                          </span>
+                        </div>
+                        <p style="margin:14px 0 0;font-size:14.5px;font-weight:900;color:#2E2A24">{{ l.title }}</p>
+                        <div style="display:flex;gap:4px;margin-top:9px;flex-wrap:wrap">
+                          <sc-for list="{{ l.letters }}" as="c" hint-placeholder-count="5">
+                            <span style="height:23px;min-width:23px;padding:0 6px;box-sizing:border-box;border-radius:7px;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;background:{{ c.bg }};color:{{ c.color }}">{{ c.ch }}</span>
+                          </sc-for>
+                        </div>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ l.locked }}" hint-placeholder-val="{{ false }}">
+                      <div style="display:flex;flex-direction:column;padding:20px 22px;border-radius:22px;background:rgba(46,42,36,.025);border:1px dashed rgba(46,42,36,.1);animation:{{ l.anim }}">
+                        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+                          <span style="width:40px;height:40px;border-radius:13px;background:rgba(46,42,36,.05);color:#A69C8D;display:flex;align-items:center;justify-content:center">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="3" y="7" width="10" height="7" rx="2" stroke="currentColor" stroke-width="1.5"></rect><path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.5"></path></svg>
+                          </span>
+                          <sc-if value="{{ l.isDyn }}" hint-placeholder-val="{{ false }}">
+                            <span style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#4f46e5;background:#eef2ff;border-radius:7px;padding:4px 8px">Mișcare</span>
+                          </sc-if>
+                        </div>
+                        <p style="margin:14px 0 0;font-size:14.5px;font-weight:900;color:#A69C8D">{{ l.title }}</p>
+                        
+                      </div>
+                    </sc-if>
+                  </sc-for>
+                  <sc-if value="{{ noLessons }}" hint-placeholder-val="{{ false }}">
+                    <p style="margin:0;font-size:13px;font-weight:600;color:#A69C8D;padding:24px 0">{{ noLessonsText }}</p>
+                  </sc-if>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ─── CAMERĂ ─── -->
+          <sc-if value="{{ isCamera }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:18px;padding:12px 20px 32px">
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div>
+                  
+                  <h1 style="margin:0;font-size:29px;font-weight:900;color:#2E2A24;letter-spacing:-.02em;line-height:1.25;animation:sg-fade-up .7s cubic-bezier(.22,1,.36,1) .14s both">Cameră</h1>
+                  
+                </div>
+                <div style="display:flex;gap:8px">
+                  <span style="display:flex;align-items:center;gap:8px;border-radius:999px;padding:8px 14px;font-size:12.5px;font-weight:800;background:#ecfdf5;color:#059669;border:1px solid rgba(16,185,129,.18)">
+                    <span style="position:relative;width:7px;height:7px;flex:none"><span style="position:absolute;inset:0;border-radius:50%;background:#10b981"></span><span style="position:absolute;inset:-4px;border-radius:50%;border:1.5px solid rgba(16,185,129,.55);animation:sg-dot 2.2s ease-out infinite"></span></span>
+                    Local
+                  </span>
+                  <button onClick="{{ toggleDebug }}" style="white-space:nowrap;border-radius:999px;padding:8px 14px;font-size:12.5px;font-weight:800;border:1px solid {{ debugBorder }};background:{{ debugBg }};color:{{ debugColor }}">Debug</button>
+                </div>
+              </div>
+
+              <div style="position:relative;overflow:hidden;border-radius:24px;height:440px;background:linear-gradient(160deg,#111c1a,#0b1614 60%,#0d1a17);animation:sg-fade-up .75s cubic-bezier(.22,1,.36,1) .3s both">
+                <span style="position:absolute;top:-120px;right:-70px;width:300px;height:300px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(52,211,153,.34),transparent 70%);filter:blur(52px);animation:sg-aurora-a 16s ease-in-out infinite"></span>
+                <span style="position:absolute;bottom:-110px;left:14%;width:280px;height:280px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(79,70,229,.26),transparent 72%);filter:blur(54px);animation:sg-aurora-b 21s ease-in-out infinite"></span>
+                <span style="position:absolute;inset:0;pointer-events:none;opacity:.2;background-image:linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px);background-size:52px 52px;-webkit-mask-image:radial-gradient(ellipse 62% 58% at 50% 48%,#000,transparent 76%);mask-image:radial-gradient(ellipse 62% 58% at 50% 48%,#000,transparent 76%)"></span>
+
+                <sc-if value="{{ cameraOn }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;animation:sg-float-y 4.6s ease-in-out infinite">
+                    <div style="position:relative">
+                      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><div style="width:240px;height:240px;border-radius:50%;background:rgba(52,211,153,.22);filter:blur(60px);animation:sg-ring-glow 4s ease-in-out infinite"></div></div>
+                      <svg viewBox="0 0 160 190" width="200" height="238" style="position:relative;display:block;overflow:visible">
+                        <g style="transform-origin:80px 95px;animation:sg-bracket 4.2s ease-in-out infinite">
+                          <path d="M4 40V16a12 12 0 0 1 12-12h20" fill="none" stroke="rgba(52,211,153,.6)" stroke-width="2" stroke-linecap="round"></path>
+                          <path d="M156 40V16a12 12 0 0 0-12-12h-20" fill="none" stroke="rgba(52,211,153,.6)" stroke-width="2" stroke-linecap="round"></path>
+                          <path d="M4 150v24a12 12 0 0 0 12 12h20" fill="none" stroke="rgba(52,211,153,.6)" stroke-width="2" stroke-linecap="round"></path>
+                          <path d="M156 150v24a12 12 0 0 1-12 12h-20" fill="none" stroke="rgba(52,211,153,.6)" stroke-width="2" stroke-linecap="round"></path>
+                        </g>
+                        <rect x="20" y="132" width="118" height="46" rx="23" fill="rgba(255,255,255,.10)" stroke="rgba(52,211,153,.24)" stroke-width="2"></rect>
+                        <line x1="30" y1="148" x2="10" y2="74" stroke="rgba(255,255,255,.14)" stroke-width="15" stroke-linecap="round"></line>
+                        <line x1="52" y1="138" x2="46" y2="28" stroke="rgba(255,255,255,.14)" stroke-width="15" stroke-linecap="round"></line>
+                        <line x1="78" y1="134" x2="78" y2="12" stroke="rgba(255,255,255,.14)" stroke-width="15" stroke-linecap="round"></line>
+                        <line x1="104" y1="138" x2="112" y2="28" stroke="rgba(255,255,255,.14)" stroke-width="15" stroke-linecap="round"></line>
+                        <line x1="122" y1="144" x2="136" y2="62" stroke="rgba(255,255,255,.14)" stroke-width="15" stroke-linecap="round"></line>
+                        <path d="M10 74 46 28 78 12 112 28 136 62" fill="none" stroke="rgba(52,211,153,.5)" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="320" style="animation:sg-draw 1.6s cubic-bezier(.22,1,.36,1) .62s both"></path>
+                        <circle cx="10" cy="74" r="7" fill="#34d399" style="transform-origin:10px 74px;animation:sg-tip 1.9s ease-in-out 0s infinite"></circle>
+                        <circle cx="46" cy="28" r="7" fill="#34d399" style="transform-origin:46px 28px;animation:sg-tip 1.9s ease-in-out .18s infinite"></circle>
+                        <circle cx="78" cy="12" r="7" fill="#34d399" style="transform-origin:78px 12px;animation:sg-tip 1.9s ease-in-out .36s infinite"></circle>
+                        <circle cx="112" cy="28" r="7" fill="#34d399" style="transform-origin:112px 28px;animation:sg-tip 1.9s ease-in-out .54s infinite"></circle>
+                        <circle cx="136" cy="62" r="7" fill="#34d399" style="transform-origin:136px 62px;animation:sg-tip 1.9s ease-in-out .72s infinite"></circle>
+                      </svg>
+                    </div>
+                  </div>
+                  <span style="position:absolute;top:0;left:6%;right:6%;height:2.5px;border-radius:2px;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(52,211,153,.95),transparent);--sg-scan-from:430px;animation:sg-scan 3.4s cubic-bezier(.45,0,.55,1) 1.2s infinite"></span>
+                </sc-if>
+
+                <div style="position:absolute;top:16px;left:16px;right:16px;display:flex;align-items:center;justify-content:space-between;gap:10px;z-index:2">
+                  <span style="display:flex;align-items:center;gap:8px;border-radius:999px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.12);color:#fff;font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;padding:8px 14px">
+                    <sc-if value="{{ cameraOn }}" hint-placeholder-val="{{ false }}"><span style="width:7px;height:7px;border-radius:50%;background:#f43f5e;animation:sg-rec 1.6s ease-in-out infinite"></span></sc-if>
+                    {{ camStatus }}
+                  </span>
+                  <sc-if value="{{ cameraOn }}" hint-placeholder-val="{{ false }}">
+                    
+                  </sc-if>
+                </div>
+
+                <sc-if value="{{ cameraOff }}" hint-placeholder-val="{{ true }}">
+                  <div style="position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:0 24px">
+                    
+                    <button onClick="{{ startCamera }}" style="border-radius:16px;background:#10b981;color:#fff;padding:14px 22px;font-size:14px;font-weight:800;box-shadow:0 10px 24px rgba(16,185,129,.35);transition:transform .16s ease-out" style-active="transform:scale(.96)">Pornește</button>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{ cameraOn }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;left:14px;right:14px;bottom:14px;display:flex;align-items:flex-end;justify-content:space-between;gap:10px;z-index:2">
+                    <div style="display:flex;align-items:center;gap:12px;border-radius:20px;border:1px solid rgba(255,255,255,.12);padding:12px 16px;background:rgba(0,0,0,.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);animation:sg-fade-up .7s cubic-bezier(.22,1,.36,1) .5s both">
+                      <span style="font-size:38px;font-weight:900;color:#fff;line-height:1;min-width:30px;text-align:center;text-shadow:{{ cam.glow }}">{{ cam.label }}</span>
+                      <span style="min-width:0">
+                        <span style="display:block;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.55)">{{ cam.kind }}</span>
+                        <span style="margin-top:6px;display:block;width:96px;height:6px;border-radius:999px;background:rgba(255,255,255,.15);overflow:hidden"><span style="display:block;height:100%;border-radius:999px;background:{{ cam.barColor }};width:{{ cam.confPct }};transition:width .4s ease-out"></span></span>
+                      </span>
+                    </div>
+                    <button onClick="{{ stopCamera }}" style="flex:none;border-radius:16px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.4);color:#fff;padding:12px 14px;font-size:12.5px;font-weight:700;backdrop-filter:blur(8px)">Oprește</button>
+                  </div>
+                </sc-if>
+              </div>
+
+              <div style="background:#fff;border:1px solid rgba(46,42,36,.05);border-radius:22px;box-shadow:0 10px 30px rgba(46,42,36,.06);padding:20px 22px;animation:sg-fade-up .75s cubic-bezier(.22,1,.36,1) .4s both">
+                <p style="margin:0;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#A69C8D">Top 3</p>
+                <div style="margin-top:14px;display:flex;flex-direction:column;gap:10px">
+                  <sc-for list="{{ top3 }}" as="t" hint-placeholder-count="3">
+                    <div style="display:flex;align-items:center;gap:12px">
+                      <span style="width:32px;height:32px;flex:none;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;background:{{ t.chipBg }};color:{{ t.chipColor }}">{{ t.label }}</span>
+                      <span style="flex:1;height:6px;border-radius:999px;background:rgba(46,42,36,.07);overflow:hidden"><span style="display:block;height:100%;border-radius:999px;background:{{ t.barColor }};width:{{ t.w }};transition:width .45s ease-out"></span></span>
+                      <span style="width:48px;text-align:right;font-size:12px;font-weight:700;color:#8A8071;font-variant-numeric:tabular-nums">{{ t.text }}</span>
+                    </div>
+                  </sc-for>
+                  <sc-if value="{{ noTop3 }}" hint-placeholder-val="{{ true }}">
+                    <p style="margin:0;font-size:13px;font-weight:600;color:#A69C8D;padding:8px 0">{{ noTop3Text }}</p>
+                  </sc-if>
+                </div>
+              </div>
+
+              <div style="background:#fff;border:1px solid rgba(46,42,36,.05);border-radius:22px;box-shadow:0 10px 30px rgba(46,42,36,.06);padding:20px 22px;animation:sg-fade-up .75s cubic-bezier(.22,1,.36,1) .48s both">
+                <div style="display:flex;align-items:baseline;justify-content:space-between">
+                  <p style="margin:0;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#A69C8D">Mișcare</p>
+                  <span style="font-size:11px;font-weight:800;color:{{ motionColor }}">{{ motionLabel }}</span>
+                </div>
+                <div style="position:relative;margin-top:12px;height:9px;border-radius:999px;background:rgba(46,42,36,.07);overflow:hidden">
+                  <div style="height:100%;border-radius:999px;background:linear-gradient(90deg,#818cf8,#4f46e5);width:{{ motionW }};transition:width .3s linear"></div>
+                  <span style="position:absolute;top:0;bottom:0;left:50%;width:2px;background:rgba(46,42,36,.25)"></span>
+                </div>
+              </div>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div style="background:#fff;border:1px solid rgba(46,42,36,.05);border-radius:22px;box-shadow:0 6px 20px rgba(46,42,36,.05);padding:16px 20px;animation:sg-fade-up .75s cubic-bezier(.22,1,.36,1) .58s both">
+                  <p style="margin:0;font-size:23px;font-weight:900;color:#064e3b;line-height:1">{{ sessionCount }}</p>
+                  <p style="margin:5px 0 0;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#A69C8D">Semne</p>
+                </div>
+                <div style="background:#fff;border:1px solid rgba(46,42,36,.05);border-radius:22px;box-shadow:0 6px 20px rgba(46,42,36,.05);padding:16px 20px;animation:sg-fade-up .75s cubic-bezier(.22,1,.36,1) .66s both">
+                  <p style="margin:0;font-size:23px;font-weight:900;color:#2E2A24;line-height:1">{{ avgConf }}</p>
+                  <p style="margin:5px 0 0;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#A69C8D">Încredere</p>
+                </div>
+              </div>
+
+              <div style="background:#fff;border:1px solid rgba(46,42,36,.05);border-radius:22px;padding:20px 22px;box-shadow:0 6px 20px rgba(46,42,36,.05);display:flex;flex-direction:column;gap:14px;animation:sg-fade-up .7s cubic-bezier(.22,1,.36,1) .74s both">
+                <div style="display:flex;align-items:baseline;justify-content:space-between">
+                  <h3 style="margin:0;font-size:16px;font-weight:800;color:#2E2A24">Sesiune</h3>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <sc-for list="{{ session }}" as="s" hint-placeholder-count="0">
+                    <span style="width:46px;height:46px;flex:none;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;border:1px solid {{ s.border }};background:{{ s.bg }};color:{{ s.color }};animation:sg-pop .45s cubic-bezier(.22,1,.36,1) backwards">{{ s.label }}</span>
+                  </sc-for>
+                  <sc-if value="{{ sessionEmpty }}" hint-placeholder-val="{{ true }}">
+                    <p style="margin:0;font-size:13px;font-weight:600;color:#A69C8D;padding:4px 0">—</p>
+                  </sc-if>
+                </div>
+                <button onClick="{{ clearSession }}" style="background:#fff;border:1px solid rgba(46,42,36,.09);border-radius:15px;padding:13px 0;font-weight:700;font-size:14px;color:#4F473C;opacity:{{ clearOpacity }}">Golește</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ─── CLASAMENT ─── -->
+          <sc-if value="{{ isLeaderboard }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:18px;padding:12px 20px 32px">
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div>
+                  
+                  <h1 style="margin:0;font-size:29px;font-weight:900;color:#2E2A24;letter-spacing:-.02em;line-height:1.25;animation:sg-fade-up .7s cubic-bezier(.22,1,.36,1) .14s both">Clasament</h1>
+                  
+                </div>
+                
+              </div>
+
+              <div style="position:relative;overflow:hidden;border-radius:24px;padding:24px 16px 0;background:linear-gradient(135deg,#064e3b,#065f46 52%,#047857);box-shadow:0 18px 38px rgba(6,78,59,.24);animation:sg-fade-up .75s cubic-bezier(.22,1,.36,1) .3s both">
+                <span style="position:absolute;top:-140px;right:-60px;width:320px;height:320px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(52,211,153,.48),transparent 70%);filter:blur(48px);animation:sg-aurora-a 16s ease-in-out infinite"></span>
+                <span style="position:absolute;top:0;bottom:0;left:0;width:34%;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent);animation:sg-sheen 6.5s cubic-bezier(.4,0,.2,1) 1.6s infinite"></span>
+                <div style="position:relative;display:grid;grid-template-columns:1fr 1.12fr 1fr;align-items:end;gap:6px;height:258px">
+                  <sc-for list="{{ podium }}" as="p" hint-placeholder-count="3">
+                    <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%">
+                      <div style="display:flex;flex-direction:column;align-items:center;animation:{{ p.anim }}">
+                        <sc-if value="{{ p.first }}" hint-placeholder-val="{{ false }}"><span style="font-size:20px;line-height:1;margin-bottom:4px;animation:sg-crown 2.6s ease-in-out infinite">👑</span></sc-if>
+                        <span style="position:relative;width:{{ p.size }};height:{{ p.size }}">
+                          <sc-if value="{{ p.first }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;border-radius:50%;border:2px solid rgba(255,255,255,.45);animation:sg-pulse-ring 3s cubic-bezier(.22,1,.36,1) 1.4s infinite"></span></sc-if>
+                          <span style="width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;color:#064e3b;background:{{ p.medal }};font-size:{{ p.font }};box-shadow:0 10px 24px rgba(4,44,32,.28)">{{ p.initials }}</span>
+                        </span>
+                        <span style="margin-top:8px;font-size:13px;font-weight:800;color:#fff;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.name }}</span>
+                        <span style="font-size:11.5px;font-weight:700;color:rgba(255,251,243,.65)">{{ p.xp }} XP</span>
+                      </div>
+                      <div style="width:100%;margin-top:10px;border-radius:16px 16px 0 0;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.16);border-bottom:0;height:{{ p.h }};transform-origin:bottom;transform:{{ p.scale }};transition:{{ p.trans }}">
+                        <span style="display:block;padding-top:10px;text-align:center;font-size:15px;font-weight:900;color:rgba(255,255,255,.7)">#{{ p.place }}</span>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+
+              <div style="background:#fff;border:1px solid rgba(46,42,36,.05);border-radius:22px;box-shadow:0 10px 30px rgba(46,42,36,.06);padding:22px 24px;display:flex;flex-direction:column;gap:16px">
+                <div>
+                  
+                  <p style="margin:0;display:flex;align-items:baseline;gap:6px"><span style="font-size:38px;font-weight:900;color:#2E2A24;line-height:1">#{{ myPlace }}</span><span style="font-size:15px;font-weight:700;color:#A69C8D">din {{ lbTotal }}</span></p>
+                  <div style="position:relative;margin-top:14px;height:9px;border-radius:999px;background:rgba(46,42,36,.07);overflow:hidden">
+                    <div style="height:100%;border-radius:999px;background:linear-gradient(90deg,#34d399,#059669);width:{{ myBarW }};transition:width 1.2s cubic-bezier(.22,1,.36,1) .5s"></div>
+                    <div style="position:absolute;top:0;bottom:0;left:0;width:34%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.85),transparent);animation:sg-sheen 4.2s cubic-bezier(.4,0,.2,1) 2s infinite"></div>
+                  </div>
+                  <p style="margin:10px 0 0;font-size:12px;font-weight:700;color:#8A8071">{{ xpToNextText }}</p>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;border-top:1px solid rgba(46,42,36,.06);padding-top:18px">
+                  <div>
+                    <p style="margin:0;font-size:19px;font-weight:900;color:#064e3b;line-height:1">{{ xp }}</p>
+                    <p style="margin:6px 0 0;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#A69C8D">XP total</p>
+                  </div>
+                  <div>
+                    <p style="margin:0;font-size:19px;font-weight:900;color:#b45309;line-height:1;display:flex;align-items:center;gap:6px"><span style="animation:sg-flame 1.9s ease-in-out infinite">🔥</span>{{ streak }}</p>
+                    <p style="margin:6px 0 0;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#A69C8D">Zile</p>
+                  </div>
+                </div>
+                
+              </div>
+
+              <div style="background:#fff;border:1px solid rgba(46,42,36,.05);border-radius:22px;overflow:hidden;box-shadow:0 6px 20px rgba(46,42,36,.05)">
+                <sc-for list="{{ lbRows }}" as="r" hint-placeholder-count="8">
+                  <div style="display:grid;grid-template-columns:34px 38px minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:12px 16px;border-top:{{ r.borderTop }};background:{{ r.bg }};box-shadow:{{ r.shadow }};animation:{{ r.anim }}">
+                    <span style="font-size:14px;font-weight:900;color:{{ r.placeColor }};filter:{{ r.placeFilter }}">#{{ r.place }}</span>
+                    <span style="width:38px;height:38px;border-radius:12px;background:#ecfdf5;color:#059669;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12.5px">{{ r.initials }}</span>
+                    <span style="min-width:0;font-size:13.5px;font-weight:800;color:#2E2A24;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.name }}<span style="color:#A69C8D;font-weight:700">{{ r.meSuffix }}</span></span>
+                    <span style="font-size:11px;font-weight:800;border-radius:999px;padding:4px 9px;background:{{ r.streakBg }};color:{{ r.streakColor }}">{{ r.streakText }}</span>
+                    <span style="font-size:13px;font-weight:900;color:#064e3b;text-align:right;min-width:58px">{{ r.xp }} XP</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ─── PROFIL ─── -->
+          <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:18px;padding:12px 16px 32px">
+              
+
+              <div style="position:relative;overflow:hidden;border-radius:26px;background:linear-gradient(125deg,#0f7d59 0%,#0b6446 58%,#075237 100%);box-shadow:0 20px 48px rgba(8,74,52,.24);animation:sg-fade-up .75s cubic-bezier(.22,1,.36,1) .2s both">
+                <span style="position:absolute;top:-120px;right:-70px;width:300px;height:300px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(52,211,153,.5),transparent 70%);filter:blur(46px);animation:sg-aurora-a 16s ease-in-out infinite"></span>
+                <span style="position:absolute;top:0;bottom:0;left:0;width:34%;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent);animation:sg-sheen 6.5s cubic-bezier(.4,0,.2,1) 1.4s infinite"></span>
+                <div style="position:relative;padding:22px 20px 18px;display:flex;align-items:center;gap:14px">
+                  <span style="position:relative;flex:none">
+                    <span style="position:absolute;inset:-6px;border-radius:50%;border:2px solid rgba(255,255,255,.4);animation:sg-pulse-ring 3.4s cubic-bezier(.22,1,.36,1) infinite"></span>
+                    <span style="position:relative;width:76px;height:76px;border-radius:50%;background:#34d399;color:#064e3b;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 28px rgba(4,44,32,.28);font-size:26px;font-weight:900">AP</span>
+                    <span style="position:absolute;bottom:-2px;right:-2px;width:28px;height:28px;border-radius:50%;background:#fff;color:#4F473C;box-shadow:0 4px 12px rgba(4,44,32,.22);display:flex;align-items:center;justify-content:center">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><path d="M14.5 4h-5L8 6H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-4l-1.5-2Z"></path><circle cx="12" cy="12.5" r="3.5"></circle></svg>
+                    </span>
+                  </span>
+                  <div style="min-width:0;flex:1">
+                    <div style="display:flex;flex-wrap:wrap;gap:6px">
+                      <span style="border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);color:#ecfdf5;font-size:10px;font-weight:800;padding:3px 9px;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap">{{ levelName }}</span>
+                      
+                    </div>
+                    <h2 style="margin:8px 0 0;font-size:22px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Andrei Popescu</h2>
+                    <p style="margin:3px 0 0;font-size:12.5px;font-weight:600;color:rgba(255,251,243,.7);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">@andreip</p>
+                  </div>
+                  <div style="position:relative;width:64px;height:64px;flex:none">
+                    <div style="position:absolute;inset:-5px;border-radius:50%;background:rgba(52,211,153,.35);filter:blur(12px);animation:sg-ring-glow 3.4s ease-in-out infinite"></div>
+                    <svg width="64" height="64" viewBox="0 0 88 88" style="position:relative;display:block;transform:rotate(-90deg)">
+                      <circle cx="44" cy="44" r="34" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="7"></circle>
+                      <circle cx="44" cy="44" r="34" fill="none" stroke="#34d399" stroke-width="7" stroke-linecap="round" stroke-dasharray="213.6" stroke-dashoffset="{{ levelRingOffset }}" style="transition:stroke-dashoffset 1.3s cubic-bezier(.22,1,.36,1)"></circle>
+                    </svg>
+                    <span style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+                      <span style="font-size:19px;font-weight:900;color:#fff;line-height:1">{{ level }}</span>
+                      <span style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:rgba(209,250,229,.7)">nivel</span>
+                    </span>
+                  </div>
+                </div>
+                <div style="position:relative;padding:0 20px 20px">
+                  <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">
+                    <span style="font-size:12.5px;font-weight:800;color:rgba(236,253,245,.9)">Nv. {{ nextLevel }}</span>
+                    <span style="font-size:11.5px;font-weight:800;color:rgba(209,250,229,.7);white-space:nowrap">{{ xpInto }} / {{ xpNeed }} XP</span>
+                  </div>
+                  <div style="position:relative;height:10px;border-radius:999px;background:rgba(0,0,0,.2);overflow:hidden">
+                    <div style="height:100%;border-radius:999px;background:linear-gradient(90deg,#6ee7b7,#34d399);width:{{ levelW }};transition:width 1.2s cubic-bezier(.22,1,.36,1)"></div>
+                    <div style="position:absolute;top:0;bottom:0;left:0;width:34%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.75),transparent);animation:sg-sheen 4.2s cubic-bezier(.4,0,.2,1) 1.8s infinite"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div style="position:relative;overflow:hidden;border-radius:22px;border:1px solid rgba(217,119,6,.14);background:#FFF7E8;padding:18px;animation:sg-fade-up .65s cubic-bezier(.22,1,.36,1) .36s backwards">
+                  <p style="margin:0;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:rgba(146,64,14,.7)">Zile</p>
+                  <p style="margin:8px 0 0;display:flex;align-items:flex-end;gap:6px"><span style="font-size:34px;font-weight:900;line-height:1;color:#92400e">{{ streak }}</span><svg viewBox="0 0 24 24" fill="currentColor" style="width:22px;height:22px;color:#d97706;margin-bottom:3px;animation:sg-flame 1.9s ease-in-out infinite"><path d="M12 2s5 4.6 5 9.3A5 5 0 0 1 7 11.5C7 8 9 6 9 6s-.5 2.5 1 3.5c0-3 2-6.5 2-7.5Z"></path></svg></p>
+                  
+                </div>
+                <div style="position:relative;overflow:hidden;border-radius:22px;border:1px solid rgba(16,185,129,.16);background:#ecfdf5;padding:18px;animation:sg-fade-up .65s cubic-bezier(.22,1,.36,1) .44s backwards">
+                  <p style="margin:0;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:rgba(6,78,59,.7)">Lecții</p>
+                  <p style="margin:8px 0 0;font-size:34px;font-weight:900;line-height:1;color:#064e3b">{{ doneCount }}<span style="font-size:15px;font-weight:700;color:rgba(6,78,59,.5)">/{{ totalLessons }}</span></p>
+                  
+                  <div style="margin-top:10px;height:6px;border-radius:999px;background:rgba(6,78,59,.08);overflow:hidden"><div style="height:100%;border-radius:999px;background:#10b981;width:{{ doneW }}"></div></div>
+                </div>
+              </div>
+
+              <div style="position:relative;overflow:hidden;border-radius:22px;border:1px solid rgba(46,42,36,.06);background:#fff;padding:18px;animation:sg-fade-up .65s cubic-bezier(.22,1,.36,1) .52s backwards">
+                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px">
+                  <p style="margin:0;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#A69C8D">Alfabet</p>
+                  <p style="margin:0;font-size:12px;font-weight:800;color:#8A8071">{{ alphaCount }}</p>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:5px">
+                  <sc-for list="{{ alphabet }}" as="a" hint-placeholder-count="31">
+                    <span style="width:32px;height:32px;border-radius:10px;font-size:12.5px;font-weight:900;display:flex;align-items:center;justify-content:center;border:1px solid {{ a.border }};background:{{ a.bg }};color:{{ a.color }};animation:{{ a.anim }}">{{ a.ch }}</span>
+                  </sc-for>
+                </div>
+              </div>
+
+              <div style="border-radius:22px;background:#fff;border:1px solid rgba(46,42,36,.06);box-shadow:0 1px 2px rgba(46,42,36,.04),0 8px 24px rgba(46,42,36,.045);overflow:hidden;animation:sg-fade-up .7s cubic-bezier(.22,1,.36,1) .6s both">
+                <p style="margin:0;padding:18px 20px 6px;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#A69C8D">Setări</p>
+                <button onClick="{{ togglePublic }}" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;text-align:left">
+                  <span><span style="display:block;font-size:14px;font-weight:800;color:#2E2A24">Profil public</span></span>
+                  <span style="flex:none;width:44px;height:26px;border-radius:999px;padding:3px;box-sizing:border-box;background:{{ publicTrack }};transition:background .2s"><span style="display:block;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(46,42,36,.2);transform:{{ publicKnob }};transition:transform .25s cubic-bezier(.22,1,.36,1)"></span></span>
+                </button>
+                <button onClick="{{ toggleSound }}" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;text-align:left;border-top:1px solid rgba(46,42,36,.05)">
+                  <span><span style="display:block;font-size:14px;font-weight:800;color:#2E2A24">Sunete</span></span>
+                  <span style="flex:none;width:44px;height:26px;border-radius:999px;padding:3px;box-sizing:border-box;background:{{ soundTrack }};transition:background .2s"><span style="display:block;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(46,42,36,.2);transform:{{ soundKnob }};transition:transform .25s cubic-bezier(.22,1,.36,1)"></span></span>
+                </button>
+                <button onClick="{{ doSync }}" style="width:100%;display:flex;align-items:center;gap:12px;padding:14px 20px;text-align:left;border-top:1px solid rgba(46,42,36,.05)">
+                  <span style="width:36px;height:36px;border-radius:12px;background:#ecfdf5;color:#059669;display:flex;align-items:center;justify-content:center;flex:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:18px;height:18px"><path d="M17.5 19a4.5 4.5 0 0 0 .3-8.99A6 6 0 0 0 6.1 10.2A4 4 0 0 0 6.5 19h11Z"></path></svg></span>
+                  <span style="flex:1"><span style="display:block;font-size:14px;font-weight:800;color:#2E2A24">Sincronizează</span></span>
+                </button>
+                <button onClick="{{ logout }}" style="width:100%;padding:15px 20px;text-align:left;border-top:1px solid rgba(46,42,36,.05);font-size:14px;font-weight:800;color:#e11d48">Deconectare</button>
+              </div>
+            </div>
+          </sc-if>
+
+          </div>
+        </div>
+
+        <!-- Bara de jos: 5 taburi -->
+        <nav style="position:relative;flex:none;z-index:30;background:rgba(255,251,243,.9);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid rgba(46,42,36,.07);padding:8px 10px 26px">
+          <span style="position:absolute;top:8px;left:10px;width:calc((100% - 20px) / 5);height:{{ pillH }};pointer-events:none;transform:{{ pillX }};transition:transform .42s cubic-bezier(.22,1,.36,1)">
+            <span style="position:absolute;left:8px;right:8px;top:0;bottom:0;border-radius:14px;background:linear-gradient(180deg,#E4F5EC,#EFFAF4);box-shadow:inset 0 0 0 1px rgba(16,185,129,.12)"></span>
+          </span>
+          <div style="position:relative;display:grid;grid-template-columns:repeat(5,minmax(0,1fr))">
+            <button onClick="{{ goHome }}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:{{ pillH }};font-size:10px;font-weight:800;color:{{ nav.home }};transition:color .16s">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M3 10.5 12 3.5l9 7"></path><path d="M5.5 9.5V20h13V9.5"></path></svg>
+              <sc-if value="{{ navLabels }}" hint-placeholder-val="{{ true }}"><span>Acasă</span></sc-if>
+            </button>
+            <button onClick="{{ goLessons }}" style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:{{ pillH }};font-size:10px;font-weight:800;color:{{ nav.lessons }};transition:color .16s">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><rect x="3.5" y="4" width="17" height="16" rx="2.5"></rect><path d="M9 4v16"></path></svg>
+              <sc-if value="{{ navLabels }}" hint-placeholder-val="{{ true }}"><span>Lecții</span></sc-if>
+              <span style="position:absolute;top:3px;left:calc(50% + 7px);font-size:9px;font-weight:900;color:#8A8071;background:#fff;border:1px solid rgba(46,42,36,.08);border-radius:999px;padding:1px 5px">{{ totalLessons }}</span>
+            </button>
+            <button onClick="{{ goCamera }}" style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:{{ pillH }};font-size:10px;font-weight:800;color:{{ nav.camera }};transition:color .16s">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><rect x="2.5" y="6.5" width="13" height="11" rx="2.5"></rect><path d="m15.5 11.5 6-3v7l-6-3z"></path></svg>
+              <sc-if value="{{ navLabels }}" hint-placeholder-val="{{ true }}"><span>Cameră</span></sc-if>
+              <span style="position:absolute;top:7px;left:calc(50% + 11px);width:7px;height:7px"><span style="position:absolute;inset:0;border-radius:50%;background:#10b981"></span><span style="position:absolute;inset:-4px;border-radius:50%;border:1.5px solid rgba(16,185,129,.55);animation:sg-dot 2.2s ease-out infinite"></span></span>
+            </button>
+            <button onClick="{{ goLeaderboard }}" style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:{{ pillH }};font-size:10px;font-weight:800;color:{{ nav.leaderboard }};transition:color .16s">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M5 20V12"></path><path d="M12 20V5"></path><path d="M19 20v-5"></path></svg>
+              <sc-if value="{{ navLabels }}" hint-placeholder-val="{{ true }}"><span>Clasament</span></sc-if>
+              <span style="position:absolute;top:3px;left:calc(50% + 7px);font-size:9px;font-weight:900;color:#b45309;background:#FFF7E8;border-radius:999px;padding:1px 5px">#{{ myPlace }}</span>
+            </button>
+            <button onClick="{{ goProfile }}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:{{ pillH }};font-size:10px;font-weight:800;color:{{ nav.profile }};transition:color .16s">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><circle cx="12" cy="8" r="3.6"></circle><path d="M5 20c1.4-3.4 4-5 7-5s5.6 1.6 7 5"></path></svg>
+              <sc-if value="{{ navLabels }}" hint-placeholder-val="{{ true }}"><span>Profil</span></sc-if>
+            </button>
+          </div>
+        </nav>
+      </sc-if>
+
+      <!-- ═════════════ LECȚIE / SCRIE CUVÂNTUL (full-screen) ═════════════ -->
+      <sc-if value="{{ inSession }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;min-height:0;display:flex;flex-direction:column;background:#FFFBF3;animation:sg-fade-in .35s ease-out both">
+          <div style="position:relative;flex:1;min-height:0;overflow:hidden;background:linear-gradient(160deg,#1a2522,#0f1a17 60%,#121f1b)">
+            <span style="position:absolute;top:-120px;right:-70px;width:300px;height:300px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(52,211,153,.26),transparent 70%);filter:blur(52px);animation:sg-aurora-a 16s ease-in-out infinite"></span>
+            <div style="position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;padding-bottom:30px;box-sizing:border-box">
+              <div style="width:62%;height:64%;border-radius:120px 120px 30px 30px;background:repeating-linear-gradient(135deg,rgba(255,255,255,.035) 0 10px,rgba(255,255,255,.06) 10px 20px);display:flex;align-items:center;justify-content:center">
+                
+              </div>
+            </div>
+            <div style="position:absolute;top:0;left:0;right:0;height:96px;background:linear-gradient(180deg,rgba(0,0,0,.65),transparent);pointer-events:none;z-index:10"></div>
+            <div style="position:absolute;bottom:0;left:0;right:0;height:64px;background:linear-gradient(0deg,rgba(0,0,0,.4),transparent);pointer-events:none;z-index:10"></div>
+            <div style="position:absolute;inset:0;pointer-events:none;z-index:10;box-shadow:{{ ses.edgeGlow }};transition:box-shadow .15s"></div>
+
+            <sc-if value="{{ ses.success }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;z-index:20;background:rgba(16,185,129,.15);display:flex;align-items:center;justify-content:center;animation:sg-fade-in .3s ease-out both">
+                <div style="width:80px;height:80px;border-radius:50%;background:#10b981;display:flex;align-items:center;justify-content:center;box-shadow:0 0 60px rgba(52,211,153,.5);animation:sg-scale-in .4s cubic-bezier(.22,1,.36,1) both">
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L19 7" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                </div>
+              </div>
+            </sc-if>
+
+            <div style="position:absolute;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px">
+              <button onClick="{{ exitSession }}" style="display:flex;align-items:center;gap:6px;height:36px;padding:0 12px;border-radius:999px;background:rgba(0,0,0,.35);backdrop-filter:blur(4px);color:rgba(255,255,255,.9);font-size:14px;font-weight:600">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                Ieși
+              </button>
+              <span style="height:36px;padding:0 12px;border-radius:999px;background:rgba(0,0,0,.35);backdrop-filter:blur(4px);color:rgba(255,255,255,.8);font-size:12px;font-weight:700;letter-spacing:.05em;display:flex;align-items:center;max-width:40%;white-space:nowrap;overflow:hidden">{{ ses.title }}</span>
+              <div style="height:36px;padding:0 12px;border-radius:999px;background:rgba(0,0,0,.35);backdrop-filter:blur(4px);display:flex;align-items:center;gap:6px">
+                <sc-for list="{{ ses.dots }}" as="d" hint-placeholder-count="5">
+                  <span style="width:8px;height:8px;border-radius:50%;background:{{ d }};transition:background .3s"></span>
+                </sc-for>
+              </div>
+            </div>
+
+            <sc-if value="{{ ses.isSpell }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;top:60px;left:0;right:0;z-index:20;display:flex;justify-content:center;gap:4px">
+                <sc-for list="{{ ses.wordChips }}" as="w" hint-placeholder-count="3">
+                  <span style="width:34px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:17px;background:{{ w.bg }};color:{{ w.color }};transition:all .25s">{{ w.ch }}</span>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <div style="position:absolute;top:{{ ses.wellTop }};right:12px;z-index:20;width:176px">
+              
+              <div style="position:relative;width:100%;aspect-ratio:1/1;box-shadow:0 16px 40px rgba(0,0,0,.4);border-radius:22px">
+                <div style="width:100%;height:100%;overflow:hidden;border-radius:22px;background:#000;box-shadow:{{ ses.wellRing }};transition:box-shadow .2s">
+                  <div style="width:100%;height:100%;background-size:cover;background-position:center;background-image:{{ ses.bgImg }};animation:sg-scale-in .38s cubic-bezier(.22,1,.36,1) both"></div>
+                </div>
+                <div style="position:absolute;top:10px;left:10px;min-width:37px;height:36px;padding:0 8px;box-sizing:border-box;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;box-shadow:0 4px 20px rgba(46,42,36,.06);background:{{ ses.badgeBg }};color:{{ ses.badgeColor }}">{{ ses.target }}</div>
+              </div>
+            </div>
+
+            <sc-if value="{{ ses.showSeen }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;bottom:16px;left:0;right:0;z-index:20;display:flex;justify-content:center;pointer-events:none">
+                <span style="font-size:12px;color:rgba(255,255,255,.5);background:rgba(0,0,0,.45);backdrop-filter:blur(4px);padding:4px 12px;border-radius:999px">Văd: <span style="font-weight:700;color:rgba(255,255,255,.8)">{{ ses.seen }}</span></span>
+              </div>
+            </sc-if>
+          </div>
+
+          <aside style="flex:none;display:flex;flex-direction:column;background:#fff;border-top:1px solid rgba(46,42,36,.06);padding:14px 18px 30px">
+            <div style="display:flex;align-items:center;gap:14px">
+              <sc-if value="{{ ses.isSpell }}" hint-placeholder-val="{{ false }}">
+                <div style="width:56px;height:56px;background:#FFF7E8;border-radius:16px;padding:4px;box-sizing:border-box;flex:none"><div style="width:100%;height:100%;background-size:cover;background-position:center;border-radius:12px;background-image:{{ ses.bgImg }}"></div></div>
+              </sc-if>
+              <div style="min-width:0">
+                <p style="margin:0;font-size:15px;font-weight:700;color:#2E2A24;line-height:1.35">Semnul „{{ ses.target }}"</p>
+                
+              </div>
+            </div>
+            <div style="height:10px;background:#FFEFD1;border-radius:999px;overflow:hidden;margin-top:14px">
+              <div style="height:100%;border-radius:999px;background:{{ ses.barColor }};width:{{ ses.holdW }};transition:width .1s linear"></div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+              <button onClick="{{ toggleHand }}" style="font-size:12px;font-weight:700;color:{{ ses.handColor }};padding:8px 0">{{ ses.handLabel }}</button>
+              <button onClick="{{ skip }}" style="padding:8px 0;color:#A69C8D;font-size:12px;font-weight:500">{{ ses.skipLabel }}</button>
+            </div>
+          </aside>
+        </div>
+      </sc-if>
+
+      <!-- ═════════════ REZULTATE ═════════════ -->
+      <sc-if value="{{ inResults }}" hint-placeholder-val="{{ false }}">
+        <div style="position:relative;flex:1;min-height:0;background:#FFFBF3;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 32px 40px;overflow:hidden;animation:sg-fade-up .55s ease-out both">
+          <sc-for list="{{ confetti }}" as="cf" hint-placeholder-count="0">
+            <span style="position:absolute;top:-20px;left:{{ cf.x }};width:{{ cf.w }};height:{{ cf.h }};border-radius:2px;background:{{ cf.c }};animation:{{ cf.anim }}"></span>
+          </sc-for>
+          <sc-if value="{{ res.isLesson }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;gap:8px;margin-bottom:24px">
+              <sc-for list="{{ res.stars }}" as="s" hint-placeholder-count="3">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="{{ s.fill }}" style="animation:{{ s.anim }}"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.2 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8L12 2z"></path></svg>
+              </sc-for>
+            </div>
+            <h1 style="margin:0 0 4px;font-size:24px;font-weight:900;color:#2E2A24">{{ res.title }}</h1>
+            <p style="margin:0 0 24px;font-size:18px;font-weight:700;color:#059669">+{{ res.xp }} XP</p>
+          </sc-if>
+          <sc-if value="{{ res.isSpell }}" hint-placeholder-val="{{ false }}">
+            <p style="margin:0 0 8px;font-size:12px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#059669">Cuvânt scris</p>
+            <h1 style="margin:0 0 8px;font-size:30px;font-weight:900;color:#2E2A24">{{ res.word }}</h1>
+            <p style="margin:0 0 32px;font-size:14px;color:#8A8071">{{ res.okText }}</p>
+          </sc-if>
+          <div style="display:flex;gap:8px;margin-bottom:{{ res.chipsGap }};flex-wrap:wrap;justify-content:center">
+            <sc-for list="{{ res.chips }}" as="c" hint-placeholder-count="5">
+              <div style="min-width:40px;height:40px;padding:0 8px;box-sizing:border-box;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;background:{{ c.bg }};color:{{ c.color }}">{{ c.ch }}</div>
+            </sc-for>
+          </div>
+          <sc-if value="{{ res.skippedText }}" hint-placeholder-val="{{ false }}">
+            <p style="margin:-12px 0 32px;font-size:12px;color:#8A8071">{{ res.skippedText }}</p>
+          </sc-if>
+          <div style="width:100%;display:flex;flex-direction:column;gap:12px">
+            <button onClick="{{ res.primary }}" style="width:100%;padding:16px 0;background:#10b981;color:#fff;font-weight:700;font-size:15px;border-radius:16px;box-shadow:0 8px 24px rgba(16,185,129,.22);transition:transform .15s" style-active="transform:scale(.97)">{{ res.primaryLabel }}</button>
+            <button onClick="{{ res.retry }}" style="width:100%;padding:12px 0;color:#8A8071;font-weight:500;font-size:14px">{{ res.retryLabel }}</button>
+            <sc-if value="{{ res.isLesson }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ exitSession }}" style="width:100%;padding:12px 0;border-radius:16px;border:1px solid rgba(46,42,36,.1);color:#4F473C;font-weight:600;font-size:14px">Ieși</button>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ═════════════ LOGIN / CONT NOU ═════════════ -->
+      <sc-if value="{{ isAuth }}" hint-placeholder-val="{{ false }}">
+        <div class="sg-scroll" style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;background:#FFFBF3;display:flex;flex-direction:column;animation:sg-fade-in .4s ease-out both">
+          <div style="position:relative;flex:none;height:{{ auth.heroH }};margin:10px 12px 0;border-radius:30px;overflow:hidden;background:linear-gradient(135deg,#064e3b,#065f46 55%,#059669);transition:height .5s cubic-bezier(.22,1,.36,1)">
+            <span style="position:absolute;top:-120px;right:-120px;width:360px;height:360px;border-radius:50%;filter:blur(50px);background:radial-gradient(circle,rgba(52,211,153,.55) 0%,transparent 70%);animation:sg-aurora-a 16s ease-in-out infinite"></span>
+            <span style="position:absolute;bottom:-90px;left:-70px;width:280px;height:280px;border-radius:50%;filter:blur(46px);background:radial-gradient(circle,rgba(255,251,243,.22) 0%,transparent 70%);animation:sg-aurora-b 21s ease-in-out infinite"></span>
+            <span style="position:absolute;inset:0;opacity:.16;background-image:linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px);background-size:48px 48px;-webkit-mask-image:radial-gradient(ellipse 70% 60% at 60% 40%,#000,transparent 75%);mask-image:radial-gradient(ellipse 70% 60% at 60% 40%,#000,transparent 75%)"></span>
+            <div style="position:absolute;inset:0;pointer-events:none">
+              <div style="position:absolute;top:16%;left:64%;width:56px;height:56px;font-size:25px;--r:-8deg;display:flex;align-items:center;justify-content:center;border-radius:18px;font-weight:900;color:#d1fae5;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(6px);box-shadow:0 18px 40px rgba(4,44,32,.28);animation:sg-float 7.5s ease-in-out 0s infinite">A</div>
+              <div style="position:absolute;top:10%;left:84%;width:40px;height:40px;font-size:18px;--r:10deg;display:flex;align-items:center;justify-content:center;border-radius:14px;font-weight:900;color:#d1fae5;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(6px);box-shadow:0 18px 40px rgba(4,44,32,.28);animation:sg-float 9.5s ease-in-out .8s infinite">B</div>
+              <div style="position:absolute;top:44%;left:78%;width:48px;height:48px;font-size:21px;--r:5deg;display:flex;align-items:center;justify-content:center;border-radius:16px;font-weight:900;color:#d1fae5;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(6px);box-shadow:0 18px 40px rgba(4,44,32,.28);animation:sg-float 8.5s ease-in-out 1.6s infinite">C</div>
+              <div style="position:absolute;top:38%;left:56%;width:34px;height:34px;font-size:15px;--r:14deg;display:flex;align-items:center;justify-content:center;border-radius:12px;font-weight:900;color:#d1fae5;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(6px);box-shadow:0 18px 40px rgba(4,44,32,.28);animation:sg-float 10s ease-in-out 2.2s infinite">E</div>
+            </div>
+            <div style="position:absolute;top:20px;left:20px;display:flex;align-items:center;gap:10px;animation:sg-fade-right .7s cubic-bezier(.22,1,.36,1) both">
+              <span style="position:relative;width:36px;height:36px;flex:none">
+                <span style="position:absolute;inset:0;border-radius:11px;border:2px solid rgba(52,211,153,.7);animation:sg-pulse-ring 3.4s cubic-bezier(.22,1,.36,1) infinite"></span>
+                <img src="assets/icon.svg" alt="" style="position:relative;width:36px;height:36px;border-radius:11px;display:block">
+              </span>
+              <span style="color:#fff;font-weight:900;font-size:16px;letter-spacing:.16em">SIGNA</span>
+            </div>
+            <h2 style="position:absolute;left:22px;bottom:22px;margin:0;color:#fff;font-weight:900;font-size:30px;line-height:1.12;letter-spacing:-.02em">
+              <span style="display:block;animation:sg-fade-up .8s cubic-bezier(.22,1,.36,1) .1s both">Limba semnelor,</span>
+              <span style="display:inline-block;position:relative;white-space:nowrap;animation:sg-fade-up .8s cubic-bezier(.22,1,.36,1) .22s both">semn cu semn.<span style="position:absolute;left:0;right:0;bottom:2px;height:6px;border-radius:4px;background:rgba(52,211,153,.55);transform-origin:left;animation:sg-underline .9s cubic-bezier(.22,1,.36,1) 1s both"></span></span>
+            </h2>
+          </div>
+
+          <div style="flex:1;display:flex;flex-direction:column;gap:18px;padding:22px 22px 36px">
+            <sc-if value="{{ auth.showTabs }}" hint-placeholder-val="{{ true }}">
+              <div style="position:relative;display:flex;gap:22px;border-bottom:1px solid rgba(46,42,36,.06)">
+                <button onClick="{{ auth.toLogin }}" style="padding-bottom:11px;font-size:14px;font-weight:700;color:{{ auth.tabLoginColor }};transition:color .2s">Intră</button>
+                <button onClick="{{ auth.toSignup }}" style="padding-bottom:11px;font-size:14px;font-weight:700;color:{{ auth.tabSignupColor }};transition:color .2s">Cont nou</button>
+                <span style="position:absolute;bottom:-1px;left:0;height:2px;background:#10b981;width:{{ auth.indW }};transform:{{ auth.indX }};transition:transform .42s cubic-bezier(.22,1,.36,1),width .42s cubic-bezier(.22,1,.36,1)"></span>
+              </div>
+            </sc-if>
+            <sc-if value="{{ auth.isForgot }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ auth.toLogin }}" style="align-self:flex-start;font-size:14px;font-weight:700;color:#8A8071">←</button>
+            </sc-if>
+
+            <h1 style="margin:0;font-size:26px;font-weight:900;color:#2E2A24;letter-spacing:-.02em;line-height:1.15">{{ auth.title }}</h1>
+
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="overflow:hidden;max-height:{{ auth.suH }};opacity:{{ auth.suO }};transform:{{ auth.suT }};transition:max-height .5s cubic-bezier(.22,1,.36,1),opacity .35s ease-out,transform .5s cubic-bezier(.22,1,.36,1)">
+                <div style="display:flex;flex-direction:column;gap:12px">
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                    <input value="{{ auth.first }}" onChange="{{ auth.onFirst }}" placeholder="Prenume" style="width:100%;box-sizing:border-box;border:1px solid rgba(46,42,36,.09);border-radius:16px;padding:15px 16px;font:600 15px 'Nunito',system-ui,sans-serif;color:#2E2A24;background:#FDFCF9;outline:none;transition:border-color .18s,box-shadow .18s,background .18s" style-focus="border-color:#10b981;box-shadow:0 0 0 4px rgba(16,185,129,.14);background:#fff">
+                    <input value="{{ auth.last }}" onChange="{{ auth.onLast }}" placeholder="Nume" style="width:100%;box-sizing:border-box;border:1px solid rgba(46,42,36,.09);border-radius:16px;padding:15px 16px;font:600 15px 'Nunito',system-ui,sans-serif;color:#2E2A24;background:#FDFCF9;outline:none;transition:border-color .18s,box-shadow .18s,background .18s" style-focus="border-color:#10b981;box-shadow:0 0 0 4px rgba(16,185,129,.14);background:#fff">
+                  </div>
+                  <span style="position:relative;display:block">
+                    <span style="position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:15px;font-weight:800;color:#A69C8D;pointer-events:none">@</span>
+                    <input value="{{ auth.user }}" onChange="{{ auth.onUser }}" placeholder="username" style="width:100%;box-sizing:border-box;border:1px solid rgba(46,42,36,.09);border-radius:16px;padding:15px 16px 15px 40px;font:600 15px 'Nunito',system-ui,sans-serif;color:#2E2A24;background:#FDFCF9;outline:none;transition:border-color .18s,box-shadow .18s,background .18s" style-focus="border-color:#10b981;box-shadow:0 0 0 4px rgba(16,185,129,.14);background:#fff">
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <span style="position:relative;display:block">
+                  <span style="position:absolute;left:15px;top:50%;transform:translateY(-50%);display:flex;pointer-events:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A69C8D" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4.5" width="19" height="15" rx="3"></rect><path d="m3.5 6.5 7.6 5.6a1.5 1.5 0 0 0 1.8 0l7.6-5.6"></path></svg></span>
+                  <input type="email" value="{{ auth.email }}" onChange="{{ auth.onEmail }}" placeholder="Email" style="width:100%;box-sizing:border-box;border:1px solid {{ auth.emailBorder }};border-radius:16px;padding:16px 16px 16px 46px;font:600 15px 'Nunito',system-ui,sans-serif;color:#2E2A24;background:#FDFCF9;outline:none;transition:border-color .18s,box-shadow .18s,background .18s" style-focus="border-color:#10b981;box-shadow:0 0 0 4px rgba(16,185,129,.14);background:#fff">
+                </span>
+                <sc-if value="{{ auth.emailErr }}" hint-placeholder-val="{{ false }}"><p style="margin:6px 0 0 4px;font-size:12px;color:#dc2626">{{ auth.emailErr }}</p></sc-if>
+              </div>
+
+              <sc-if value="{{ auth.showPw }}" hint-placeholder-val="{{ true }}">
+                <div>
+                  <span style="position:relative;display:block">
+                    <span style="position:absolute;left:15px;top:50%;transform:translateY(-50%);display:flex;pointer-events:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A69C8D" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10.5" width="16" height="10.5" rx="3"></rect><path d="M8 10.5V7.8a4 4 0 0 1 8 0v2.7"></path></svg></span>
+                    <input type="{{ auth.pwType }}" value="{{ auth.pw }}" onChange="{{ auth.onPw }}" placeholder="Parolă" style="width:100%;box-sizing:border-box;border:1px solid {{ auth.pwBorder }};border-radius:16px;padding:16px 74px 16px 46px;font:600 15px 'Nunito',system-ui,sans-serif;color:#2E2A24;background:#FDFCF9;outline:none;transition:border-color .18s,box-shadow .18s,background .18s" style-focus="border-color:#10b981;box-shadow:0 0 0 4px rgba(16,185,129,.14);background:#fff">
+                    <button onClick="{{ auth.toggleShow }}" style="position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:700;color:#A69C8D">{{ auth.showLabel }}</button>
+                  </span>
+                  <sc-if value="{{ auth.pwErr }}" hint-placeholder-val="{{ false }}"><p style="margin:6px 0 0 4px;font-size:12px;color:#dc2626">{{ auth.pwErr }}</p></sc-if>
+                  <div style="overflow:hidden;max-height:{{ auth.strH }};opacity:{{ auth.strO }};transition:max-height .35s cubic-bezier(.22,1,.36,1),opacity .3s ease-out">
+                    <div style="padding:8px 4px 0;display:flex;align-items:center;gap:10px">
+                      <div style="flex:1;height:5px;border-radius:999px;background:rgba(46,42,36,.08);overflow:hidden"><div style="height:100%;border-radius:999px;width:{{ auth.strW }};background:{{ auth.strC }};transition:width .45s cubic-bezier(.22,1,.36,1),background-color .3s ease-out"></div></div>
+                      <span style="font-size:11.5px;font-weight:700;color:#A69C8D;white-space:nowrap">{{ auth.strL }}</span>
+                    </div>
+                  </div>
+                </div>
+              </sc-if>
+
+              <div style="overflow:hidden;max-height:{{ auth.cfH }};opacity:{{ auth.suO }};transition:max-height .5s cubic-bezier(.22,1,.36,1),opacity .35s ease-out">
+                <span style="position:relative;display:block">
+                  <span style="position:absolute;left:15px;top:50%;transform:translateY(-50%);display:flex;pointer-events:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A69C8D" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10.5" width="16" height="10.5" rx="3"></rect><path d="M8 10.5V7.8a4 4 0 0 1 8 0v2.7"></path></svg></span>
+                  <input type="{{ auth.pwType }}" value="{{ auth.pw2 }}" onChange="{{ auth.onPw2 }}" placeholder="Confirmă parola" style="width:100%;box-sizing:border-box;border:1px solid {{ auth.pw2Border }};border-radius:16px;padding:16px 16px 16px 46px;font:600 15px 'Nunito',system-ui,sans-serif;color:#2E2A24;background:#FDFCF9;outline:none;transition:border-color .18s,box-shadow .18s,background .18s" style-focus="border-color:#10b981;box-shadow:0 0 0 4px rgba(16,185,129,.14);background:#fff">
+                </span>
+              </div>
+
+              <sc-if value="{{ auth.isLogin }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ auth.toForgot }}" style="align-self:flex-end;font-size:12.5px;font-weight:700;color:#059669">Ai uitat parola?</button>
+              </sc-if>
+            </div>
+
+            <sc-if value="{{ auth.sent }}" hint-placeholder-val="{{ false }}">
+              <p style="margin:0;border-radius:16px;border:1px solid rgba(16,185,129,.2);background:#ecfdf5;color:#065f46;padding:12px 16px;font-size:13.5px;font-weight:600">Link trimis. Verifică emailul.</p>
+            </sc-if>
+
+            <button onClick="{{ auth.submit }}" style="position:relative;overflow:hidden;width:100%;border-radius:16px;padding:17px 0;font-weight:800;font-size:15px;color:#fff;background:linear-gradient(180deg,#10b981,#059669);box-shadow:0 10px 24px rgba(16,185,129,.30);transition:transform .16s ease-out;opacity:{{ auth.btnO }}" style-active="transform:scale(.985)">
+              <span style="position:absolute;top:0;bottom:0;left:0;width:38%;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);animation:sg-sheen 3.6s cubic-bezier(.4,0,.2,1) infinite"></span>
+              <span style="position:relative;display:flex;align-items:center;justify-content:center;gap:10px">
+                <sc-if value="{{ auth.busy }}" hint-placeholder-val="{{ false }}"><span style="width:15px;height:15px;border-radius:50%;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;animation:sg-spin .7s linear infinite"></span></sc-if>
+                {{ auth.btn }}
+              </span>
+            </button>
+
+            <sc-if value="{{ auth.showGuest }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <span style="flex:1;height:1px;background:rgba(46,42,36,.09)"></span>
+                  <span style="font-size:11.5px;font-weight:700;letter-spacing:.1em;color:#A69C8D">SAU</span>
+                  <span style="flex:1;height:1px;background:rgba(46,42,36,.09)"></span>
+                </div>
+                <button onClick="{{ auth.guest }}" style="width:100%;padding:14px 0;border-radius:16px;font-weight:700;font-size:14px;border:1px solid rgba(46,42,36,.06);background:#fff;color:#4F473C;box-shadow:0 2px 10px rgba(46,42,36,.05);transition:transform .16s" style-active="transform:scale(.985)">Continuă ca invitat</button>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ═════════════ REPETIȚIE ═════════════ -->
+      <sc-if value="{{ isReview }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;min-height:0;background:#FFFBF3;display:flex;flex-direction:column;animation:sg-fade-up .45s cubic-bezier(.22,1,.36,1) both">
+          <header style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;flex:none">
+            <button onClick="{{ goHome }}" style="color:#8A8071;font-size:14px;font-weight:500">←</button>
+            <h1 style="margin:0;color:#2E2A24;font-weight:700;letter-spacing:.18em;font-size:14px">REPETIȚIE</h1>
+            <div style="width:64px"></div>
+          </header>
+          
+          <div class="sg-scroll" style="flex:1;overflow-y:auto;scrollbar-width:none;padding:4px 20px 24px">
+            <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">
+              <sc-for list="{{ reviewGrid }}" as="r" hint-placeholder-count="8">
+                <button onClick="{{ r.toggle }}" style="border-radius:16px;padding:12px 0;text-align:center;background:{{ r.bg }};color:{{ r.color }};box-shadow:{{ r.shadow }};transition:all .2s cubic-bezier(.22,1,.36,1);animation:{{ r.anim }}" style-active="transform:scale(.95)">
+                  <span style="font-weight:900;font-size:20px;display:block">{{ r.ch }}</span>
+                  <span style="font-size:10px;color:{{ r.sub }}">{{ r.rate }}</span>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+          <div style="flex:none;padding:0 20px 34px">
+            <button onClick="{{ startReview }}" style="width:100%;padding:17px 0;background:#10b981;color:#fff;font-weight:700;font-size:15px;border-radius:16px;box-shadow:0 8px 24px rgba(16,185,129,.22);transition:transform .15s" style-active="transform:scale(.97)">{{ reviewBtn }}</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- home indicator -->
+      <span style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:{{ homeBar }};z-index:60;pointer-events:none"></span>
+    </div>
+  </div>
+
+  
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;autoHold&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Prototip&quot;},&quot;navLabels&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Navigație&quot;}}">
+const EASE = 'cubic-bezier(.22,1,.36,1)';
+const REF = { A:'a',B:'b',C:'c',D:'d',E:'e',F:'f',G:'g',H:'h',I:'i',K:'k',M:'m',O:'o',R:'r',S:'s',T:'t' };
+const img = (ch) => REF[ch] ? `assets/ref/${REF[ch]}.jpg` : 'assets/ref/a.jpg';
+const LESSONS = [
+  { id: 1.1, title: 'Lecția 1.1', type: 'static', letters: ['A','B','C','D','E'] },
+  { id: 1.2, title: 'Lecția 1.2', type: 'static', letters: ['F','G','H','I','K'] },
+  { id: 1.3, title: 'Lecția 1.3', type: 'static', letters: ['L','M','N','O','P'] },
+  { id: 1.4, title: 'Lecția 1.4', type: 'static', letters: ['Q','R','S','T','U'] },
+  { id: 1.5, title: 'Lecția 1.5', type: 'static', letters: ['V','W','Y','Â','Ă'] },
+  { id: 2.1, title: 'Lecția 2.1', type: 'dynamic', letters: ['J','Z','X','Î','Ș','Ț'] },
+  { id: 3.1, title: 'Lecția 3.1', type: 'static', letters: ['1','2','3','4','5','6','7','8','9','10'] },
+  { id: 3.2, title: 'Lecția 3.2', type: 'dynamic', letters: ['11','12','13','14','15','16','17','18','19','20'] },
+  { id: 3.3, title: 'Lecția 3.3', type: 'dynamic', letters: ['100','1000','112'] },
+  { id: 4.1, title: 'Lecția 4.1', type: 'dynamic', letters: ['mâncare','apă','legumă','fruct','pâine'] },
+  { id: 4.2, title: 'Lecția 4.2', type: 'dynamic', letters: ['carne','supă','măr','cafea','lapte'] },
+  { id: 5.1, title: 'Lecția 5.1', type: 'dynamic', letters: ['Alb','Gri','Negru','Roz','Maro'] },
+  { id: 5.2, title: 'Lecția 5.2', type: 'dynamic', letters: ['Roșu','Galben','Portocaliu','Albastru','Verde','Mov'] },
+  { id: 6.1, title: 'Lecția 6.1', type: 'dynamic', letters: ['Buna','Buna ziua','Ce faci','Buna seara','La revedere'] },
+  { id: 7.1, title: 'Lecția 7.1', type: 'dynamic', letters: ['Eu','Tu','El','Ea','Noi'] },
+  { id: 8.1, title: 'Lecția 8.1', type: 'dynamic', letters: ['Mama','Tată','Frate','Soră','Bunic'] },
+  { id: 8.2, title: 'Lecția 8.2', type: 'dynamic', letters: ['Copil','Prieten','Socru','Unchi','Verișor'] },
+];
+const CHAPTERS = [
+  { id:'ch1', title:'1. Alfabet static', description:'Litere fără mișcare', ids:[1.1,1.2,1.3,1.4,1.5], color:'#10b981' },
+  { id:'ch2', title:'2. Alfabet dinamic', description:'Litere cu mișcare', ids:[2.1], color:'#4f46e5' },
+  { id:'ch3', title:'3. Numere', description:'Cifre și numere', ids:[3.1,3.2,3.3], color:'#2563eb' },
+  { id:'ch4', title:'4. Mâncare', description:'Cuvinte-semn de bază', ids:[4.1,4.2], color:'#b45309' },
+  { id:'ch5', title:'5. Culori', description:'Toate culorile', ids:[5.1,5.2], color:'#be185d' },
+  { id:'ch6', title:'6. Saluturi', description:'Saluturi esențiale', ids:[6.1], color:'#0d9488' },
+  { id:'ch7', title:'7. Pronume', description:'Pronume', ids:[7.1], color:'#7c3aed' },
+  { id:'ch8', title:'8. Familie', description:'Familie', ids:[8.1,8.2], color:'#e11d48' },
+].map((c) => ({ ...c, lessons: c.ids.map((id) => LESSONS.find((l) => l.id === id)) }));
+const ORDER = { home:0, lessons:1, camera:2, leaderboard:3, profile:4 };
+const LEVEL_NAMES = ['Începător','Explorator','Vorbitor','Fluent','Maestru'];
+const LEVEL_LINES = ['Primul semn e cel mai greu. Urmează restul.','Alfabetul începe să stea în mână.','Vorbești deja cu mâinile — ține ritmul.','Ești aproape fluent. Cercul se uită la tine.','Maestru. Semnele tale au greutate.'];
+const ALPHABET = LESSONS.filter((l) => l.id < 3).flatMap((l) => l.letters);
+const MEDALS = ['#F5C451','#CBD5E1','#D6A57C'];
+const PODIUM_H = [150, 116, 94];
+const BOARD = [
+  { id:'m', name:'Maria Ionescu', xp:610, streak:12 },
+  { id:'r', name:'Radu Pop', xp:455, streak:8 },
+  { id:'e', name:'Elena Dinu', xp:310, streak:3 },
+  { id:'p', name:'Petrișor Marin', xp:280, streak:9 },
+  { id:'ra', name:'Rareș Vlad', xp:240, streak:2 },
+  { id:'me', name:'Andrei Popescu', xp:0, streak:0 },
+  { id:'an', name:'Andreea Stan', xp:95, streak:1 },
+  { id:'en', name:'Enia Costache', xp:60, streak:4 },
+];
+const CAM_SEQ = [
+  { label:'A', c:.91, top:[['A',.91],['S',.05],['E',.02]] },
+  { label:'B', c:.84, top:[['B',.84],['K',.09],['D',.03]] },
+  { label:'J', c:.72, dyn:true, top:[['J',.72],['Z',.18],['Î',.05]] },
+  { label:'O', c:.88, top:[['O',.88],['C',.08],['E',.02]] },
+  { label:'C', c:.79, top:[['C',.79],['O',.14],['D',.04]] },
+];
+const xpForLevel = (lv) => lv <= 1 ? 0 : Math.round(40 * lv * (lv - 1) / 2 + 10 * (lv - 1));
+const levelFromXp = (xp) => { let l = 1; while (xpForLevel(l + 1) <= xp) l++; return l; };
+const initialsOf = (n) => n.trim().split(/\s+/).map((w) => w[0]).join('').toUpperCase().slice(0, 2);
+const anim = (name, dur, delay = 0, fill = 'both') => `${name} ${dur}s ${EASE} ${delay}s ${fill}`;
+
+class Component extends DCLogic {
+  scrollRef = React.createRef();
+  state = {
+    screen: 'auth', dir: 'down', authMode: 'login', af: { first:'', last:'', user:'', email:'', pw:'', pw2:'' }, showPw: false, authBusy: false, authErr: {}, sent: false, chapter: 'ch1', filter: 'all',
+    stars: { 1.1: 3 }, favs: { 1.2: true },
+    validated: ['A','B','C','D','E','F','G'],
+    mastery: { A:[4,5], B:[3,5], C:[2,4], D:[4,4], E:[1,3], F:[1,1], G:[1,2] },
+    xp: 120, streak: 4, sound: true, isPublic: true, synced: 'acum 2 minute',
+    cameraOn: false, camI: 0, debug: false, motion: 0, session: [],
+    ses: null, idx: 0, hold: 0, phase: 'active', skipped: [], hand: true, seen: null,
+    result: null, reviewSel: {}, grown: false,
+  };
+
+  componentDidMount() {
+    this.t = setInterval(() => this.tick(), 80);
+    this.n = 0;
+    setTimeout(() => this.setState({ grown: true }), 120);
+  }
+  componentWillUnmount() { clearInterval(this.t); clearTimeout(this.adv); }
+  componentDidUpdate(_, prev) {
+    if (prev.screen !== this.state.screen && this.scrollRef.current) this.scrollRef.current.scrollTop = 0;
+    if (prev.screen !== this.state.screen && this.state.screen === 'leaderboard') {
+      this.setState({ grown: false }); setTimeout(() => this.setState({ grown: true }), 90);
+    }
+  }
+
+  tick() {
+    const s = this.state;
+    this.n++;
+    if (s.ses && s.phase === 'active') {
+      const auto = this.props.autoHold ?? true;
+      const matching = auto && s.hand && (this.n % 40) > 6;
+      const hold = matching ? Math.min(1, s.hold + 0.045) : Math.max(0, s.hold - 0.02);
+      const seen = s.hand ? (matching ? s.ses.letters[s.idx] : (this.n % 40) > 2 ? 'S' : null) : null;
+      if (hold >= 1) {
+        this.setState({ hold: 1, phase: 'success', seen: null });
+        this.adv = setTimeout(() => this.advance(false), 900);
+      } else if (hold !== s.hold || seen !== s.seen) this.setState({ hold, seen });
+    }
+    if (s.screen === 'camera' && s.cameraOn && this.n % 18 === 0) {
+      const camI = (s.camI + 1) % CAM_SEQ.length;
+      const p = CAM_SEQ[camI];
+      this.setState({ camI, motion: p.dyn ? 0.72 : 0.12 + Math.random() * .2, session: [...s.session.slice(-11), { label: p.label, c: p.c, dyn: !!p.dyn, at: this.n }] });
+    }
+  }
+
+  go(screen) {
+    const cur = this.state.screen;
+    const dir = (ORDER[screen] ?? 0) >= (ORDER[cur] ?? 0) ? 'down' : 'up';
+    clearTimeout(this.adv);
+    this.setState({ screen, dir, ses: null, result: null });
+  }
+
+  startSession(ses) {
+    clearTimeout(this.adv);
+    this.n = 0;
+    this.setState({ screen: 'session', ses, idx: 0, hold: 0, phase: 'active', skipped: [], seen: null, hand: true, result: null });
+  }
+  openLesson(id) {
+    const l = LESSONS.find((x) => x.id === id);
+    const playable = l.letters.every((c) => REF[c]);
+    this.startSession({ kind: 'lesson', id, title: l.title, letters: playable ? l.letters : ['F','G','H','I','K'] });
+  }
+
+  advance(skip) {
+    const s = this.state;
+    const target = s.ses.letters[s.idx];
+    const skipped = skip ? [...s.skipped, target] : s.skipped;
+    const mastery = { ...s.mastery };
+    const m = mastery[target] || [0, 0];
+    mastery[target] = [m[0] + (skip ? 0 : 1), m[1] + 1];
+    const validated = skip || s.validated.includes(target) ? s.validated : [...s.validated, target];
+    if (s.idx + 1 >= s.ses.letters.length) {
+      const total = s.ses.letters.length, done = total - skipped.length;
+      const stars = done === 0 ? 0 : skipped.length === 0 ? 3 : skipped.length === 1 ? 2 : 1;
+      const xpGain = done * 10 + (skipped.length === 0 && done > 0 ? 10 : 0);
+      const lvBefore = levelFromXp(s.xp);
+      const xp = s.xp + xpGain;
+      const starsMap = { ...s.stars };
+      if (s.ses.kind === 'lesson') starsMap[s.ses.id] = Math.max(starsMap[s.ses.id] || 0, stars);
+      this.setState({ screen: 'results', skipped, mastery, validated, xp, stars: starsMap, phase: 'results',
+        result: { stars, xpGain, done, total, leveledUp: levelFromXp(xp) > lvBefore } });
+    } else {
+      this.setState({ idx: s.idx + 1, hold: 0, phase: 'active', skipped, mastery, validated, seen: null });
+    }
+  }
+
+  isUnlocked(id) {
+    const i = LESSONS.findIndex((l) => l.id === id);
+    return i === 0 || (this.state.stars[LESSONS[i - 1].id] || 0) > 0;
+  }
+  starsFor(id) { return this.state.stars[id] || 0; }
+
+  authSubmit() {
+    const s = this.state, f = s.af, m = s.authMode;
+    if (s.authBusy) return;
+    const err = {};
+    if (!/^\S+@\S+\.\S+$/.test(f.email)) err.email = 'Email invalid';
+    if (m !== 'forgot' && f.pw.length < 8) err.pw = 'Minim 8 caractere';
+    if (m === 'signup' && f.pw2 !== f.pw) err.pw2 = true;
+    if (Object.keys(err).length) { this.setState({ authErr: err }); return; }
+    this.setState({ authBusy: true, authErr: {} });
+    setTimeout(() => {
+      if (m === 'forgot') this.setState({ authBusy: false, sent: true });
+      else { this.setState({ authBusy: false }); this.go('home'); }
+    }, 1100);
+  }
+
+  authVals() {
+    const s = this.state, m = s.authMode, f = s.af;
+    const su = m === 'signup';
+    const set = (k) => (e) => { const v = e.target.value; this.setState((p) => ({ af: { ...p.af, [k]: v }, authErr: { ...p.authErr, [k]: undefined } })); };
+    const mode = (mm) => () => this.setState({ authMode: mm, authErr: {}, sent: false });
+    const pw = f.pw || '';
+    const lvl = pw.length < 8 ? ['33%', '#f59e0b', 'Minim 8'] : /[^\p{L}]/u.test(pw) ? ['100%', '#059669', 'Puternică'] : ['68%', '#34d399', 'Bună'];
+    const bad = 'rgba(252,165,165,1)', ok = 'rgba(46,42,36,.09)';
+    return {
+      heroH: m === 'login' ? '232px' : '150px',
+      showTabs: m !== 'forgot', isForgot: m === 'forgot', isLogin: m === 'login', showPw: m !== 'forgot', showGuest: m !== 'forgot',
+      title: m === 'login' ? 'Bine ai revenit' : su ? 'Cont nou' : 'Resetează parola',
+      toLogin: mode('login'), toSignup: mode('signup'), toForgot: mode('forgot'),
+      tabLoginColor: m === 'login' ? '#2E2A24' : '#A69C8D', tabSignupColor: su ? '#2E2A24' : '#A69C8D',
+      indW: su ? '64px' : '34px', indX: su ? 'translateX(56px)' : 'translateX(0)',
+      suH: su ? '140px' : '0px', suO: su ? 1 : 0, suT: su ? 'translateY(0)' : 'translateY(-8px)', cfH: su ? '60px' : '0px',
+      first: f.first, last: f.last, user: f.user, email: f.email, pw: f.pw, pw2: f.pw2,
+      onFirst: set('first'), onLast: set('last'), onUser: set('user'), onEmail: set('email'), onPw: set('pw'), onPw2: set('pw2'),
+      emailErr: s.authErr.email || '', pwErr: s.authErr.pw || '',
+      emailBorder: s.authErr.email ? bad : ok, pwBorder: s.authErr.pw ? bad : ok, pw2Border: s.authErr.pw2 ? bad : ok,
+      pwType: s.showPw ? 'text' : 'password', showLabel: s.showPw ? 'Ascunde' : 'Arată',
+      toggleShow: () => this.setState((p) => ({ showPw: !p.showPw })),
+      strH: su && pw ? '30px' : '0px', strO: su && pw ? 1 : 0, strW: lvl[0], strC: lvl[1], strL: lvl[2],
+      sent: s.sent, busy: s.authBusy, btnO: s.authBusy ? .75 : 1,
+      btn: s.authBusy ? (m === 'login' ? 'Se conectează…' : su ? 'Se creează…' : 'Se trimite…') : (m === 'login' ? 'Intră în cont' : su ? 'Creează cont' : 'Trimite link'),
+      submit: () => this.authSubmit(),
+      guest: () => this.go('home'),
+    };
+  }
+
+  renderVals() {
+    const s = this.state;
+    const V = new Set(s.validated);
+    const scr = s.screen;
+    const inShell = ORDER[scr] !== undefined;
+    const level = levelFromXp(s.xp);
+    const xpInto = s.xp - xpForLevel(level), xpNeed = xpForLevel(level + 1) - xpForLevel(level);
+    const levelPct = xpInto / xpNeed;
+    const doneCount = LESSONS.filter((l) => this.starsFor(l.id) > 0).length;
+
+    // next lesson
+    const nl = LESSONS.find((l) => this.isUnlocked(l.id) && this.starsFor(l.id) === 0) || LESSONS[0];
+    const nlv = nl.letters.filter((c) => V.has(c)).length;
+    const nlPct = nlv / nl.letters.length;
+    const chipOf = (ch, i, pct, base) => ({
+      ch, bg: V.has(ch) ? 'rgba(255,255,255,.14)' : 'rgba(255,255,255,.07)',
+      border: V.has(ch) ? 'rgba(255,255,255,.16)' : 'rgba(255,255,255,.1)',
+      color: V.has(ch) ? '#fff' : 'rgba(255,251,243,.45)',
+      anim: `sg-pop .5s ${EASE} ${(base + i * .06).toFixed(2)}s both${pct === 0 ? `, sg-chip-cue 5s ease-in-out ${(1.6 + i * .15).toFixed(2)}s infinite` : ''}`,
+    });
+    const ring = (p) => `conic-gradient(#34d399 0turn ${p}turn, rgba(255,255,255,.16) ${p}turn 1turn)`;
+    const next = {
+      title: nl.title,
+      subtitle: nl.type === 'dynamic' ? 'Litere cu mișcare' : 'Litere fără mișcare',
+      validatedText: `${nlv} din ${nl.letters.length} litere validate`,
+      pctText: `${Math.round(nlPct * 100)}%`, ring: ring(nlPct),
+      chips: nl.letters.slice(0, 6).map((c, i) => chipOf(c, i, nlPct, .7)),
+    };
+
+    const reviewLetters = Object.keys(s.mastery).sort((a, b) => (s.mastery[a][0] / s.mastery[a][1]) - (s.mastery[b][0] / s.mastery[b][1]));
+
+    // chapters
+    const chIdx = Math.max(CHAPTERS.findIndex((c) => c.id === s.chapter), 0);
+    const ch = CHAPTERS[chIdx], nextCh = CHAPTERS[chIdx + 1];
+    const chLetters = ch.lessons.flatMap((l) => l.letters);
+    const chStars = ch.lessons.reduce((a, l) => a + this.starsFor(l.id), 0);
+    const chMax = ch.lessons.length * 3;
+    const lessonsDone = ch.lessons.filter((l) => this.starsFor(l.id) > 0).length;
+    const chNext = ch.lessons.find((l) => this.isUnlocked(l.id) && this.starsFor(l.id) === 0) || ch.lessons.find((l) => this.isUnlocked(l.id));
+    const cnv = chNext ? chNext.letters.filter((c) => V.has(c)).length : 0;
+    const cnPct = chNext ? cnv / chNext.letters.length : 0;
+    const minutes = chNext ? Math.max((chNext.letters.length - cnv) * 2, 1) : 0;
+    const left = ch.lessons.length - lessonsDone;
+    const favCount = ch.lessons.filter((l) => s.favs[l.id]).length;
+    const visible = ch.lessons.filter((l) => s.filter === 'progress' ? (this.isUnlocked(l.id) && this.starsFor(l.id) === 0) : s.filter === 'fav' ? s.favs[l.id] : true);
+
+    const chap = {
+      eyebrow: `Capitolul ${chIdx + 1} din ${CHAPTERS.length}`,
+      name: ch.title.replace(/^\d+\.\s*/, ''),
+      meta: `${ch.description} · ${ch.lessons.length} ${ch.lessons.length === 1 ? 'lecție' : 'lecții'} · ${chLetters.length} ${chLetters.length === 1 ? 'literă' : 'litere'}`,
+      hasNext: !!chNext, locked: !chNext,
+      nextTitle: chNext?.title, minutesShort: chNext ? `~${minutes} min` : '', nextMeta: chNext ? `${cnv} din ${chNext.letters.length} litere validate · ~${minutes} ${minutes === 1 ? 'minut' : 'minute'}` : '',
+      ring: ring(cnPct), pctText: `${Math.round(cnPct * 100)}%`,
+      chips: chNext ? chNext.letters.slice(0, 6).map((c, i) => chipOf(c, i, cnPct, .64)) : [],
+      open: () => chNext && this.openLesson(chNext.id),
+      stars: chStars, maxStars: chMax, starsPct: `${chMax ? chStars / chMax * 100 : 0}%`,
+      lessonsDone, lessonCount: ch.lessons.length,
+      learned: chLetters.filter((c) => V.has(c)).length, letterCount: chLetters.length,
+      unlockNote: left > 0 && nextCh ? `${left === 1 ? 'Încă o lecție' : `Încă ${left} lecții`} și se deschide capitolul ${chIdx + 2} — ${nextCh.title.replace(/^\d+\.\s*/, '').toLowerCase()}.` : '',
+    };
+
+    const lessonCards = visible.map((l, i) => {
+      const unlocked = this.isUnlocked(l.id), st = this.starsFor(l.id);
+      const li = LESSONS.findIndex((x) => x.id === l.id);
+      return {
+        id: l.id, title: l.title, unlocked, locked: !unlocked, isDyn: l.type === 'dynamic',
+        hasStars: st > 0, inProgress: unlocked && st === 0,
+        pct: Math.round(l.letters.filter((c) => V.has(c)).length / l.letters.length * 100),
+        starFills: [0, 1, 2].map((k) => k < st ? '#f59e0b' : '#EFEAE0'),
+        idBg: st > 0 ? '#ecfdf5' : 'linear-gradient(135deg,#10b981,#059669)', idColor: st > 0 ? '#059669' : '#fff',
+        favColor: s.favs[l.id] ? '#059669' : '#C4BAA9', favFill: s.favs[l.id] ? 'currentColor' : 'none',
+        fav: (e) => { e.stopPropagation(); this.setState((p) => ({ favs: { ...p.favs, [l.id]: !p.favs[l.id] } })); },
+        letters: l.letters.map((c) => ({ ch: c, bg: V.has(c) ? '#ecfdf5' : '#FFF7E8', color: V.has(c) ? '#059669' : '#6B6255' })),
+        lockText: li > 0 ? `Se deschide după ${LESSONS[li - 1].title}` : 'Se deschide mai târziu',
+        open: () => this.openLesson(l.id),
+        anim: anim('sg-fade-up', .65, .5 + i * .06),
+      };
+    });
+
+    // camera
+    const cp = CAM_SEQ[s.camI];
+    const accent = cp.dyn ? '#4f46e5' : '#10b981';
+    const sess = s.session;
+    const avg = sess.length ? Math.round(sess.reduce((a, x) => a + x.c, 0) / sess.length * 100) : 0;
+
+    // leaderboard
+    const rows = BOARD.map((r) => r.id === 'me' ? { ...r, xp: s.xp, streak: s.streak } : r).sort((a, b) => b.xp - a.xp);
+    const myI = rows.findIndex((r) => r.id === 'me');
+    const ahead = myI > 0 ? rows[myI - 1] : null;
+    const xpToNext = ahead ? Math.max(ahead.xp - s.xp, 0) : 0;
+    const lessonsToNext = Math.max(Math.ceil(xpToNext / 30), 1);
+    const totalXp = rows.reduce((a, r) => a + r.xp, 0);
+    const podium = [1, 0, 2].map((place) => {
+      const r = rows[place];
+      return {
+        place: place + 1, first: place === 0, initials: initialsOf(r.name), name: r.id === 'me' ? 'Tu' : r.name.split(' ')[0],
+        xp: r.xp, medal: MEDALS[place], size: `${place === 0 ? 56 : 48}px`, font: `${place === 0 ? 20 : 17}px`,
+        h: `${PODIUM_H[place]}px`, scale: `scaleY(${s.grown ? 1 : 0})`,
+        trans: `transform .8s ${EASE} ${0.4 + place * .11}s`, anim: anim('sg-fade-up', .6, .62 + place * .09),
+      };
+    });
+    const lbRows = rows.map((r, i) => {
+      const me = r.id === 'me';
+      return {
+        place: i + 1, initials: initialsOf(r.name), name: r.name, meSuffix: me ? ' (tu)' : '', xp: r.xp,
+        placeColor: i < 3 ? MEDALS[i] : '#A69C8D', placeFilter: i < 3 ? 'saturate(.9) brightness(.82)' : 'none',
+        streakText: `${r.streak >= 7 ? '🔥 ' : ''}${r.streak}`,
+        streakBg: r.streak >= 7 ? '#FFF7E8' : 'rgba(46,42,36,.05)', streakColor: r.streak >= 7 ? '#b45309' : '#8A8071',
+        borderTop: i > 0 ? '1px solid rgba(46,42,36,.05)' : '0', bg: me ? '#F3FAF6' : 'transparent',
+        shadow: me ? 'inset 3px 0 0 #10b981' : 'none', anim: anim('sg-row-in', .5, .4 + i * .05),
+      };
+    });
+
+    // session
+    let ses = null;
+    if (s.ses && scr === 'session') {
+      const target = s.ses.letters[s.idx];
+      const succ = s.phase === 'success';
+      const isSpell = s.ses.kind === 'spell';
+      ses = {
+        title: s.ses.title, target, img: img(target), bgImg: `url(${img(target)})`, success: succ, isSpell,
+        wellTop: isSpell ? '114px' : '64px',
+        dots: s.ses.letters.map((l, i) => i === s.idx ? '#fff' : i < s.idx ? (s.skipped.includes(l) && i < s.idx ? '#fbbf24' : '#34d399') : 'rgba(255,255,255,.25)'),
+        wordChips: s.ses.letters.map((l, i) => ({ ch: l, bg: i < s.idx ? '#10b981' : i === s.idx ? '#fff' : 'rgba(255,255,255,.18)', color: i < s.idx ? '#fff' : i === s.idx ? '#2E2A24' : 'rgba(255,255,255,.6)' })),
+        edgeGlow: s.hold > 0 && !succ ? `inset 0 0 0 3px rgba(52,211,153,${(0.2 + s.hold * 0.6).toFixed(2)})` : 'none',
+        wellRing: succ ? 'inset 0 0 0 3px #34d399' : s.hold > 0 ? `inset 0 0 0 3px rgba(16,185,129,${(0.3 + s.hold * 0.7).toFixed(2)})` : 'none',
+        badgeBg: succ ? '#10b981' : '#fff', badgeColor: succ ? '#fff' : '#2E2A24',
+        hint: isSpell ? `din cuvântul ${s.ses.word}` : 'copiază imaginea și ține-l până se umple bara',
+        holdW: `${s.hold * 100}%`, barColor: succ ? '#34d399' : s.hold > 0 ? '#10b981' : 'transparent',
+        showSeen: !!s.seen && s.seen !== target && !succ, seen: s.seen,
+        skipLabel: 'Sari →',
+        handLabel: s.hand ? 'Pauză' : 'Reia', handColor: s.hand ? '#8A8071' : '#059669',
+      };
+    }
+
+    // results
+    let res = {};
+    if (scr === 'results' && s.result && s.ses) {
+      const r = s.result, isSpell = s.ses.kind === 'spell';
+      const nextLessonIdx = LESSONS.findIndex((l) => l.id === s.ses.id);
+      const nextL = s.ses.kind === 'lesson' ? LESSONS[nextLessonIdx + 1] : null;
+      res = {
+        isLesson: !isSpell, isSpell, word: s.ses.word, xp: r.xpGain,
+        okText: `${r.done}/${r.total} litere corecte`,
+        title: r.leveledUp ? 'Nivel nou!' : r.stars === 3 ? 'Perfect!' : r.stars === 2 ? 'Foarte bine!' : r.stars === 1 ? 'Lecție completată' : 'Reîncearcă lecția',
+        stars: [0, 1, 2].map((i) => ({ fill: i < r.stars ? '#f59e0b' : '#EFEAE0', anim: i < r.stars ? `sg-scale-in .55s ease-out ${i * .15}s both` : 'none' })),
+        chips: s.ses.letters.map((l) => ({ ch: l, bg: s.skipped.includes(l) ? '#fef3c7' : '#ecfdf5', color: s.skipped.includes(l) ? '#d97706' : '#059669' })),
+        chipsGap: s.skipped.length ? '40px' : '40px',
+        skippedText: '',
+        primaryLabel: isSpell ? 'Alt cuvânt' : 'Continuă',
+        primary: () => isSpell ? this.startSession(this.spellWord(1)) : nextL && this.isUnlocked(nextL.id) ? this.openLesson(nextL.id) : this.go(s.ses.kind === 'review' ? 'home' : 'lessons'),
+        retryLabel: isSpell ? 'Înapoi' : 'Repetă',
+        retry: () => isSpell ? this.go('home') : this.startSession(s.ses),
+      };
+    }
+    const confetti = scr === 'results' && s.result && s.result.stars > 0 ? Array.from({ length: 28 }, (_, i) => ({
+      x: `${(i * 37) % 100}%`, w: `${6 + (i % 3) * 2}px`, h: `${10 + (i % 4) * 3}px`,
+      c: ['#10b981','#34d399','#f59e0b','#4f46e5','#FFEFD1','#be185d'][i % 6],
+      anim: `sg-confetti-${i % 2} ${2.4 + (i % 5) * .35}s linear ${(i % 7) * .12}s forwards`,
+    })) : [];
+
+    const navColor = (k) => scr === k ? '#059669' : '#A69C8D';
+    const navLabels = this.props.navLabels ?? true;
+    const sessionActive = scr === 'session';
+    const reviewPick = Object.keys(s.reviewSel).filter((k) => s.reviewSel[k]);
+    const pickList = reviewPick.length ? reviewPick : reviewLetters.slice(0, 5);
+
+    const jumpDefs = [['auth','Login'],['home','Acasă'],['lessons','Lecții'],['camera','Cameră'],['leaderboard','Clasament'],['profile','Profil'],['session','Lecție'],['spell','Scrie'],['review','Repetiție']];
+    const curJump = scr === 'session' || scr === 'results' ? (s.ses?.kind === 'spell' ? 'spell' : 'session') : scr;
+    const jumps = jumpDefs.map(([k, label]) => ({
+      label, bg: curJump === k ? '#2E2A24' : '#fff', color: curJump === k ? '#fff' : '#4F473C', border: curJump === k ? '#2E2A24' : 'rgba(46,42,36,.09)',
+      go: () => k === 'session' ? this.openLesson(nl.id) : k === 'spell' ? this.startSession(this.spellWord(0)) : this.go(k),
+    }));
+
+    const dark = sessionActive;
+    return {
+      jumps, isAuth: scr === 'auth', auth: this.authVals(), logout: () => this.setState({ screen: 'auth', authMode: 'login' }), inShell, inSession: sessionActive, inResults: scr === 'results', isReview: scr === 'review',
+      isHome: scr === 'home', isLessons: scr === 'lessons', isCamera: scr === 'camera', isLeaderboard: scr === 'leaderboard', isProfile: scr === 'profile',
+      screenBg: dark ? '#0f1a17' : '#FFFBF3', statusBg: dark ? '#0f1a17' : inShell ? '#F3FBF6' : '#FFFBF3', statusColor: dark ? '#fff' : '#2E2A24',
+      topbarOpacity: inShell || scr === 'auth' ? 1 : 0, homeBar: dark ? 'rgba(46,42,36,.9)' : '#2E2A24',
+      scrollRef: this.scrollRef, pageAnim: `sg-page-in-${s.dir} .52s ${EASE} both`,
+      streak: s.streak, xp: s.xp, sound: s.sound, soundOff: !s.sound, doneCount, totalLessons: LESSONS.length,
+      next, openNext: () => this.openLesson(nl.id),
+      reviewCountText: `${reviewLetters.length} litere de revăzut`, rankText: `Locul ${myI + 1} din ${rows.length}`,
+      reviewChips: reviewLetters.slice(0, 6).map((c, i) => ({ ch: c, anim: `sg-pop .45s ${EASE} ${(1 + i * .05).toFixed(2)}s backwards` })),
+      reviewRest: Math.max(reviewLetters.length - 6, 0) || ALPHABET.length - s.validated.length,
+      toggleSound: () => this.setState((p) => ({ sound: !p.sound })),
+      goHome: () => this.go('home'), goLessons: () => this.go('lessons'), goCamera: () => this.go('camera'),
+      goLeaderboard: () => this.go('leaderboard'), goProfile: () => this.go('profile'),
+      goReview: () => this.go('review'), goSpell: () => this.startSession(this.spellWord(0)),
+      chapterRows: CHAPTERS.map((c) => {
+        const sel = c.id === s.chapter;
+        return { title: c.title, dot: c.color, stars: `${c.lessons.reduce((a, l) => a + this.starsFor(l.id), 0)}/${c.lessons.length * 3}`,
+          bg: sel ? '#FFEFD1' : 'rgba(255,255,255,.7)', color: sel ? '#2E2A24' : '#6B6255', weight: sel ? 800 : 700,
+          select: () => this.setState({ chapter: c.id, filter: 'all' }) };
+      }),
+      filters: [['all','Toate'],['progress','În curs'],['fav',`Favorite · ${favCount}`]].map(([id, label]) => ({
+        label, pick: () => this.setState({ filter: id }),
+        bg: s.filter === id ? '#2E2A24' : '#fff', border: s.filter === id ? '#2E2A24' : 'rgba(46,42,36,.09)', color: s.filter === id ? '#fff' : '#4F473C',
+      })),
+      chap, lessonCards, noLessons: visible.length === 0,
+      noLessonsText: s.filter === 'fav' ? 'Nicio lecție marcată ca favorită în acest capitol.' : 'Nicio lecție în curs în acest capitol.',
+      cameraOn: s.cameraOn, cameraOff: !s.cameraOn, camStatus: s.cameraOn ? 'Live' : 'Oprită',
+      startCamera: () => this.setState({ cameraOn: true }), stopCamera: () => this.setState({ cameraOn: false, session: [], motion: 0 }),
+      toggleDebug: () => this.setState((p) => ({ debug: !p.debug })),
+      debugBg: s.debug ? '#2E2A24' : '#fff', debugColor: s.debug ? '#fff' : '#4F473C', debugBorder: s.debug ? '#2E2A24' : 'rgba(46,42,36,.09)',
+      cam: { label: s.cameraOn ? cp.label : '—', kind: cp.dyn ? 'Semn dinamic' : 'Semn static', glow: cp.dyn ? '0 0 32px rgba(129,140,248,.55)' : '0 0 32px rgba(52,211,153,.45)', barColor: cp.dyn ? '#818cf8' : '#34d399', confPct: `${s.cameraOn ? cp.c * 100 : 0}%` },
+      top3: s.cameraOn ? cp.top.map(([label, p], i) => ({ label, w: `${p * 100}%`, text: `${(p * 100).toFixed(1)}%`, chipBg: i === 0 ? `${accent}1a` : 'rgba(46,42,36,.05)', chipColor: i === 0 ? accent : '#C4BAA9', barColor: i === 0 ? accent : '#C4BAA9' })) : [],
+      noTop3: !s.cameraOn, noTop3Text: 'Camera e oprită.',
+      motionW: `${s.cameraOn ? s.motion * 100 : 0}%`, motionLabel: s.cameraOn && s.motion > .5 ? 'Peste prag' : 'Sub prag', motionColor: s.cameraOn && s.motion > .5 ? '#4f46e5' : '#A69C8D',
+      session: sess.map((x) => ({ label: x.label, bg: x.dyn ? '#eef2ff' : '#FFFDF9', border: x.dyn ? 'rgba(79,70,229,.2)' : 'rgba(46,42,36,.09)', color: x.dyn ? '#4f46e5' : '#2E2A24' })),
+      sessionEmpty: sess.length === 0, sessionCount: sess.length, avgConf: `${avg}%`, clearOpacity: sess.length ? 1 : .4,
+      clearSession: () => this.setState({ session: [] }),
+      lbMeta: `${rows.length} jucători · ${totalXp} XP adunați`, lbTotal: rows.length, myPlace: myI + 1, podium, lbRows,
+      myBarW: `${s.grown ? Math.min(s.xp / rows[0].xp * 100, 100) : 0}%`,
+      xpToNextText: ahead ? `${xpToNext} XP până la locul ${myI}` : 'Ești pe primul loc.',
+      lessonsToNextText: lessonsToNext === 1 ? 'Încă o lecție și treci de locul următor.' : `Încă ${lessonsToNext} lecții și treci de locul următor.`,
+      level, nextLevel: level + 1, levelName: LEVEL_NAMES[Math.min(level - 1, 4)], levelLine: LEVEL_LINES[Math.min(level - 1, 4)],
+      xpInto, xpNeed, levelW: `${levelPct * 100}%`, levelRingOffset: String(213.6 * (1 - levelPct)),
+      visibilityLabel: s.isPublic ? 'În clasament' : 'Profil privat', doneW: `${doneCount / LESSONS.length * 100}%`,
+      alphaCount: `${ALPHABET.filter((c) => V.has(c)).length}/${ALPHABET.length}`,
+      alphabet: ALPHABET.map((c, i) => ({ ch: c, bg: V.has(c) ? '#ecfdf5' : '#FBF7F0', border: V.has(c) ? 'rgba(16,185,129,.25)' : 'rgba(46,42,36,.06)', color: V.has(c) ? '#064e3b' : 'rgba(166,156,141,.7)', anim: `sg-pop .4s ${EASE} ${(.55 + i * .025).toFixed(3)}s backwards` })),
+      togglePublic: () => this.setState((p) => ({ isPublic: !p.isPublic })),
+      publicTrack: s.isPublic ? '#10b981' : 'rgba(46,42,36,.14)', publicKnob: s.isPublic ? 'translateX(18px)' : 'translateX(0)',
+      soundTrack: s.sound ? '#10b981' : 'rgba(46,42,36,.14)', soundKnob: s.sound ? 'translateX(18px)' : 'translateX(0)',
+      syncText: `Ultima sincronizare: ${s.synced}`, doSync: () => this.setState({ synced: 'chiar acum' }),
+      nav: { home: navColor('home'), lessons: navColor('lessons'), camera: navColor('camera'), leaderboard: navColor('leaderboard'), profile: navColor('profile') },
+      navLabels, pillH: navLabels ? '50px' : '44px', pillX: `translateX(${(ORDER[scr] ?? 0) * 100}%)`,
+      ses: ses || { bgImg: 'none', dots: [], wordChips: [] }, exitSession: () => { clearTimeout(this.adv); this.go(s.ses?.kind === 'lesson' ? 'lessons' : s.ses?.kind === 'review' ? 'review' : 'home'); },
+      skip: () => { if (s.phase === 'active') this.advance(true); },
+      toggleHand: () => this.setState((p) => ({ hand: !p.hand })),
+      res, confetti,
+      reviewGrid: reviewLetters.map((c, i) => {
+        const on = !!s.reviewSel[c], m = s.mastery[c];
+        return { ch: c, rate: `${Math.round(m[0] / m[1] * 100)}%`, bg: on ? '#10b981' : '#fff', color: on ? '#fff' : '#2E2A24',
+          sub: on ? 'rgba(255,255,255,.8)' : '#A69C8D', shadow: on ? '0 8px 24px rgba(16,185,129,.22)' : '0 2px 10px rgba(46,42,36,.05)',
+          anim: `sg-pop .4s ${EASE} ${(.1 + i * .04).toFixed(2)}s backwards`,
+          toggle: () => this.setState((p) => ({ reviewSel: { ...p.reviewSel, [c]: !p.reviewSel[c] } })) };
+      }),
+      reviewBtn: `Începe · ${pickList.length}`,
+      startReview: () => this.startSession({ kind: 'review', id: 'review', title: 'Repetiție', letters: pickList }),
+    };
+  }
+
+  spellWord(offset) {
+    const words = [['MIC', ['M','I','C']], ['CAD', ['C','A','D']], ['BAC', ['B','A','C']], ['FIG', ['F','I','G']]];
+    this.wi = ((this.wi ?? -1) + (offset ? 1 : 1)) % words.length;
+    const [word, letters] = words[this.wi];
+    return { kind: 'spell', id: 'spell', title: word, word, letters };
+  }
+}
+</script>
+</body>
+</html>
