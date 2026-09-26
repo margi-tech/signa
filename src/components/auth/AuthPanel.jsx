@@ -81,15 +81,22 @@ export default function AuthPanel({
   if (mode === 'forgot') {
     return (
       <div className="space-y-5">
+        <button
+          type="button"
+          onClick={() => { onModeChange('login'); onMessage(null); }}
+          className="md:hidden text-sm font-bold text-ink-500"
+        >
+          ←
+        </button>
         <div>
-          <h2 className="text-[29px] font-black text-ink-900 tracking-[-.02em] leading-tight">
+          <h2 className="text-[26px] md:text-[29px] font-black text-ink-900 tracking-[-.02em] leading-tight">
             Resetează parola
           </h2>
-          <p className="text-ink-500 text-[14.5px] mt-1.5 leading-relaxed">
+          <p className="hidden md:block text-ink-500 text-[14.5px] mt-1.5 leading-relaxed">
             Primești un link pe email dacă există un cont cu adresa introdusă.
           </p>
         </div>
-        <AuthField label="Email" error={fieldErrors.email}>
+        <AuthField label="Email" error={fieldErrors.email} hideLabelBelowMd>
           <AuthInput
             type="email"
             value={email}
@@ -112,7 +119,14 @@ export default function AuthPanel({
             await requestPasswordReset(email);
             onMessage({
               tone: 'success',
-              text: 'Dacă există un cont cu acest email, vei primi un link de resetare.',
+              text: (
+                <>
+                  <span className="md:hidden">Link trimis. Verifică emailul.</span>
+                  <span className="hidden md:inline">
+                    Dacă există un cont cu acest email, vei primi un link de resetare.
+                  </span>
+                </>
+              ),
             });
           })}
         >
@@ -121,7 +135,7 @@ export default function AuthPanel({
         <button
           type="button"
           onClick={() => { onModeChange('login'); onMessage(null); }}
-          className="text-sm text-ink-500 hover:text-ink-900 font-semibold"
+          className="hidden md:block text-sm text-ink-500 hover:text-ink-900 font-semibold"
         >
           ← Înapoi
         </button>
@@ -133,10 +147,10 @@ export default function AuthPanel({
     return (
       <div className="space-y-5">
         <div>
-          <h2 className="text-[29px] font-black text-ink-900 tracking-[-.02em] leading-tight">
+          <h2 className="text-[26px] md:text-[29px] font-black text-ink-900 tracking-[-.02em] leading-tight">
             Alege o parolă nouă
           </h2>
-          <p className="text-ink-500 text-[14.5px] mt-1.5 leading-relaxed">
+          <p className="hidden md:block text-ink-500 text-[14.5px] mt-1.5 leading-relaxed">
             Linkul de recuperare a fost verificat. Salvează parola nouă pentru contul tău.
           </p>
         </div>
@@ -147,6 +161,7 @@ export default function AuthPanel({
           placeholder="••••••••"
           autoComplete="new-password"
           error={fieldErrors.password}
+          hideLabelBelowMd
         />
         <PasswordStrength password={password} />
         <PasswordInput
@@ -156,6 +171,7 @@ export default function AuthPanel({
           placeholder="••••••••"
           autoComplete="new-password"
           error={fieldErrors.passwordConfirm}
+          hideLabelBelowMd
         />
 
         <PrimaryButton
@@ -184,22 +200,24 @@ export default function AuthPanel({
   }
 
   const heading = HEADINGS[mode] ?? HEADINGS.login;
+  const mobileTitle = mode === 'signup' ? 'Cont nou' : heading.title;
 
   return (
     <div className="space-y-5">
       <AuthTabs mode={mode} onChange={onModeChange} disabled={busy} />
 
       <div>
-        <h2 className="text-[29px] font-black text-ink-900 tracking-[-.02em] leading-tight">
-          {heading.title}
+        <h2 className="text-[26px] md:text-[29px] font-black text-ink-900 tracking-[-.02em] leading-tight">
+          <span className="md:hidden">{mobileTitle}</span>
+          <span className="hidden md:inline">{heading.title}</span>
         </h2>
-        <p className="text-ink-500 text-[14.5px] mt-1.5 leading-relaxed">{heading.subtitle}</p>
+        <p className="hidden md:block text-ink-500 text-[14.5px] mt-1.5 leading-relaxed">{heading.subtitle}</p>
       </div>
 
       <div className="space-y-4">
         <Collapsible open={mode === 'signup'} maxHeight={96}>
           <div className="grid grid-cols-2 gap-3">
-            <AuthField label="Prenume" error={fieldErrors.firstName}>
+            <AuthField label="Prenume" error={fieldErrors.firstName} hideLabelBelowMd>
               <AuthInput
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
@@ -208,7 +226,7 @@ export default function AuthPanel({
                 error={fieldErrors.firstName}
               />
             </AuthField>
-            <AuthField label="Nume" error={fieldErrors.lastName}>
+            <AuthField label="Nume" error={fieldErrors.lastName} hideLabelBelowMd>
               <AuthInput
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
@@ -225,6 +243,8 @@ export default function AuthPanel({
             label="Username"
             hint="3–20 caractere, litere, cifre, punct sau underscore"
             error={fieldErrors.username}
+            hideLabelBelowMd
+            hideHintBelowMd
           >
             <AuthInput
               value={username}
@@ -232,11 +252,13 @@ export default function AuthPanel({
               placeholder="maria.pop"
               autoComplete="username"
               error={fieldErrors.username}
+              icon={<span aria-hidden className="md:hidden text-ink-400 font-extrabold text-[15px]">@</span>}
+              className="md:pl-4"
             />
           </AuthField>
         </Collapsible>
 
-        <AuthField label="Email" error={fieldErrors.email}>
+        <AuthField label="Email" error={fieldErrors.email} hideLabelBelowMd>
           <AuthInput
             type="email"
             value={email}
@@ -255,6 +277,7 @@ export default function AuthPanel({
             placeholder="••••••••"
             autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
             error={fieldErrors.password}
+            hideLabelBelowMd
             action={mode === 'login' ? (
               <button
                 type="button"
@@ -265,6 +288,17 @@ export default function AuthPanel({
               </button>
             ) : null}
           />
+          {mode === 'login' && (
+            <div className="md:hidden flex justify-end">
+              <button
+                type="button"
+                onClick={() => { onModeChange('forgot'); onMessage(null); }}
+                className="text-[12.5px] font-bold text-signa-600"
+              >
+                Ai uitat parola?
+              </button>
+            </div>
+          )}
           {mode === 'signup' && <PasswordStrength password={password} />}
         </div>
 
@@ -277,6 +311,7 @@ export default function AuthPanel({
             placeholder="••••••••"
             autoComplete="new-password"
             error={fieldErrors.passwordConfirm}
+            hideLabelBelowMd
           />
         </Collapsible>
       </div>
@@ -306,14 +341,14 @@ export default function AuthPanel({
           <SecondaryButton disabled={busy} onClick={onGuest}>
             Continuă ca invitat
           </SecondaryButton>
-          <p className="text-center text-[12.5px] text-ink-400 leading-relaxed">
+          <p className="hidden md:block text-center text-[12.5px] text-ink-400 leading-relaxed">
             Înveți fără cont. Progresul rămâne pe acest dispozitiv.
           </p>
         </div>
       )}
 
       {mode === 'login' && (
-        <p className="text-center text-[13.5px] text-ink-500">
+        <p className="hidden md:block text-center text-[13.5px] text-ink-500">
           Nu ai cont?{' '}
           <button
             type="button"
