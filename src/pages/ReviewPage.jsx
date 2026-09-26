@@ -32,12 +32,15 @@ export default function ReviewPage({ onBack, onStartReview }) {
     <div className="h-full bg-cream flex flex-col overflow-hidden">
       <div className="h-[3px] bg-gradient-to-r from-signa-400 via-signa-500/40 to-transparent flex-shrink-0" />
       <header className="flex items-center justify-between px-5 py-4 flex-shrink-0">
-        <button onClick={onBack} className="text-ink-500 hover:text-ink-900 text-sm font-medium">← Înapoi</button>
+        <button onClick={onBack} className="text-ink-500 hover:text-ink-900 text-sm font-medium">
+          <span className="lg:hidden">←</span>
+          <span className="hidden lg:inline">← Înapoi</span>
+        </button>
         <h1 className="text-ink-900 font-bold tracking-[0.18em] text-sm">REPETIȚIE</h1>
         <div className="w-16" />
       </header>
 
-      <div className="px-5 pb-3">
+      <div className="hidden lg:block px-5 pb-3">
         <p className="text-ink-500 text-sm leading-relaxed">
           Litere pe care merită să le repeți — pe baza practicii recente.
         </p>
@@ -79,7 +82,8 @@ export default function ReviewPage({ onBack, onStartReview }) {
           className="w-full py-[17px] bg-signa-500 text-white font-bold rounded-2xl shadow-button
             disabled:opacity-40 active:scale-[0.97] transition-transform"
         >
-          Repetă {pick.length || 0} litere
+          <span className="lg:hidden">Începe · {pick.length || 0}</span>
+          <span className="hidden lg:inline">Repetă {pick.length || 0} litere</span>
         </button>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
 import HandTracker from '../components/hand-tracker';
 import ReferencePreview from '../components/lesson/ReferencePreview';
+import { SignWell } from '../components/lesson/SignCoach';
 import Confetti from '../components/ui/Confetti';
 import { useClassifier } from '../hooks/useClassifier';
 import { useProgress } from '../hooks/useProgress';
@@ -183,16 +184,29 @@ export default function SpellPage({ onBack, wordId }) {
         </div>
 
         {/* Progres litere */}
-        <div className="absolute top-14 inset-x-0 z-20 flex justify-center gap-1 px-4">
+        <div className="absolute top-14 inset-x-0 z-20 flex justify-center gap-1.5 lg:gap-1 px-4">
           {word.letters.map((l, i) => (
             <span
               key={`${l}-${i}`}
-              className={`min-w-[1.5rem] h-6 px-1 rounded-md text-[11px] font-bold flex items-center justify-center
+              className={`min-w-[34px] h-10 rounded-[10px] text-[15px] font-black
+                lg:min-w-[1.5rem] lg:h-6 lg:px-1 lg:rounded-md lg:text-[11px] lg:font-bold
+                flex items-center justify-center
                 ${i === idx ? 'bg-white text-ink-900' : i < idx ? 'bg-signa-500/90 text-white' : 'bg-black/35 text-white/50'}`}
             >
               {l}
             </span>
           ))}
+        </div>
+
+        <div className="lg:hidden absolute top-[6.75rem] right-3 z-20 w-[min(44vw,176px)]">
+          <SignWell
+            target={target}
+            pose={REFERENCE_POSES[target]}
+            isDynamic={false}
+            isSuccess={isSuccess}
+            holdPct={holdPct}
+            className="w-full aspect-square shadow-[0_16px_40px_rgba(0,0,0,0.4)]"
+          />
         </div>
 
         {detected && detected !== target && !isSuccess && (
@@ -206,15 +220,18 @@ export default function SpellPage({ onBack, wordId }) {
 
       <div className="flex-shrink-0 bg-white border-t border-ink-900/[0.06] px-5 pt-4 pb-8 shadow-soft">
         <div className="flex items-center gap-4 mb-4">
-          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0
+          <div className={`hidden lg:flex w-16 h-16 rounded-2xl items-center justify-center flex-shrink-0
             font-black text-4xl ${isSuccess ? 'bg-signa-50 text-signa-600' : 'bg-cream-100 text-ink-900'}`}>
             {target}
           </div>
-          <div className="w-16 h-16 bg-cream-100 rounded-2xl p-1 flex-shrink-0">
+          <div className="w-14 h-14 lg:w-16 lg:h-16 bg-cream-100 rounded-2xl p-1 flex-shrink-0">
             <ReferencePreview target={target} pose={REFERENCE_POSES[target]} className="w-full h-full" fit="cover" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-ink-900 font-semibold text-sm mb-0.5">Fă semnul „{target}"</p>
+            <p className="text-ink-900 font-semibold text-sm mb-0.5">
+              <span className="lg:hidden">Semnul „{target}"</span>
+              <span className="hidden lg:inline">Fă semnul „{target}"</span>
+            </p>
             <p className="text-ink-500 text-xs">din cuvântul {word.label}</p>
           </div>
         </div>

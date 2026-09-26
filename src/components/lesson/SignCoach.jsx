@@ -127,9 +127,12 @@ export default function SignCoach({
 
       <div className="min-w-0">
         <p className="text-ink-900 font-bold text-[15px] lg:text-xl text-pretty leading-snug">
-          {isWord(target) ? `Semnul „${target}"` : `Fă semnul „${target}"`}
+          <span className="lg:hidden">Semnul „{target}"</span>
+          <span className="hidden lg:inline">
+            {isWord(target) ? `Semnul „${target}"` : `Fă semnul „${target}"`}
+          </span>
         </p>
-        <p className="text-ink-500 text-xs lg:text-sm mt-0.5">
+        <p className="hidden lg:block text-ink-500 text-sm mt-0.5">
           {isDynamic
             ? 'fă mișcarea și ține până se umple bara'
             : 'copiază imaginea și ține-l până se umple bara'}
@@ -172,7 +175,10 @@ export default function SignCoach({
         onClick={onSkip}
         className="mt-2 w-full py-2 text-ink-400 hover:text-ink-600 text-xs font-medium transition-colors"
       >
-        {isWord(target) ? 'Sari peste cuvântul ăsta →' : 'Sari peste litera asta →'}
+        <span className="lg:hidden">Sari →</span>
+        <span className="hidden lg:inline">
+          {isWord(target) ? 'Sari peste cuvântul ăsta →' : 'Sari peste litera asta →'}
+        </span>
       </button>
     </aside>
   );
