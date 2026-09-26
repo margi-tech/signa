@@ -181,7 +181,6 @@ export default function AppShell({
                   selectedChapterId={selectedChapterId}
                   onSelectChapter={setSelectedChapterId}
                   rank={rank}
-                  onBack={() => go('home')}
                   onOpenLesson={onOpenLesson}
                 />
               </main>

@@ -114,7 +114,7 @@ function LessonCard({
           )}
         </div>
         <p className="mt-3.5 text-[14.5px] font-black text-ink-400">{lesson.title}</p>
-        <p className="mt-[9px] text-[11.5px] font-semibold text-ink-400 leading-relaxed">
+        <p className="hidden lg:block mt-[9px] text-[11.5px] font-semibold text-ink-400 leading-relaxed">
           {prevTitle ? `Se deschide după ${prevTitle}` : 'Se deschide mai târziu'}
         </p>
       </div>
@@ -149,7 +149,8 @@ function LessonCard({
           ) : (
             <span className="text-[9.5px] font-extrabold uppercase tracking-[.08em]
               text-signa-600 bg-signa-50 rounded-[7px] px-2 py-1 tabular-nums">
-              În curs · {pct}%
+              <span className="lg:hidden">{pct}%</span>
+              <span className="hidden lg:inline">În curs · {pct}%</span>
             </span>
           )}
           <span
@@ -194,7 +195,7 @@ function LessonCard({
 /* ── Pagina ────────────────────────────────────────────────────── */
 
 export default function LessonsPage({
-  onBack, onOpenLesson, chapters, selectedChapterId, onSelectChapter,
+  onOpenLesson, chapters, selectedChapterId, onSelectChapter,
 }) {
   const {
     starsFor, isUnlocked, isFavorite, toggleFavorite, letterMastery,
@@ -256,7 +257,7 @@ export default function LessonsPage({
           transition-colors duration-[160ms] ease-out flex-shrink-0
           ${selected
           ? 'bg-cream-200 text-ink-900 font-extrabold'
-          : 'text-ink-600 font-bold hover:bg-ink-900/[.03]'}`}
+          : 'bg-white/70 text-ink-600 font-bold hover:bg-ink-900/[.03]'}`}
       >
         <span
           aria-hidden
@@ -279,15 +280,6 @@ export default function LessonsPage({
 
           {/* Capitole ca rând orizontal — doar sub lg */}
           <div className="lg:hidden flex flex-col gap-3">
-            <button
-              type="button"
-              onClick={onBack}
-              className="self-start flex items-center gap-2 rounded-xl border border-ink-900/10 bg-white
-                px-4 py-2 text-[13px] font-bold text-ink-700"
-            >
-              <ChevronIcon className="w-[15px] h-[15px] rotate-180" />
-              Înapoi
-            </button>
             <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-5 px-5">
               {chapters.map(chapterRow)}
             </div>
@@ -298,7 +290,7 @@ export default function LessonsPage({
             <div className="min-w-0">
               <p
                 style={anim('sg-fade-right', 0.6, 0.06)}
-                className="text-[10.5px] lg:text-xs font-extrabold uppercase tracking-[.14em] lg:tracking-[.22em] text-ink-400"
+                className="hidden lg:block text-xs font-extrabold uppercase tracking-[.22em] text-ink-400"
               >
                 Capitolul {chapterIndex + 1} din {chapters.length}
               </p>
@@ -311,7 +303,7 @@ export default function LessonsPage({
               </h1>
               <p
                 style={anim('sg-fade-up', 0.7, 0.2)}
-                className="mt-1 text-[13.5px] font-semibold text-ink-500 tabular-nums"
+                className="hidden lg:block mt-1 text-[13.5px] font-semibold text-ink-500 tabular-nums"
               >
                 {chapter.description}
                 {' · '}{chapter.lessons.length} {chapter.lessons.length === 1 ? 'lecție' : 'lecții'}
@@ -380,7 +372,7 @@ export default function LessonsPage({
                     <div className="min-w-0">
                       <p
                         style={anim('sg-fade-right', 0.6, 0.44)}
-                        className="text-[10.5px] font-extrabold uppercase tracking-[.14em] text-emerald-100/75"
+                        className="hidden lg:block text-[10.5px] font-extrabold uppercase tracking-[.14em] text-emerald-100/75"
                       >
                         Continuă de aici
                       </p>
@@ -395,8 +387,11 @@ export default function LessonsPage({
                         style={anim('sg-fade-up', 0.7, 0.56)}
                         className="mt-1.5 lg:mt-2 text-[13px] lg:text-[15px] font-semibold text-cream/65 tabular-nums"
                       >
-                        {nextValidated} din {nextTotal} litere validate · ~{minutesLeft}
-                        {minutesLeft === 1 ? ' minut' : ' minute'}
+                        <span className="lg:hidden">~{minutesLeft} min</span>
+                        <span className="hidden lg:inline">
+                          {nextValidated} din {nextTotal} litere validate · ~{minutesLeft}
+                          {minutesLeft === 1 ? ' minut' : ' minute'}
+                        </span>
                       </p>
                     </div>
                     <div
@@ -454,7 +449,10 @@ export default function LessonsPage({
                         animation: 'sg-sheen 4.5s cubic-bezier(.4,0,.2,1) 2s infinite',
                       }}
                     />
-                    <span className="relative">Continuă lecția</span>
+                    <span className="relative">
+                      <span className="lg:hidden">Continuă</span>
+                      <span className="hidden lg:inline">Continuă lecția</span>
+                    </span>
                     <span aria-hidden className="relative flex sg-arrow">
                       <ChevronIcon className="w-3.5 h-3.5" />
                     </span>
@@ -484,7 +482,7 @@ export default function LessonsPage({
               <div>
                 <p
                   style={anim('sg-fade-right', 0.6, 0.54)}
-                  className="text-[10.5px] font-extrabold uppercase tracking-[.14em] text-ink-400"
+                  className="hidden lg:block text-[10.5px] font-extrabold uppercase tracking-[.14em] text-ink-400"
                 >
                   Progresul capitolului
                 </p>
@@ -514,7 +512,8 @@ export default function LessonsPage({
                     {lessonsDone}<span className="text-[13px] lg:text-base text-ink-400">/{chapter.lessons.length}</span>
                   </p>
                   <p className="mt-1.5 lg:mt-[5px] text-[9.5px] lg:text-[11px] font-extrabold uppercase tracking-[.14em] text-ink-400">
-                    Lecții făcute
+                    <span className="lg:hidden">Lecții</span>
+                    <span className="hidden lg:inline">Lecții făcute</span>
                   </p>
                 </div>
                 <div style={anim('sg-fade-up', 0.6, 0.8)}>
@@ -522,7 +521,8 @@ export default function LessonsPage({
                     {lettersLearned}<span className="text-[13px] lg:text-base text-ink-400">/{chapterLetters.length}</span>
                   </p>
                   <p className="mt-1.5 lg:mt-[5px] text-[9.5px] lg:text-[11px] font-extrabold uppercase tracking-[.14em] text-ink-400">
-                    Litere învățate
+                    <span className="lg:hidden">Litere</span>
+                    <span className="hidden lg:inline">Litere învățate</span>
                   </p>
                 </div>
               </div>
@@ -530,7 +530,7 @@ export default function LessonsPage({
               {lessonsLeft > 0 && nextChapter && (
                 <div
                   style={anim('sg-fade-up', 0.6, 0.88)}
-                  className="rounded-[14px] bg-signa-50 border border-signa-500/[.14] px-3.5 py-3"
+                  className="hidden lg:block rounded-[14px] bg-signa-50 border border-signa-500/[.14] px-3.5 py-3"
                 >
                   <p className="text-[12px] font-bold text-signa-900 leading-relaxed">
                     {lessonsLeft === 1 ? 'Încă o lecție' : `Încă ${lessonsLeft} lecții`} și se deschide
@@ -544,8 +544,11 @@ export default function LessonsPage({
           {/* 3 · Grila lecțiilor */}
           <div>
             <div style={anim('sg-fade-up', 0.6, 0.46)} className="flex items-baseline justify-between mb-3.5">
-              <h3 className="text-[15px] font-black text-ink-900">Lecțiile capitolului</h3>
-              <span className="text-[12px] font-bold text-ink-400">Deblocare progresivă</span>
+              <h3 className="text-[15px] font-black text-ink-900">
+                <span className="lg:hidden">Lecții</span>
+                <span className="hidden lg:inline">Lecțiile capitolului</span>
+              </h3>
+              <span className="hidden lg:inline text-[12px] font-bold text-ink-400">Deblocare progresivă</span>
             </div>
 
             {visibleLessons.length > 0 ? (
