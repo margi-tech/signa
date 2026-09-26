@@ -39,6 +39,23 @@ function useCountUp(target, duration = 1200, delay = 0) {
 const anim = (name, dur, delay = 0, fill = 'both', ease = EASE) =>
   ({ animation: `${name} ${dur}s ${ease} ${delay}s ${fill}` });
 
+/** Cuvintele salutului, animate pe rând — ultimul primește underline-ul. */
+function AnimatedGreeting({ words }) {
+  return words.map((word, i) => (
+    <span
+      key={`${word}-${i}`}
+      className="inline-block relative"
+      style={anim('sg-fade-up', 0.7, 0.16 + i * 0.08)}
+    >
+      {word}
+      {i === words.length - 1 && (
+        <span aria-hidden className="absolute left-0 right-1.5 bottom-1 h-2 rounded sg-underline bg-signa-400/[.32]" />
+      )}
+      {i < words.length - 1 && ' '}
+    </span>
+  ));
+}
+
 /* ── Piese ─────────────────────────────────────────────────────── */
 
 /** Inel de progres (mobil) — conic-gradient cu disc interior. */
@@ -93,7 +110,7 @@ function Tile({ icon: Icon, tone, title, subtitle, onClick, spin = false, delay 
         <Icon className="w-[17px] h-[17px] lg:w-5 lg:h-5" />
       </span>
       <p className="mt-[11px] lg:mt-[18px] text-[14px] lg:text-base font-extrabold text-ink-900">{title}</p>
-      <p className="mt-[3px] lg:mt-[5px] text-[11.5px] lg:text-[13.5px] font-medium text-ink-500">{subtitle}</p>
+      <p className="hidden lg:block mt-[5px] text-[13.5px] font-medium text-ink-500">{subtitle}</p>
     </button>
   );
 }
@@ -186,6 +203,8 @@ export default function HomePage({
   const today = new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' });
   const greeting = firstName ? `Bine ai revenit, ${firstName}.` : 'Bine ai revenit.';
   const greetingWords = greeting.split(' ');
+  const mobileGreeting = firstName ? `Salut, ${firstName}.` : 'Salut.';
+  const mobileGreetingWords = mobileGreeting.split(' ');
   const rankLabel = rank ? `Locul ${rank.place} din ${rank.total}` : 'Vezi clasamentul';
   const openLesson = () => (onOpenLesson ? onOpenLesson(nextLesson.id) : onLessons());
   const streakLabel = `${streak} ${streak === 1 ? 'zi' : 'zile'}`;
@@ -219,28 +238,17 @@ export default function HomePage({
             <div>
               <p
                 style={anim('sg-fade-right', 0.6, 0.08)}
-                className="text-[10.5px] lg:text-xs font-extrabold uppercase tracking-[.14em] lg:tracking-[.22em] text-ink-400"
+                className="hidden lg:block text-xs font-extrabold uppercase tracking-[.22em] text-ink-400"
               >
                 {today}
               </p>
-              <h1 className="mt-[7px] lg:mt-2 text-[26px] lg:text-[2.6rem] font-black text-ink-900
-                tracking-[-.02em] lg:tracking-[-.025em] leading-[1.15] lg:leading-[1.1] text-pretty">
-                {greetingWords.map((word, i) => (
-                  <span
-                    key={`${word}-${i}`}
-                    className="inline-block relative"
-                    style={anim('sg-fade-up', 0.7, 0.16 + i * 0.08)}
-                  >
-                    {word}
-                    {i === greetingWords.length - 1 && (
-                      <span
-                        aria-hidden
-                        className="absolute left-0 right-1.5 bottom-1 h-2 rounded sg-underline bg-signa-400/[.32]"
-                      />
-                    )}
-                    {i < greetingWords.length - 1 && ' '}
-                  </span>
-                ))}
+              <h1 className="lg:hidden mt-[7px] text-[26px] font-black text-ink-900
+                tracking-[-.02em] leading-[1.15] text-pretty">
+                <AnimatedGreeting words={mobileGreetingWords} />
+              </h1>
+              <h1 className="hidden lg:block mt-2 text-[2.6rem] font-black text-ink-900
+                tracking-[-.025em] leading-[1.1] text-pretty">
+                <AnimatedGreeting words={greetingWords} />
               </h1>
             </div>
 
@@ -335,7 +343,8 @@ export default function HomePage({
                     className="text-[10.5px] lg:text-[11.5px] font-extrabold uppercase tracking-[.14em]
                       lg:tracking-[.2em] text-emerald-100/70 lg:text-emerald-100/85 truncate lg:mb-3"
                   >
-                    Continuă · {nextLesson.title}
+                    <span className="lg:hidden">{nextLesson.title}</span>
+                    <span className="hidden lg:inline">Continuă · {nextLesson.title}</span>
                   </p>
                   <h2
                     style={anim('sg-fade-up', 0.7, 0.56)}
@@ -443,7 +452,10 @@ export default function HomePage({
                       animation: 'sg-sheen 4.5s cubic-bezier(.4,0,.2,1) 2s infinite',
                     }}
                   />
-                  <span className="relative">Reia lecția</span>
+                  <span className="relative">
+                    <span className="lg:hidden">Continuă</span>
+                    <span className="hidden lg:inline">Reia lecția</span>
+                  </span>
                   <span aria-hidden className="relative flex ml-2 lg:ml-0 sg-arrow">
                     <ArrowIcon className="w-4 h-4" />
                   </span>
@@ -558,15 +570,8 @@ export default function HomePage({
 
           {/* Exersează */}
           <div className="px-5 pt-[22px] lg:px-11 lg:pt-[22px]">
-            <div className="lg:hidden flex items-baseline justify-between mb-[11px]">
+            <div className="lg:hidden mb-[11px]">
               <h3 className="text-[14.5px] font-black text-ink-900">Exersează</h3>
-              <button
-                type="button"
-                onClick={onLessons}
-                className="text-[12px] font-extrabold text-signa-600 hover:text-signa-900 transition-colors duration-[160ms]"
-              >
-                Toate lecțiile
-              </button>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 lg:gap-[18px]">{tiles}</div>
           </div>
@@ -580,8 +585,11 @@ export default function HomePage({
                   lg:shadow-[0_6px_20px_rgba(46,42,36,.05)] lg:flex lg:items-center lg:gap-7"
               >
                 <div className="flex items-baseline justify-between mb-[11px] lg:mb-0 lg:flex-none lg:block">
-                  <h3 className="text-[14.5px] lg:text-base font-black lg:font-extrabold text-ink-900">De revăzut azi</h3>
-                  <span className="text-[11.5px] lg:text-[13px] font-semibold lg:font-medium text-ink-400 lg:mt-1 lg:block">
+                  <h3 className="text-[14.5px] lg:text-base font-black lg:font-extrabold text-ink-900">
+                    <span className="lg:hidden">De revăzut</span>
+                    <span className="hidden lg:inline">De revăzut azi</span>
+                  </h3>
+                  <span className="hidden lg:block text-[13px] font-medium text-ink-400 mt-1">
                     după memorie
                   </span>
                 </div>
