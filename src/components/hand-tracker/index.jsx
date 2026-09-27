@@ -39,9 +39,6 @@ export default function HandTracker({
   const onTrackingRef  = useRef(onTracking);
   const requireFrameRef = useRef(requireFaceFrame);
   const framedRef      = useRef(false);
-  // TEMPORAR — indicator de diagnostic pentru recunoașterea pe telefon.
-  const diagRef        = useRef({ frames: 0, since: 0 });
-  const [diag, setDiag] = useState(null);
 
   const [subject,      setSubject]      = useState(null);
   const [cameraError,  setCameraError]  = useState(null);
@@ -103,21 +100,6 @@ export default function HandTracker({
         const factor = aspectCorrectionFactor(video.videoWidth, video.videoHeight);
         const result = applyAspectCorrection(raw, factor);
         const hasHand = result?.hands?.length > 0;
-
-        // TEMPORAR — fps real + dimensiunile fluxului, pentru proba pe telefon.
-        const d = diagRef.current;
-        d.frames += 1;
-        if (!d.since) d.since = now;
-        if (now - d.since >= 500) {
-          setDiag({
-            w: video.videoWidth,
-            h: video.videoHeight,
-            fps: Math.round((d.frames * 1000) / (now - d.since)),
-            factor,
-          });
-          d.frames = 0;
-          d.since = now;
-        }
         const faceFrameNow = assessFaceFrame(result?.faceLandmarks, { wasOk: framedRef.current });
         framedRef.current = faceFrameNow.ok;
         setFaceFrame(faceFrameNow);
@@ -192,15 +174,6 @@ export default function HandTracker({
 
   return (
     <div className="relative w-full h-full overflow-hidden bg-slate-900">
-
-      {/* TEMPORAR — de scos după ce se stabilește cauza pe telefon. */}
-      {diag && (
-        <div className="absolute bottom-2 left-2 z-30 pointer-events-none rounded-lg
-          bg-black/65 px-2 py-1 font-mono text-[10px] leading-tight text-white/90">
-          {diag.w}×{diag.h} · {(diag.w / diag.h).toFixed(2)} · {diag.fps}fps
-          {diag.factor !== 1 && ` · corecție ×${diag.factor.toFixed(2)}`}
-        </div>
-      )}
 
       {/*
         Div oglindă: aplică scaleX(-1) pe video + canvas împreună.
