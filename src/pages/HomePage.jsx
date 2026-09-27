@@ -234,7 +234,7 @@ export default function HomePage({
       lg:bg-[radial-gradient(ellipse_70%_50%_at_85%_0%,#FFFDF7,#FBF6ED)]">
 
           {/* Salut */}
-          <div className="px-5 pt-[22px] lg:px-11 lg:pt-[34px] lg:flex lg:items-start lg:justify-between lg:gap-6">
+          <div className="px-5 pt-3.5 lg:px-11 lg:pt-[34px] lg:flex lg:items-start lg:justify-between lg:gap-6">
             <div>
               <p
                 style={anim('sg-fade-right', 0.6, 0.08)}
@@ -242,7 +242,7 @@ export default function HomePage({
               >
                 {today}
               </p>
-              <h1 className="lg:hidden mt-[7px] text-[26px] font-black text-ink-900
+              <h1 className="lg:hidden text-[26px] font-black text-ink-900
                 tracking-[-.02em] leading-[1.15] text-pretty">
                 <AnimatedGreeting words={mobileGreetingWords} />
               </h1>

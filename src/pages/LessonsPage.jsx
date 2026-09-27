@@ -274,7 +274,7 @@ export default function LessonsPage({
 
   return (
     <div className="min-h-full flex flex-col gap-[22px]
-      px-5 pt-5 pb-8 lg:px-11 lg:pt-[34px] lg:pb-11
+      px-5 pt-3 pb-8 lg:px-11 lg:pt-[34px] lg:pb-11
       bg-[radial-gradient(110%_45%_at_50%_0%,#F3FBF6_0%,#FFFBF3_62%)]
       lg:bg-[radial-gradient(ellipse_70%_50%_at_85%_0%,#FFFDF7,#FBF6ED)]">
 
@@ -296,7 +296,7 @@ export default function LessonsPage({
               </p>
               <h1
                 style={anim('sg-fade-up', 0.7, 0.14)}
-                className="mt-1.5 lg:mt-2 text-[29px] lg:text-[2.6rem] font-black text-ink-900
+                className="mt-0 lg:mt-2 text-[29px] lg:text-[2.6rem] font-black text-ink-900
                   tracking-[-.02em] lg:tracking-[-.025em] leading-tight lg:leading-[1.1] text-pretty"
               >
                 {stripIndex(chapter.title)}
@@ -378,7 +378,7 @@ export default function LessonsPage({
                       </p>
                       <h2
                         style={anim('sg-fade-up', 0.7, 0.5)}
-                        className="mt-2 lg:mt-2.5 text-[22px] lg:text-[2.5rem] font-black text-white
+                        className="mt-0 lg:mt-2.5 text-[22px] lg:text-[2.5rem] font-black text-white
                           tracking-[-.01em] lg:tracking-[-.02em] lg:leading-[1.06]"
                       >
                         {nextLesson.title}
@@ -486,7 +486,7 @@ export default function LessonsPage({
                 >
                   Progresul capitolului
                 </p>
-                <p style={anim('sg-fade-up', 0.6, 0.6)} className="mt-2 flex items-baseline gap-1.5">
+                <p style={anim('sg-fade-up', 0.6, 0.6)} className="mt-0 lg:mt-2 flex items-baseline gap-1.5">
                   <span className="text-[32px] font-black text-ink-900 leading-none tabular-nums">{chapterStars}</span>
                   <span className="text-[15px] font-bold text-ink-400 tabular-nums">/ {chapterMaxStars} stele</span>
                 </p>

@@ -28,18 +28,20 @@ export default function MobileTabBar({
       className="lg:hidden flex-none relative z-30 bg-cream/90 backdrop-blur-[14px]
         border-t border-ink-900/[.07] pt-2 px-2.5 pb-[max(26px,env(safe-area-inset-bottom))]"
     >
-      <span
-        aria-hidden
-        className="absolute left-2.5 top-2 w-1/5 h-[50px] pointer-events-none"
-        style={{ transform: `translateX(${activeIndex * 100}%)`, transition: `transform .42s ${EASE}` }}
-      >
-        <span
-          className="absolute inset-x-2 inset-y-0 rounded-[14px]
-            bg-[linear-gradient(180deg,#E4F5EC,#EFFAF4)] shadow-[inset_0_0_0_1px_rgba(16,185,129,.12)]"
-        />
-      </span>
-
       <div className="relative grid grid-cols-5">
+        {/* Pilula stă în grilă, nu în `nav`: `w-1/5` trebuie să fie o coloană,
+            altfel padding-ul barei o face mai lată și se decalează tab cu tab. */}
+        <span
+          aria-hidden
+          className="absolute left-0 top-0 w-1/5 h-[50px] pointer-events-none"
+          style={{ transform: `translateX(${activeIndex * 100}%)`, transition: `transform .42s ${EASE}` }}
+        >
+          <span
+            className="absolute inset-x-2 inset-y-0 rounded-[14px]
+              bg-[linear-gradient(180deg,#E4F5EC,#EFFAF4)] shadow-[inset_0_0_0_1px_rgba(16,185,129,.12)]"
+          />
+        </span>
+
         {TABS.map(({ icon: Icon, label, page: target }) => {
           const active = page === target;
           return (

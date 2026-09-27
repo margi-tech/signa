@@ -183,13 +183,14 @@ export default function SpellPage({ onBack, wordId }) {
           <span className="text-white/60 text-xs tabular-nums">{idx + 1}/{word.letters.length}</span>
         </div>
 
-        {/* Progres litere */}
+        {/* Progres litere — `w-[34px] min-w-0`, nu `min-w-[34px]`: cuvintele de
+            10 litere ar depăși ecranul dacă cipurile n-ar putea să se strângă. */}
         <div className="absolute top-14 inset-x-0 z-20 flex justify-center gap-1.5 lg:gap-1 px-4">
           {word.letters.map((l, i) => (
             <span
               key={`${l}-${i}`}
-              className={`min-w-[34px] h-10 rounded-[10px] text-[15px] font-black
-                lg:min-w-[1.5rem] lg:h-6 lg:px-1 lg:rounded-md lg:text-[11px] lg:font-bold
+              className={`w-[34px] min-w-0 h-10 rounded-[10px] text-[15px] font-black
+                lg:w-auto lg:min-w-[1.5rem] lg:h-6 lg:px-1 lg:rounded-md lg:text-[11px] lg:font-bold
                 flex items-center justify-center
                 ${i === idx ? 'bg-white text-ink-900' : i < idx ? 'bg-signa-500/90 text-white' : 'bg-black/35 text-white/50'}`}
             >

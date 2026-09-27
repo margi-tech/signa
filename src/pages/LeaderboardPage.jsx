@@ -10,8 +10,10 @@ const anim = (name, dur, delay = 0, fill = 'both', ease = EASE) =>
 /** Culorile medaliilor, pe locuri (index 0 = locul 1). */
 const MEDALS = ['#F5C451', '#CBD5E1', '#D6A57C'];
 
-/** Înălțimea coloanei de podium, pe locuri. */
+/** Înălțimea treptei de podium, pe locuri. Pe mobil containerul e 258px, nu
+ *  290px, deci treptele desktop-ului ar ieși din card sus și jos. */
 const PODIUM_H = [214, 172, 146];
+const PODIUM_H_MOBILE = [150, 116, 94];
 
 /** Ordinea vizuală a coloanelor: locul 2 la stânga, 1 la mijloc, 3 la dreapta. */
 const PODIUM_ORDER = [1, 0, 2];
@@ -91,7 +93,7 @@ export default function LeaderboardPage({ isGuest = false, onCreateAccount }) {
 
   return (
     <div className="min-h-full flex flex-col gap-[22px]
-      px-5 pt-5 pb-8 lg:px-11 lg:pt-[34px] lg:pb-11
+      px-5 pt-3 pb-8 lg:px-11 lg:pt-[34px] lg:pb-11
       bg-[radial-gradient(110%_45%_at_50%_0%,#F3FBF6_0%,#FFFBF3_62%)]
       lg:bg-[radial-gradient(ellipse_70%_50%_at_85%_0%,#FFFDF7,#FBF6ED)]">
 
@@ -106,7 +108,7 @@ export default function LeaderboardPage({ isGuest = false, onCreateAccount }) {
           </p>
           <h1
             style={anim('sg-fade-up', 0.7, 0.14)}
-            className="mt-1.5 lg:mt-2 text-[29px] lg:text-[2.6rem] font-black text-ink-900
+            className="mt-0 lg:mt-2 text-[29px] lg:text-[2.6rem] font-black text-ink-900
               tracking-[-.02em] lg:tracking-[-.025em] leading-tight lg:leading-[1.1] text-pretty"
           >
             <span className="lg:hidden">Clasament</span>
@@ -230,7 +232,7 @@ export default function LeaderboardPage({ isGuest = false, onCreateAccount }) {
                       {place === 0 && (
                         <span
                           aria-hidden
-                          className="text-[22px] leading-none mb-1"
+                          className="text-[20px] lg:text-[22px] leading-none mb-1"
                           style={{ animation: 'sg-crown 2.6s ease-in-out infinite' }}
                         >
                           👑
@@ -266,9 +268,11 @@ export default function LeaderboardPage({ isGuest = false, onCreateAccount }) {
                     </div>
 
                     <div
-                      className="w-full mt-3 rounded-t-2xl bg-white/[.14] border-x border-t border-white/[.16]"
+                      className="w-full mt-2.5 lg:mt-3 h-[var(--sg-step)] lg:h-[var(--sg-step-lg)]
+                        rounded-t-2xl bg-white/[.14] border-x border-t border-white/[.16]"
                       style={{
-                        height: PODIUM_H[place],
+                        '--sg-step': `${PODIUM_H_MOBILE[place]}px`,
+                        '--sg-step-lg': `${PODIUM_H[place]}px`,
                         transformOrigin: 'bottom',
                         transform: `scaleY(${on ? 1 : 0})`,
                         transition: `transform .8s ${EASE} ${0.5 + place * 0.11}s`,
@@ -302,7 +306,7 @@ export default function LeaderboardPage({ isGuest = false, onCreateAccount }) {
             >
               Poziția ta
             </p>
-            <p style={anim('sg-fade-up', 0.6, 0.6)} className="mt-2 flex items-baseline gap-1.5">
+            <p style={anim('sg-fade-up', 0.6, 0.6)} className="mt-0 lg:mt-2 flex items-baseline gap-1.5">
               <span className="text-[38px] font-black text-ink-900 leading-none tabular-nums">
                 {myIndex >= 0 ? `#${myIndex + 1}` : '—'}
               </span>
