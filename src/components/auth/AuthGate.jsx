@@ -178,6 +178,99 @@ function BrandColumn() {
   );
 }
 
+/** Plăcuțe LSR pentru hero-ul mobil — subset din `TILES`, poziții din handoff. */
+const MOBILE_HERO_TILES = [
+  { letter: 'A', size: 56, top: '16%', left: '64%', rot: -8, dur: '7.5s', delay: '0s' },
+  { letter: 'B', size: 40, top: '10%', left: '84%', rot: 10, dur: '9.5s', delay: '.8s' },
+  { letter: 'C', size: 48, top: '44%', left: '78%', rot: 5, dur: '8.5s', delay: '1.6s' },
+  { letter: 'E', size: 34, top: '38%', left: '56%', rot: 14, dur: '10s', delay: '2.2s' },
+];
+
+/** Hero-ul mobil de deasupra formularului — înălțimea se strânge în afara login-ului. */
+function MobileAuthHero({ mode }) {
+  const tall = mode === 'login';
+  return (
+    <div
+      className="md:hidden relative -mx-2 mt-2.5 rounded-[30px] overflow-hidden"
+      style={{
+        height: tall ? 232 : 150,
+        background: 'linear-gradient(135deg,#064e3b,#065f46 55%,#059669)',
+        transition: 'height .5s cubic-bezier(.22,1,.36,1)',
+      }}
+    >
+      <span
+        aria-hidden
+        className="absolute -top-[120px] -right-[120px] w-[360px] h-[360px] rounded-full pointer-events-none sg-aurora-a"
+        style={{ background: 'radial-gradient(circle,rgba(52,211,153,.55) 0%,transparent 70%)', filter: 'blur(50px)' }}
+      />
+      <span
+        aria-hidden
+        className="absolute -bottom-[90px] -left-[70px] w-[280px] h-[280px] rounded-full pointer-events-none sg-aurora-b"
+        style={{ background: 'radial-gradient(circle,rgba(255,251,243,.22) 0%,transparent 70%)', filter: 'blur(46px)' }}
+      />
+      <span
+        aria-hidden
+        className="absolute inset-0 opacity-[.16]"
+        style={{
+          backgroundImage:
+            'linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px),'
+            + 'linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px)',
+          backgroundSize: '48px 48px',
+          maskImage: 'radial-gradient(ellipse 70% 60% at 60% 40%, #000, transparent 75%)',
+          WebkitMaskImage: 'radial-gradient(ellipse 70% 60% at 60% 40%, #000, transparent 75%)',
+        }}
+      />
+
+      <div aria-hidden className="absolute inset-0 pointer-events-none">
+        {MOBILE_HERO_TILES.map((t) => (
+          <div
+            key={t.letter}
+            className="absolute flex items-center justify-center rounded-[16px] font-black text-signa-100
+              bg-white/10 border border-white/[.18] backdrop-blur-[6px]
+              shadow-[0_18px_40px_rgba(4,44,32,.28)] sg-float"
+            style={{
+              top: t.top,
+              left: t.left,
+              width: t.size,
+              height: t.size,
+              fontSize: Math.round(t.size * 0.44),
+              '--r': `${t.rot}deg`,
+              animationDuration: t.dur,
+              animationDelay: t.delay,
+            }}
+          >
+            {t.letter}
+          </div>
+        ))}
+      </div>
+
+      <div className="absolute top-5 left-5 flex items-center gap-2.5 sg-fade-right">
+        <span className="relative w-9 h-9 flex-none">
+          <span
+            aria-hidden
+            className="absolute inset-0 rounded-[11px] border-2 border-signa-400/70"
+            style={{ animation: 'sg-pulse-ring 3.4s cubic-bezier(.22,1,.36,1) infinite' }}
+          />
+          <img src="/icon.svg" alt="" className="relative w-9 h-9 rounded-[11px] block" />
+        </span>
+        <span className="text-white font-black text-[16px] tracking-[.16em]">SIGNA</span>
+      </div>
+
+      <h2 className="absolute left-[22px] bottom-[22px] m-0 text-white font-black text-[30px] leading-[1.12] tracking-[-.02em]">
+        <span className="block sg-fade-up" style={{ animationDelay: '.1s' }}>Limba semnelor,</span>
+        <span className="inline-block relative whitespace-nowrap sg-fade-up" style={{ animationDelay: '.22s' }}>
+          semn cu semn.
+          <span
+            aria-hidden
+            className="absolute left-0 right-0 bottom-[2px] h-[6px] rounded sg-underline"
+            style={{ background: 'rgba(52,211,153,.55)' }}
+          />
+        </span>
+      </h2>
+    </div>
+  );
+}
+
 /**
  * Ecran full-screen de autentificare — blocat până la login/signup.
  * Desktop: split-screen brand + formular. Mobil: doar formularul.
@@ -201,15 +294,13 @@ export default function AuthGate({ initialMode = 'login', onRecoveryComplete, on
       <div className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-[1.05fr_1fr]">
         <BrandColumn />
 
-        <div className="flex flex-col justify-center overflow-y-auto scrollbar-hide bg-cream px-5 py-8 md:px-10">
-          <div className="w-full max-w-[390px] mx-auto space-y-5">
-            <div className="md:hidden text-center space-y-2">
-              <img src="/icon.svg" alt="" className="w-[60px] h-[60px] rounded-2xl mx-auto" />
-              <div>
-                <h1 className="text-ink-900 font-black text-2xl tracking-tight">SIGNA</h1>
-                <p className="text-ink-500 text-sm mt-0.5">Limba Semnelor Române</p>
-              </div>
-            </div>
+        {/* Centrarea o face `my-auto` pe conținut, nu `justify-center` pe
+            container: cu `justify-center`, un formular mai înalt decât ecranul
+            (signup, sau un telefon scurt) își pierde partea de sus — depășirea
+            dinspre început nu e accesibilă prin scroll. */}
+        <div className="flex flex-col overflow-y-auto scrollbar-hide bg-cream px-5 py-8 md:px-10">
+          <div className="w-full max-w-[390px] mx-auto my-auto space-y-5">
+            <MobileAuthHero mode={mode} />
 
             {banner && <MessageBanner tone={banner.tone}>{banner.text}</MessageBanner>}
 
@@ -223,10 +314,6 @@ export default function AuthGate({ initialMode = 'login', onRecoveryComplete, on
               onRecoveryComplete={onRecoveryComplete}
               onGuest={onGuest}
             />
-
-            <p className="md:hidden text-center text-ink-400 text-[12.5px] leading-relaxed px-2">
-              Camera și semnele rămân pe dispozitiv. În cloud salvăm doar profilul și progresul.
-            </p>
           </div>
         </div>
       </div>

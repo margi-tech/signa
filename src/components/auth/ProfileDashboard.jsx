@@ -10,6 +10,7 @@ import {
   validateUsername,
 } from '../../utils/username';
 import { useCountUp } from '../../hooks/useCountUp';
+import { useProgress } from '../../hooks/useProgress';
 import { LESSONS } from '../../data/lessons';
 import { FlameIcon, HandIcon } from '../icons';
 import FriendsSection from '../FriendsSection';
@@ -125,6 +126,7 @@ export default function ProfileDashboard({
   onSync,
   onSignOut,
 }) {
+  const { soundEnabled, setSoundEnabled } = useProgress();
   const [lastSynced, setLastSynced] = useState(null);
   const [syncing, setSyncing] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -234,11 +236,11 @@ export default function ProfileDashboard({
 
   return (
     <div className="flex flex-col gap-[22px]">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-6">
+      <div className="hidden lg:flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-6">
         <div className="min-w-0">
           <p
             style={motion('sg-fade-right', 0.6, 0.06)}
-            className="text-[10.5px] lg:text-xs font-extrabold uppercase tracking-[.14em] lg:tracking-[.22em] text-ink-400"
+            className="text-xs font-extrabold uppercase tracking-[.22em] text-ink-400"
           >
             Profil · Nivelul {level} · {levelName(level)}
           </p>
@@ -279,9 +281,123 @@ export default function ProfileDashboard({
         )}
       </div>
 
+      {/* Banner verde — mobil: un singur rând, fără badge-ul de vizibilitate. */}
       <div
         style={motion('sg-fade-up', 0.75, 0.2)}
-        className="relative overflow-hidden rounded-[26px]
+        className="lg:hidden relative overflow-hidden rounded-[26px]
+          bg-[linear-gradient(125deg,#0f7d59_0%,#0b6446_58%,#075237_100%)]
+          shadow-[0_20px_48px_rgba(8,74,52,.24)]"
+      >
+        <span
+          aria-hidden
+          className="absolute -top-[120px] -right-[70px] w-[300px] h-[300px] rounded-full pointer-events-none sg-aurora-a"
+          style={{
+            background: 'radial-gradient(circle, rgba(52,211,153,.5), transparent 70%)',
+            filter: 'blur(46px)',
+          }}
+        />
+        <span
+          aria-hidden
+          className="absolute inset-y-0 left-0 w-[34%] pointer-events-none"
+          style={{
+            background: 'linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent)',
+            animation: 'sg-sheen 6.5s cubic-bezier(.4,0,.2,1) 1.4s infinite',
+          }}
+        />
+
+        <div className="relative px-5 pt-[22px] pb-[18px] flex items-center gap-3.5">
+          <label className="relative flex-none cursor-pointer group" title="Schimbă poza de profil">
+            <span
+              aria-hidden
+              className="absolute -inset-1.5 rounded-full border-2 border-white/40 pointer-events-none sg-pulse-ring"
+            />
+            <span className="relative w-[76px] h-[76px] rounded-full bg-signa-400 text-signa-900
+              flex items-center justify-center overflow-hidden shadow-[0_12px_28px_rgba(4,44,32,.28)]">
+              {avatarUrl
+                ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+                : <span className="text-[26px] font-black">{initials}</span>}
+            </span>
+            <span
+              aria-hidden
+              className="absolute -bottom-0.5 -right-0.5 w-7 h-7 rounded-full bg-white text-ink-700
+                shadow-[0_4px_12px_rgba(4,44,32,.22)] flex items-center justify-center"
+            >
+              <CameraIcon />
+            </span>
+            <span className="sr-only">Schimbă poza de profil</span>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="sr-only"
+              disabled={busy || !onAvatarChange}
+              onChange={pickAvatar}
+            />
+          </label>
+
+          <div className="min-w-0 flex-1">
+            <span className="inline-block rounded-full bg-white/[.14] border border-white/20 text-emerald-50
+              text-[10px] font-extrabold px-[9px] py-[3px] uppercase tracking-[.08em]">
+              {levelName(level)}
+            </span>
+            <h2 className="mt-2 text-[22px] font-black text-white tracking-[-.02em] leading-tight truncate">
+              {displayName}
+            </h2>
+            <p className="mt-0.5 text-[12.5px] font-semibold text-cream/70 truncate">
+              {username ? `@${username}` : user.email}
+            </p>
+          </div>
+
+          <div className="relative w-16 h-16 flex-none">
+            <div
+              aria-hidden
+              className="absolute -inset-1.5 rounded-full"
+              style={{
+                background: 'rgba(52,211,153,.35)',
+                filter: 'blur(12px)',
+                animation: 'sg-ring-glow 3.4s ease-in-out infinite',
+              }}
+            />
+            <svg width="64" height="64" viewBox="0 0 88 88" className="relative block" style={{ transform: 'rotate(-90deg)' }} aria-hidden>
+              <circle cx="44" cy="44" r={RING_R} fill="none" stroke="rgba(255,255,255,.16)" strokeWidth="7" />
+              <circle
+                cx="44" cy="44" r={RING_R} fill="none" stroke="#34d399" strokeWidth="7" strokeLinecap="round"
+                strokeDasharray={RING_LEN}
+                style={{
+                  '--sg-ring-to': String(RING_LEN * (1 - (barOn ? levelPct : 0))),
+                  animation: `sg-ring-draw 1.5s ${EASE} .7s both`,
+                }}
+              />
+            </svg>
+            <span className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-[19px] font-black text-white leading-none">{level}</span>
+              <span className="text-[8px] font-extrabold uppercase tracking-[.14em] text-emerald-100/70">nivel</span>
+            </span>
+          </div>
+        </div>
+
+        <div className="relative px-5 pb-5">
+          <div className="flex items-baseline justify-between mb-2">
+            <span className="text-[12.5px] font-extrabold text-emerald-50/90">Nv. {level + 1}</span>
+            <span className="text-[11.5px] font-extrabold text-emerald-100/70 tabular-nums">
+              {xpIntoLevelShown} / {xpNeeded} XP
+            </span>
+          </div>
+          <div className="relative h-[10px] rounded-full bg-black/20 overflow-hidden">
+            <div
+              className="h-full rounded-full bg-[linear-gradient(90deg,#6ee7b7,#34d399)]"
+              style={{
+                width: `${(barOn ? levelPct : 0) * 100}%`,
+                transition: `width 1.2s ${EASE} .5s`,
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Banner verde — desktop: avatar + inel pe același rând, XP jos. */}
+      <div
+        style={motion('sg-fade-up', 0.75, 0.2)}
+        className="hidden lg:block relative overflow-hidden rounded-[26px]
           bg-[linear-gradient(125deg,#0f7d59_0%,#0b6446_58%,#075237_100%)]
           shadow-[0_20px_48px_rgba(8,74,52,.24)]"
       >
@@ -461,7 +577,74 @@ export default function ProfileDashboard({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[.9fr_.9fr_1.3fr] gap-3.5">
+      {/* Mozaic mobil: 2 coloane (Zile/Lecții), fără frazele explicative. */}
+      <div className="lg:hidden grid grid-cols-2 gap-3">
+        <div
+          style={motion('sg-fade-up', 0.65, 0.36, 'backwards')}
+          className="rounded-[22px] border border-amber-600/[.14] bg-[#FFF7E8] p-[18px]"
+        >
+          <p className="text-[10.5px] font-extrabold uppercase tracking-[.14em] text-amber-800/70">Zile</p>
+          <p className="mt-2 flex items-end gap-1.5">
+            <span className="text-[34px] font-black leading-none tabular-nums text-amber-800">{streakShown}</span>
+            <FlameIcon
+              className="w-[22px] h-[22px] text-amber-600 mb-0.5"
+              style={{ animation: 'sg-flame 1.9s ease-in-out infinite' }}
+            />
+          </p>
+        </div>
+
+        <div
+          style={motion('sg-fade-up', 0.65, 0.44, 'backwards')}
+          className="rounded-[22px] border border-signa-500/[.16] bg-signa-50 p-[18px]"
+        >
+          <p className="text-[10.5px] font-extrabold uppercase tracking-[.14em] text-signa-900/70">Lecții</p>
+          <p className="mt-2 text-[34px] font-black leading-none tabular-nums text-signa-900">
+            {lessonsShown}
+            <span className="text-[15px] font-bold text-signa-900/50">/{totalLessonsCount}</span>
+          </p>
+          <div className="mt-2.5 h-1.5 rounded-full bg-signa-900/[.08] overflow-hidden">
+            <div
+              className="h-full rounded-full bg-signa-500"
+              style={{
+                width: `${totalLessonsCount ? (completedLessonsCount / totalLessonsCount) * 100 : 0}%`,
+                transition: `width 1.1s ${EASE} .6s`,
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div
+        style={motion('sg-fade-up', 0.65, 0.52, 'backwards')}
+        className="lg:hidden rounded-[22px] border border-ink-900/[.06] bg-white p-[18px]"
+      >
+        <div className="flex items-baseline justify-between gap-3 mb-3">
+          <p className="text-[10.5px] font-extrabold uppercase tracking-[.14em] text-ink-400">Alfabet</p>
+          <p className="text-[12px] font-extrabold tabular-nums text-ink-500">
+            {masteredCount}/{ALPHABET.length}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-[5px]">
+          {ALPHABET.map((ch) => {
+            const on = mastered.has(ch);
+            return (
+              <span
+                key={ch}
+                title={on ? `${ch} — validat` : `${ch} — încă nevalidat`}
+                className={`w-8 h-8 rounded-[10px] text-[12.5px] font-black flex items-center justify-center border
+                  ${on
+                    ? 'bg-signa-50 border-signa-500/25 text-signa-900'
+                    : 'bg-[#FBF7F0] border-ink-900/[.06] text-ink-400/70'}`}
+              >
+                {ch}
+              </span>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Mozaic desktop: 3 coloane, cu frazele explicative. */}
+      <div className="hidden lg:grid lg:grid-cols-[.9fr_.9fr_1.3fr] gap-3.5">
         <MosaicCard delay={0.36} tone="bg-[#FFF7E8] border-amber-600/[.14]">
           <p className="text-[10.5px] font-extrabold uppercase tracking-[.14em] text-amber-800/70">Focul tău</p>
           <p className="mt-2 flex items-end gap-2">
@@ -530,7 +713,51 @@ export default function ProfileDashboard({
 
       <FriendsSection userId={user.id} />
 
-      <div className="grid gap-[18px] items-start lg:grid-cols-[1.55fr_1fr]">
+      {/* Setări — mobil: listă compactă, fără descrieri. Atelierul (nume/username)
+          și ștergerea contului rămân doar pe desktop, într-un ecran mai larg. */}
+      <div
+        style={motion('sg-fade-up', 0.7, 0.6)}
+        className="lg:hidden rounded-[22px] bg-white border border-ink-900/[0.06] overflow-hidden
+          shadow-[0_1px_2px_rgba(46,42,36,.04),0_8px_24px_rgba(46,42,36,.045)]"
+      >
+        <p className="px-5 pt-[18px] pb-1 text-[10.5px] font-extrabold uppercase tracking-[.14em] text-ink-400">
+          Setări
+        </p>
+        <div className="px-5">
+          <SettingsSwitch
+            label="Profil public"
+            checked={isPublic}
+            onChange={(on) => onVisibility(on ? 'public' : 'private')}
+            disabled={busy}
+          />
+        </div>
+        <div className="px-5 border-t border-ink-900/[.05]">
+          <SettingsSwitch label="Sunete" checked={soundEnabled} onChange={setSoundEnabled} />
+        </div>
+        <button
+          type="button"
+          onClick={sync}
+          disabled={busy}
+          className="w-full flex items-center gap-3 px-5 py-3.5 text-left border-t border-ink-900/[.05] disabled:opacity-50"
+        >
+          <span className="w-9 h-9 rounded-xl bg-signa-50 text-signa-600 flex items-center justify-center flex-none">
+            <CloudIcon />
+          </span>
+          <span className="text-[14px] font-extrabold text-ink-900">
+            {syncing ? 'Se sincronizează…' : 'Sincronizează'}
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={signOut}
+          disabled={busy}
+          className="w-full px-5 py-4 text-left border-t border-ink-900/[.05] text-[14px] font-extrabold text-red-600 disabled:opacity-50"
+        >
+          Deconectare
+        </button>
+      </div>
+
+      <div className="hidden lg:grid gap-[18px] items-start lg:grid-cols-[1.55fr_1fr]">
         <div
           style={motion('sg-fade-up', 0.7, 0.48)}
           className="rounded-[22px] bg-white border border-ink-900/[0.06]

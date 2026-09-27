@@ -10,8 +10,10 @@ const anim = (name, dur, delay = 0, fill = 'both', ease = EASE) =>
 /** Culorile medaliilor, pe locuri (index 0 = locul 1). */
 const MEDALS = ['#F5C451', '#CBD5E1', '#D6A57C'];
 
-/** Înălțimea coloanei de podium, pe locuri. */
+/** Înălțimea treptei de podium, pe locuri. Pe mobil containerul e 258px, nu
+ *  290px, deci treptele desktop-ului ar ieși din card sus și jos. */
 const PODIUM_H = [214, 172, 146];
+const PODIUM_H_MOBILE = [150, 116, 94];
 
 /** Ordinea vizuală a coloanelor: locul 2 la stânga, 1 la mijloc, 3 la dreapta. */
 const PODIUM_ORDER = [1, 0, 2];
@@ -91,7 +93,7 @@ export default function LeaderboardPage({ isGuest = false, onCreateAccount }) {
 
   return (
     <div className="min-h-full flex flex-col gap-[22px]
-      px-5 pt-5 pb-8 lg:px-11 lg:pt-[34px] lg:pb-11
+      px-5 pt-3 pb-8 lg:px-11 lg:pt-[34px] lg:pb-11
       bg-[radial-gradient(110%_45%_at_50%_0%,#F3FBF6_0%,#FFFBF3_62%)]
       lg:bg-[radial-gradient(ellipse_70%_50%_at_85%_0%,#FFFDF7,#FBF6ED)]">
 
@@ -100,26 +102,27 @@ export default function LeaderboardPage({ isGuest = false, onCreateAccount }) {
         <div className="min-w-0">
           <p
             style={anim('sg-fade-right', 0.6, 0.06)}
-            className="text-[10.5px] lg:text-xs font-extrabold uppercase tracking-[.14em] lg:tracking-[.22em] text-ink-400"
+            className="hidden lg:block text-xs font-extrabold uppercase tracking-[.22em] text-ink-400"
           >
             Clasament · Din totdeauna
           </p>
           <h1
             style={anim('sg-fade-up', 0.7, 0.14)}
-            className="mt-1.5 lg:mt-2 text-[29px] lg:text-[2.6rem] font-black text-ink-900
+            className="mt-0 lg:mt-2 text-[29px] lg:text-[2.6rem] font-black text-ink-900
               tracking-[-.02em] lg:tracking-[-.025em] leading-tight lg:leading-[1.1] text-pretty"
           >
-            Cine e în față
+            <span className="lg:hidden">Clasament</span>
+            <span className="hidden lg:inline">Cine e în față</span>
           </h1>
           <p
             style={anim('sg-fade-up', 0.7, 0.2)}
-            className="mt-1 text-[13.5px] font-semibold text-ink-500 tabular-nums"
+            className="hidden lg:block mt-1 text-[13.5px] font-semibold text-ink-500 tabular-nums"
           >
             {rows.length} {rows.length === 1 ? 'jucător' : 'jucători'} · {totalXp} XP adunați
           </p>
         </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="hidden lg:flex items-center gap-2 flex-shrink-0">
           <button
             type="button"
             disabled
@@ -182,7 +185,7 @@ export default function LeaderboardPage({ isGuest = false, onCreateAccount }) {
       <div className="grid grid-cols-1 lg:grid-cols-[1.35fr_1fr] gap-[18px] items-stretch">
         <div
           style={anim('sg-fade-up', 0.75, 0.3)}
-          className="relative overflow-hidden rounded-3xl lg:rounded-[26px] px-[34px] pt-[30px]
+          className="relative overflow-hidden rounded-3xl lg:rounded-[26px] px-4 pt-6 lg:px-[34px] lg:pt-[30px]
             bg-[linear-gradient(135deg,#064e3b,#065f46_52%,#047857)]
             shadow-[0_18px_38px_rgba(6,78,59,.24)] lg:shadow-[0_20px_48px_rgba(8,74,52,.24)]"
         >
@@ -212,12 +215,14 @@ export default function LeaderboardPage({ isGuest = false, onCreateAccount }) {
           />
 
           {podium.length > 0 ? (
-            <div className="relative grid grid-cols-[1fr_1.12fr_1fr] items-end h-[290px]">
+            <div className="relative grid grid-cols-[1fr_1.12fr_1fr] items-end h-[258px] lg:h-[290px]">
               {PODIUM_ORDER.map((place) => {
                 const row = podium[place];
                 if (!row) return <div key={place} />;
                 const isMe = row.id === meId;
-                const size = place === 0 ? 62 : 54;
+                const avatarSize = place === 0
+                  ? 'w-[56px] h-[56px] lg:w-[62px] lg:h-[62px]'
+                  : 'w-[48px] h-[48px] lg:w-[54px] lg:h-[54px]';
                 return (
                   <div key={place} className="flex flex-col items-center justify-end h-full">
                     <div
@@ -227,13 +232,13 @@ export default function LeaderboardPage({ isGuest = false, onCreateAccount }) {
                       {place === 0 && (
                         <span
                           aria-hidden
-                          className="text-[22px] leading-none mb-1"
+                          className="text-[20px] lg:text-[22px] leading-none mb-1"
                           style={{ animation: 'sg-crown 2.6s ease-in-out infinite' }}
                         >
                           👑
                         </span>
                       )}
-                      <span className="relative flex-none" style={{ width: size, height: size }}>
+                      <span className={`relative flex-none ${avatarSize}`}>
                         {place === 0 && (
                           <span
                             aria-hidden
@@ -263,9 +268,11 @@ export default function LeaderboardPage({ isGuest = false, onCreateAccount }) {
                     </div>
 
                     <div
-                      className="w-full mt-3 rounded-t-2xl bg-white/[.14] border-x border-t border-white/[.16]"
+                      className="w-full mt-2.5 lg:mt-3 h-[var(--sg-step)] lg:h-[var(--sg-step-lg)]
+                        rounded-t-2xl bg-white/[.14] border-x border-t border-white/[.16]"
                       style={{
-                        height: PODIUM_H[place],
+                        '--sg-step': `${PODIUM_H_MOBILE[place]}px`,
+                        '--sg-step-lg': `${PODIUM_H[place]}px`,
                         transformOrigin: 'bottom',
                         transform: `scaleY(${on ? 1 : 0})`,
                         transition: `transform .8s ${EASE} ${0.5 + place * 0.11}s`,
@@ -280,7 +287,7 @@ export default function LeaderboardPage({ isGuest = false, onCreateAccount }) {
               })}
             </div>
           ) : (
-            <div className="relative h-[290px] flex items-center justify-center">
+            <div className="relative h-[258px] lg:h-[290px] flex items-center justify-center">
               <p className="text-[13.5px] font-semibold text-cream/65">
                 Încă nu e nimeni în clasament.
               </p>
@@ -295,11 +302,11 @@ export default function LeaderboardPage({ isGuest = false, onCreateAccount }) {
           <div>
             <p
               style={anim('sg-fade-right', 0.6, 0.54)}
-              className="text-[10.5px] font-extrabold uppercase tracking-[.14em] text-ink-400"
+              className="hidden lg:block text-[10.5px] font-extrabold uppercase tracking-[.14em] text-ink-400"
             >
               Poziția ta
             </p>
-            <p style={anim('sg-fade-up', 0.6, 0.6)} className="mt-2 flex items-baseline gap-1.5">
+            <p style={anim('sg-fade-up', 0.6, 0.6)} className="mt-0 lg:mt-2 flex items-baseline gap-1.5">
               <span className="text-[38px] font-black text-ink-900 leading-none tabular-nums">
                 {myIndex >= 0 ? `#${myIndex + 1}` : '—'}
               </span>
@@ -355,13 +362,14 @@ export default function LeaderboardPage({ isGuest = false, onCreateAccount }) {
                 {myStreak}
               </p>
               <p className="mt-1.5 lg:mt-[5px] text-[9.5px] lg:text-[11px] font-extrabold uppercase tracking-[.14em] text-ink-400">
-                Zile la rând
+                <span className="lg:hidden">Zile</span>
+                <span className="hidden lg:inline">Zile la rând</span>
               </p>
             </div>
           </div>
 
           {ahead && (
-            <div className="rounded-[14px] bg-[#E9F7F0] border border-signa-500/[.14] px-3.5 py-3">
+            <div className="hidden lg:block rounded-[14px] bg-[#E9F7F0] border border-signa-500/[.14] px-3.5 py-3">
               <p className="text-[12px] font-bold text-signa-900 leading-relaxed">
                 {lessonsToNext === 1
                   ? 'Încă o lecție și treci de locul următor.'
@@ -386,8 +394,9 @@ export default function LeaderboardPage({ isGuest = false, onCreateAccount }) {
                   ...anim('sg-row-in', 0.5, 0.5 + i * 0.05),
                   ...(isMe ? { boxShadow: 'inset 3px 0 0 #10b981' } : null),
                 }}
-                className={`group grid grid-cols-[52px_40px_1fr_auto_auto] items-center gap-4
-                  px-6 py-3.5 transition-[background-color,transform] duration-[220ms] ease-out
+                className={`group grid grid-cols-[34px_38px_minmax(0,1fr)_auto_auto]
+                  lg:grid-cols-[52px_40px_1fr_auto_auto] items-center gap-2.5 lg:gap-4
+                  px-4 py-3 lg:px-6 lg:py-3.5 transition-[background-color,transform] duration-[220ms] ease-out
                   hover:bg-[#FBF7F0] hover:translate-x-[3px]
                   ${i > 0 ? 'border-t border-ink-900/[.05]' : ''}
                   ${isMe ? 'bg-[#F3FAF6]' : ''}`}

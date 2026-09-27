@@ -251,7 +251,7 @@ export default function CameraPage() {
 
   return (
     <div className="min-h-full flex flex-col gap-[22px]
-      px-5 pt-5 pb-8 lg:px-11 lg:pt-[34px] lg:pb-11
+      px-5 pt-3 pb-8 lg:px-11 lg:pt-[34px] lg:pb-11
       bg-[radial-gradient(110%_45%_at_50%_0%,#F3FBF6_0%,#FFFBF3_62%)]
       lg:bg-[radial-gradient(ellipse_70%_50%_at_85%_0%,#FFFDF7,#FBF6ED)]">
 
@@ -260,20 +260,21 @@ export default function CameraPage() {
         <div className="min-w-0">
           <p
             style={anim('sg-fade-right', 0.6, 0.06)}
-            className="text-[10.5px] lg:text-xs font-extrabold uppercase tracking-[.14em] lg:tracking-[.22em] text-ink-400"
+            className="hidden lg:block text-xs font-extrabold uppercase tracking-[.22em] text-ink-400"
           >
             Cameră · Recunoaștere locală
           </p>
           <h1
             style={anim('sg-fade-up', 0.7, 0.14)}
-            className="mt-1.5 lg:mt-2 text-[29px] lg:text-[2.6rem] font-black text-ink-900
+            className="mt-0 lg:mt-2 text-[29px] lg:text-[2.6rem] font-black text-ink-900
               tracking-[-.02em] lg:tracking-[-.025em] leading-tight lg:leading-[1.1] text-pretty"
           >
-            Antrenament liber
+            <span className="lg:hidden">Cameră</span>
+            <span className="hidden lg:inline">Antrenament liber</span>
           </h1>
           <p
             style={anim('sg-fade-up', 0.7, 0.2)}
-            className="mt-1 text-[13.5px] font-semibold text-ink-500"
+            className="hidden lg:block mt-1 text-[13.5px] font-semibold text-ink-500"
           >
             Totul rulează pe dispozitiv — imaginea nu pleacă nicăieri.
           </p>
@@ -289,7 +290,8 @@ export default function CameraPage() {
               <span className="absolute inset-0 rounded-full bg-signa-500" />
               <span className="absolute -inset-1 rounded-full border-[1.5px] border-signa-500/55 sg-dot-ring" />
             </span>
-            {statusLabel}
+            <span className="lg:hidden">Local</span>
+            <span className="hidden lg:inline">{statusLabel}</span>
           </span>
           <button
             type="button"
@@ -310,7 +312,7 @@ export default function CameraPage() {
       <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-[18px] items-stretch">
         <div
           style={anim('sg-fade-up', 0.75, 0.3)}
-          className="relative overflow-hidden rounded-3xl lg:rounded-[26px] min-h-[430px]
+          className="relative overflow-hidden rounded-3xl lg:rounded-[26px] h-[440px] lg:h-auto lg:min-h-[430px]
             bg-[linear-gradient(160deg,#111c1a,#0b1614_60%,#0d1a17)]"
         >
           {/* Feed real — umple cardul; landmark-urile se desenează în HandCanvas */}
@@ -385,7 +387,7 @@ export default function CameraPage() {
             {cameraOn && (
               <span
                 style={anim('sg-fade-up', 0.6, 0.56)}
-                className="rounded-full bg-black/40 border border-white/[.12] text-white/70
+                className="hidden lg:block rounded-full bg-black/40 border border-white/[.12] text-white/70
                   text-[11.5px] font-bold px-3.5 py-2 tabular-nums"
               >
                 {FPS} fps · 21 puncte
@@ -395,7 +397,7 @@ export default function CameraPage() {
 
           {!cameraOn && (
             <div className="absolute inset-0 z-[2] flex flex-col items-center justify-center gap-4 px-6">
-              <p className="text-white/70 text-[13.5px] font-semibold text-center max-w-[280px]">
+              <p className="hidden lg:block text-white/70 text-[13.5px] font-semibold text-center max-w-[280px]">
                 Camera e oprită. Pornește-o ca să recunoști semne.
               </p>
               <button
@@ -405,7 +407,8 @@ export default function CameraPage() {
                   shadow-[0_10px_24px_rgba(16,185,129,.35)]
                   transition-transform duration-[160ms] ease-out hover:-translate-y-0.5"
               >
-                Pornește camera
+                <span className="lg:hidden">Pornește</span>
+                <span className="hidden lg:inline">Pornește camera</span>
               </button>
             </div>
           )}
@@ -457,10 +460,11 @@ export default function CameraPage() {
                 onClick={() => setCameraOn(false)}
                 style={anim('sg-fade-up', 0.7, 0.94)}
                 className="flex-none rounded-2xl border border-white/[.14] bg-black/40 text-white
-                  px-5 py-3 text-[13px] font-bold backdrop-blur
+                  px-3.5 py-3 text-[12.5px] lg:px-5 lg:text-[13px] font-bold backdrop-blur
                   transition-transform duration-[160ms] ease-out hover:-translate-y-0.5"
               >
-                Oprește camera
+                <span className="lg:hidden">Oprește</span>
+                <span className="hidden lg:inline">Oprește camera</span>
               </button>
             </div>
           )}
@@ -474,7 +478,8 @@ export default function CameraPage() {
               shadow-[0_10px_30px_rgba(46,42,36,.06)] px-6 py-[22px]"
           >
             <p className="text-[10.5px] font-extrabold uppercase tracking-[.14em] text-ink-400">
-              Top 3 predicții
+              <span className="lg:hidden">Top 3</span>
+              <span className="hidden lg:inline">Top 3 predicții</span>
             </p>
             <div className="mt-3.5 flex flex-col gap-2.5">
               {(live?.top3 ?? []).map(({ label, p }, i) => {
@@ -578,18 +583,21 @@ export default function CameraPage() {
         </div>
       </div>
 
-      {/* 3 · Recunoscute acum */}
+      {/* 3 · Recunoscute acum / Sesiune */}
       <div
         style={anim('sg-fade-up', 0.7, 0.74)}
         className="bg-white border border-ink-900/[.05] rounded-[22px] px-7 py-6
-          shadow-[0_6px_20px_rgba(46,42,36,.05)] flex items-center gap-7"
+          shadow-[0_6px_20px_rgba(46,42,36,.05)] flex flex-col lg:flex-row lg:items-center gap-3.5 lg:gap-7"
       >
-        <div className="flex-none">
-          <h3 className="text-base font-extrabold text-ink-900">Recunoscute acum</h3>
-          <p className="mt-1 text-[13px] font-medium text-ink-400">în sesiunea curentă</p>
+        <div className="lg:flex-none">
+          <h3 className="text-base font-extrabold text-ink-900">
+            <span className="lg:hidden">Sesiune</span>
+            <span className="hidden lg:inline">Recunoscute acum</span>
+          </h3>
+          <p className="hidden lg:block mt-1 text-[13px] font-medium text-ink-400">în sesiunea curentă</p>
         </div>
 
-        <div className="flex-1 flex gap-2.5 flex-wrap">
+        <div className="lg:flex-1 flex gap-2 lg:gap-2.5 flex-wrap">
           {session.length > 0 ? session.slice(-12).map((s, i) => (
             <span
               key={`${s.label}-${s.at}`}
@@ -598,7 +606,7 @@ export default function CameraPage() {
                 // `backwards`, nu `both` — altfel animația blochează hover-ul
                 animation: `sg-pop .45s ${EASE} ${i * 0.05}s backwards`,
               }}
-              className={`w-[52px] h-[52px] flex-none rounded-[14px] flex items-center justify-center
+              className={`w-[46px] h-[46px] lg:w-[52px] lg:h-[52px] flex-none rounded-[14px] flex items-center justify-center
                 text-[17px] font-extrabold border transition-[transform,box-shadow] duration-[220ms] ease-out
                 hover:-translate-y-[5px] hover:shadow-[0_12px_24px_rgba(46,42,36,.13)]
                 ${s.dynamic
@@ -609,7 +617,8 @@ export default function CameraPage() {
             </span>
           )) : (
             <p className="text-[13px] font-semibold text-ink-400 py-3">
-              Niciun semn încă în sesiunea asta.
+              <span className="lg:hidden">—</span>
+              <span className="hidden lg:inline">Niciun semn încă în sesiunea asta.</span>
             </p>
           )}
         </div>
@@ -618,14 +627,15 @@ export default function CameraPage() {
           type="button"
           onClick={() => { setSession([]); lastLoggedRef.current = null; }}
           disabled={session.length === 0}
-          className="ml-auto flex-none bg-white border border-ink-900/[.09] rounded-[15px]
+          className="w-full lg:w-auto lg:ml-auto flex-none bg-white border border-ink-900/[.09] rounded-[15px]
             px-6 py-[15px] font-bold text-[14.5px] text-ink-700
             transition-[transform,box-shadow,border-color,color] duration-[180ms] ease-out
             hover:-translate-y-0.5 hover:shadow-[0_12px_26px_rgba(46,42,36,.09)]
             hover:border-signa-500/[.32] hover:text-signa-600
             disabled:opacity-40 disabled:translate-y-0 disabled:cursor-not-allowed"
         >
-          Golește sesiunea
+          <span className="lg:hidden">Golește</span>
+          <span className="hidden lg:inline">Golește sesiunea</span>
         </button>
       </div>
     </div>

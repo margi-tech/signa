@@ -93,17 +93,27 @@ export function LockIcon() {
   );
 }
 
-/** `action` = slot aliniat dreapta pe linia label-ului (ex. „Ai uitat parola?”). */
-export function AuthField({ label, hint, error, action, children }) {
+/**
+ * `action` = slot aliniat dreapta pe linia label-ului (ex. „Ai uitat parola?”).
+ * `hideLabelBelowMd` / `hideHintBelowMd` — câmpurile de Auth pe mobil nu au
+ * label, doar iconiță + placeholder; folosit doar acolo, nu schimbă desktopul.
+ */
+export function AuthField({
+  label, hint, error, action, hideLabelBelowMd = false, hideHintBelowMd = false, children,
+}) {
   return (
-    <label className="block space-y-1.5">
-      <span className="flex items-center justify-between gap-3">
+    <label className="flex flex-col gap-1.5">
+      <span className={`items-center justify-between gap-3 ${hideLabelBelowMd ? 'hidden md:flex' : 'flex'}`}>
         <span className="text-ink-700 text-sm font-semibold">{label}</span>
         {action}
       </span>
       {children}
       {error && <span className="block text-red-600 text-xs">{error}</span>}
-      {!error && hint && <span className="block text-ink-400 text-xs leading-relaxed">{hint}</span>}
+      {!error && hint && (
+        <span className={`text-ink-400 text-xs leading-relaxed ${hideHintBelowMd ? 'hidden md:block' : 'block'}`}>
+          {hint}
+        </span>
+      )}
     </label>
   );
 }
@@ -124,7 +134,9 @@ export function AuthInput({ className = '', error, icon, ...props }) {
   if (!icon) return field;
   return (
     <span className="relative block">
-      <span className="absolute left-[15px] top-1/2 -translate-y-1/2 flex pointer-events-none">
+      {/* z-10: `focus:-translate-y-px` promovează inputul într-un context de
+          stacking propriu, care altfel ar acoperi iconița la focus. */}
+      <span className="absolute z-10 left-[15px] top-1/2 -translate-y-1/2 flex pointer-events-none">
         {icon}
       </span>
       {field}
@@ -133,11 +145,11 @@ export function AuthInput({ className = '', error, icon, ...props }) {
 }
 
 export function PasswordInput({
-  value, onChange, placeholder, autoComplete, error, hint, action, label = 'Parolă',
+  value, onChange, placeholder, autoComplete, error, hint, action, label = 'Parolă', hideLabelBelowMd = false,
 }) {
   const [show, setShow] = useState(false);
   return (
-    <AuthField label={label} hint={hint} error={error} action={action}>
+    <AuthField label={label} hint={hint} error={error} action={action} hideLabelBelowMd={hideLabelBelowMd}>
       <div className="relative">
         <AuthInput
           type={show ? 'text' : 'password'}
@@ -162,13 +174,14 @@ export function PasswordInput({
   );
 }
 
-/** Nivelele barei de parolă — lățime + culoare + etichetă. */
+/** Nivelele barei de parolă — lățime + culoare + etichetă (scurtă pe mobil). */
 function strengthLevel(password) {
-  if (password.length < 8) return { width: '33%', color: '#f59e0b', label: 'Minim 8 caractere' };
-  if (/[^\p{L}]/u.test(password)) return { width: '100%', color: '#059669', label: 'Puternică' };
-  return { width: '68%', color: '#34d399', label: 'Bună' };
+  if (password.length < 8) return { width: '33%', color: '#f59e0b', label: 'Minim 8 caractere', shortLabel: 'Minim 8' };
+  if (/[^\p{L}]/u.test(password)) return { width: '100%', color: '#059669', label: 'Puternică', shortLabel: 'Puternică' };
+  return { width: '68%', color: '#34d399', label: 'Bună', shortLabel: 'Bună' };
 }
 
+/** Pe mobil bara și eticheta stau pe un rând; pe desktop rămân ca înainte. */
 export function PasswordStrength({ password }) {
   const open = Boolean(password);
   const level = strengthLevel(password || '');
@@ -181,8 +194,8 @@ export function PasswordStrength({ password }) {
         transition: 'max-height .35s cubic-bezier(.22,1,.36,1), opacity .3s ease-out',
       }}
     >
-      <div className="pt-1.5 space-y-1">
-        <div className="h-[5px] rounded-full bg-ink-900/[0.08] overflow-hidden">
+      <div className="pt-1.5 flex items-center gap-2.5 md:block md:space-y-1">
+        <div className="flex-1 md:flex-none h-[5px] rounded-full bg-ink-900/[0.08] overflow-hidden">
           <div
             className="h-full rounded-full"
             style={{
@@ -192,7 +205,10 @@ export function PasswordStrength({ password }) {
             }}
           />
         </div>
-        <p className="text-ink-400 text-xs">{level.label}</p>
+        <p className="text-ink-400 text-xs flex-none whitespace-nowrap">
+          <span className="md:hidden">{level.shortLabel}</span>
+          <span className="hidden md:inline">{level.label}</span>
+        </p>
       </div>
     </div>
   );

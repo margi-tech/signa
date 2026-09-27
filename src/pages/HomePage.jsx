@@ -6,8 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { LESSONS } from '../data/lessons';
 import { useProgress } from '../hooks/useProgress';
 import {
-  ArrowIcon, BarsIcon, BookIcon, CamIcon, FlameIcon, HomeIcon,
-  LinesIcon, RepeatIcon, SoundIcon, UserIcon,
+  ArrowIcon, BarsIcon, FlameIcon, LinesIcon, RepeatIcon, SoundIcon,
 } from '../components/icons.jsx';
 
 const EASE = 'cubic-bezier(.22,1,.36,1)';
@@ -39,6 +38,23 @@ function useCountUp(target, duration = 1200, delay = 0) {
 
 const anim = (name, dur, delay = 0, fill = 'both', ease = EASE) =>
   ({ animation: `${name} ${dur}s ${ease} ${delay}s ${fill}` });
+
+/** Cuvintele salutului, animate pe rând — ultimul primește underline-ul. */
+function AnimatedGreeting({ words }) {
+  return words.map((word, i) => (
+    <span
+      key={`${word}-${i}`}
+      className="inline-block relative"
+      style={anim('sg-fade-up', 0.7, 0.16 + i * 0.08)}
+    >
+      {word}
+      {i === words.length - 1 && (
+        <span aria-hidden className="absolute left-0 right-1.5 bottom-1 h-2 rounded sg-underline bg-signa-400/[.32]" />
+      )}
+      {i < words.length - 1 && ' '}
+    </span>
+  ));
+}
 
 /* ── Piese ─────────────────────────────────────────────────────── */
 
@@ -72,7 +88,7 @@ const TILE_TONES = {
 };
 
 /** Tile de acțiune — pastilă icon colorată + titlu + subtitlu. */
-function Tile({ icon: Icon, tone, title, subtitle, onClick, spin = false, delay = 0 }) {
+function Tile({ icon: Icon, tone, title, subtitle, onClick, spin = false, delay = 0, className = '' }) {
   const t = TILE_TONES[tone];
   return (
     <button
@@ -83,7 +99,7 @@ function Tile({ icon: Icon, tone, title, subtitle, onClick, spin = false, delay 
         shadow-[0_6px_20px_rgba(46,42,36,.05)]
         transition-[transform,box-shadow,border-color] duration-[220ms] ease-out
         hover:-translate-y-[5px] hover:shadow-[0_18px_36px_rgba(46,42,36,.10)] ${t.border}
-        active:-translate-y-px active:scale-[.99]`}
+        active:-translate-y-px active:scale-[.99] ${className}`}
     >
       <span
         className={`flex items-center justify-center w-[34px] h-[34px] lg:w-11 lg:h-11 rounded-xl lg:rounded-[13px] ${t.chip}
@@ -94,22 +110,7 @@ function Tile({ icon: Icon, tone, title, subtitle, onClick, spin = false, delay 
         <Icon className="w-[17px] h-[17px] lg:w-5 lg:h-5" />
       </span>
       <p className="mt-[11px] lg:mt-[18px] text-[14px] lg:text-base font-extrabold text-ink-900">{title}</p>
-      <p className="mt-[3px] lg:mt-[5px] text-[11.5px] lg:text-[13.5px] font-medium text-ink-500">{subtitle}</p>
-    </button>
-  );
-}
-
-/** Element din bara de jos (mobil) — minim 44px zonă de tap. */
-function NavItem({ icon: Icon, label, active, onClick }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex flex-col items-center justify-center gap-1 min-h-[44px] px-2 text-[10px] font-extrabold
-        transition-colors duration-[160ms] ${active ? 'text-signa-600' : 'text-ink-400 hover:text-signa-600'}`}
-    >
-      <Icon className="w-5 h-5" strokeWidth="2.1" />
-      {label}
+      <p className="hidden lg:block mt-[5px] text-[13.5px] font-medium text-ink-500">{subtitle}</p>
     </button>
   );
 }
@@ -125,8 +126,8 @@ function todayKey() {
 }
 
 export default function HomePage({
-  onLessons, onStart, onSpell, onReview, onProfile, onLeaderboard, onOpenLesson,
-  firstName = '', initials = '', rank = null,
+  onLessons, onSpell, onReview, onLeaderboard, onOpenLesson,
+  firstName = '', rank = null,
 }) {
   const {
     xp, streak, level, completedLessonsCount, totalLessonsCount,
@@ -202,6 +203,8 @@ export default function HomePage({
   const today = new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' });
   const greeting = firstName ? `Bine ai revenit, ${firstName}.` : 'Bine ai revenit.';
   const greetingWords = greeting.split(' ');
+  const mobileGreeting = firstName ? `Salut, ${firstName}.` : 'Salut.';
+  const mobileGreetingWords = mobileGreeting.split(' ');
   const rankLabel = rank ? `Locul ${rank.place} din ${rank.total}` : 'Vezi clasamentul';
   const openLesson = () => (onOpenLesson ? onOpenLesson(nextLesson.id) : onLessons());
   const streakLabel = `${streak} ${streak === 1 ? 'zi' : 'zile'}`;
@@ -213,12 +216,14 @@ export default function HomePage({
   const tiles = (
     <>
       <Tile icon={LinesIcon} tone="signa" title="Scrie cuvântul" subtitle="Literă cu literă" onClick={onSpell} delay={0.62} />
-      <Tile icon={CamIcon} tone="blue" title="Antrenament" subtitle="Camera liberă" onClick={onStart} delay={0.7} />
       <Tile
         icon={RepeatIcon} tone="amber" title="Repetiție" spin
-        subtitle={`${reviewLetters.length} litere de revăzut`} onClick={onReview} delay={0.78}
+        subtitle={`${reviewLetters.length} litere de revăzut`} onClick={onReview} delay={0.7}
       />
-      <Tile icon={BarsIcon} tone="violet" title="Clasament" subtitle={rankLabel} onClick={onLeaderboard} delay={0.86} />
+      <Tile
+        icon={BarsIcon} tone="violet" title="Clasament" subtitle={rankLabel}
+        onClick={onLeaderboard} delay={0.78} className="col-span-2 lg:col-span-1"
+      />
     </>
   );
 
@@ -230,72 +235,22 @@ export default function HomePage({
       bg-[radial-gradient(110%_45%_at_50%_0%,#F3FBF6_0%,#FFFBF3_62%)]
       lg:bg-[radial-gradient(ellipse_70%_50%_at_85%_0%,#FFFDF7,#FBF6ED)]">
 
-          {/* Header mobil */}
-          <header className="lg:hidden flex items-center justify-between px-5 pt-2">
-            <div className="flex items-center gap-2.5">
-              <img src="/icon.svg" alt="" className="w-[30px] h-[30px] rounded-[9px] block" />
-              <span className="font-black text-[15px] tracking-[.16em] text-ink-900">SIGNA</span>
-            </div>
-            <div className="flex items-center gap-2">
-              {streak > 0 && (
-                <span
-                  className="flex items-center gap-[5px] bg-amber-50 border border-amber-600/[.16] text-amber-700
-                    rounded-full px-[11px] py-1.5 text-[12px] font-extrabold tabular-nums"
-                  title="Zile consecutive"
-                >
-                  <FlameIcon className="w-[13px] h-[13px]" />
-                  {streak}
-                </span>
-              )}
-              <button
-                type="button"
-                onClick={() => setSoundEnabled(!soundEnabled)}
-                className="w-[34px] h-[34px] rounded-xl flex items-center justify-center text-ink-400
-                  hover:text-ink-700 transition-colors duration-[160ms]"
-                aria-label={soundEnabled ? 'Oprește sunetul' : 'Pornește sunetul'}
-                title={soundEnabled ? 'Sunet pornit' : 'Sunet oprit'}
-              >
-                <SoundIcon on={soundEnabled} className="w-[18px] h-[18px]" />
-              </button>
-              <button
-                type="button"
-                onClick={onProfile}
-                className="w-[34px] h-[34px] rounded-xl bg-signa-100 text-signa-900 font-black text-[12.5px]
-                  flex items-center justify-center transition-transform duration-[160ms] active:scale-95"
-                aria-label="Deschide profilul"
-              >
-                {initials || <UserIcon className="w-4 h-4" />}
-              </button>
-            </div>
-          </header>
-
           {/* Salut */}
-          <div className="px-5 pt-[22px] lg:px-11 lg:pt-[34px] lg:flex lg:items-start lg:justify-between lg:gap-6">
+          <div className="px-5 pt-3.5 lg:px-11 lg:pt-[34px] lg:flex lg:items-start lg:justify-between lg:gap-6">
             <div>
               <p
                 style={anim('sg-fade-right', 0.6, 0.08)}
-                className="text-[10.5px] lg:text-xs font-extrabold uppercase tracking-[.14em] lg:tracking-[.22em] text-ink-400"
+                className="hidden lg:block text-xs font-extrabold uppercase tracking-[.22em] text-ink-400"
               >
                 {today}
               </p>
-              <h1 className="mt-[7px] lg:mt-2 text-[26px] lg:text-[2.6rem] font-black text-ink-900
-                tracking-[-.02em] lg:tracking-[-.025em] leading-[1.15] lg:leading-[1.1] text-pretty">
-                {greetingWords.map((word, i) => (
-                  <span
-                    key={`${word}-${i}`}
-                    className="inline-block relative"
-                    style={anim('sg-fade-up', 0.7, 0.16 + i * 0.08)}
-                  >
-                    {word}
-                    {i === greetingWords.length - 1 && (
-                      <span
-                        aria-hidden
-                        className="absolute left-0 right-1.5 bottom-1 h-2 rounded sg-underline bg-signa-400/[.32]"
-                      />
-                    )}
-                    {i < greetingWords.length - 1 && ' '}
-                  </span>
-                ))}
+              <h1 className="lg:hidden text-[26px] font-black text-ink-900
+                tracking-[-.02em] leading-[1.15] text-pretty">
+                <AnimatedGreeting words={mobileGreetingWords} />
+              </h1>
+              <h1 className="hidden lg:block mt-2 text-[2.6rem] font-black text-ink-900
+                tracking-[-.025em] leading-[1.1] text-pretty">
+                <AnimatedGreeting words={greetingWords} />
               </h1>
             </div>
 
@@ -390,7 +345,8 @@ export default function HomePage({
                     className="text-[10.5px] lg:text-[11.5px] font-extrabold uppercase tracking-[.14em]
                       lg:tracking-[.2em] text-emerald-100/70 lg:text-emerald-100/85 truncate lg:mb-3"
                   >
-                    Continuă · {nextLesson.title}
+                    <span className="lg:hidden">{nextLesson.title}</span>
+                    <span className="hidden lg:inline">Continuă · {nextLesson.title}</span>
                   </p>
                   <h2
                     style={anim('sg-fade-up', 0.7, 0.56)}
@@ -478,7 +434,9 @@ export default function HomePage({
                 )}
               </div>
 
-              <div className="relative flex gap-3">
+              {/* `mt-4` pe mobil: spațiul față de cipuri venea doar din
+                  `lg:mb-[26px]`, deci butonul stătea lipit de ele. */}
+              <div className="relative flex gap-3 mt-4 lg:mt-0">
                 <button
                   type="button"
                   onClick={openLesson}
@@ -498,7 +456,10 @@ export default function HomePage({
                       animation: 'sg-sheen 4.5s cubic-bezier(.4,0,.2,1) 2s infinite',
                     }}
                   />
-                  <span className="relative">Reia lecția</span>
+                  <span className="relative">
+                    <span className="lg:hidden">Continuă</span>
+                    <span className="hidden lg:inline">Reia lecția</span>
+                  </span>
                   <span aria-hidden className="relative flex ml-2 lg:ml-0 sg-arrow">
                     <ArrowIcon className="w-4 h-4" />
                   </span>
@@ -613,17 +574,10 @@ export default function HomePage({
 
           {/* Exersează */}
           <div className="px-5 pt-[22px] lg:px-11 lg:pt-[22px]">
-            <div className="lg:hidden flex items-baseline justify-between mb-[11px]">
+            <div className="lg:hidden mb-[11px]">
               <h3 className="text-[14.5px] font-black text-ink-900">Exersează</h3>
-              <button
-                type="button"
-                onClick={onLessons}
-                className="text-[12px] font-extrabold text-signa-600 hover:text-signa-900 transition-colors duration-[160ms]"
-              >
-                Toate lecțiile
-              </button>
             </div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 lg:gap-[18px]">{tiles}</div>
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 lg:gap-[18px]">{tiles}</div>
           </div>
 
           {/* De revăzut azi */}
@@ -635,8 +589,11 @@ export default function HomePage({
                   lg:shadow-[0_6px_20px_rgba(46,42,36,.05)] lg:flex lg:items-center lg:gap-7"
               >
                 <div className="flex items-baseline justify-between mb-[11px] lg:mb-0 lg:flex-none lg:block">
-                  <h3 className="text-[14.5px] lg:text-base font-black lg:font-extrabold text-ink-900">De revăzut azi</h3>
-                  <span className="text-[11.5px] lg:text-[13px] font-semibold lg:font-medium text-ink-400 lg:mt-1 lg:block">
+                  <h3 className="text-[14.5px] lg:text-base font-black lg:font-extrabold text-ink-900">
+                    <span className="lg:hidden">De revăzut</span>
+                    <span className="hidden lg:inline">De revăzut azi</span>
+                  </h3>
+                  <span className="hidden lg:block text-[13px] font-medium text-ink-400 mt-1">
                     după memorie
                   </span>
                 </div>
@@ -698,15 +655,6 @@ export default function HomePage({
           )}
 
           <div className="flex-1 min-h-[26px] lg:min-h-[44px]" />
-
-          {/* Bară de jos — doar mobil */}
-          <nav className="lg:hidden sticky bottom-0 bg-cream/90 backdrop-blur-[14px] border-t border-ink-900/[.07]
-            px-[26px] pt-3 pb-2.5 flex justify-between">
-            <NavItem icon={HomeIcon} label="Acasă" active />
-            <NavItem icon={BookIcon} label="Lecții" onClick={onLessons} />
-            <NavItem icon={CamIcon} label="Cameră" onClick={onStart} />
-            <NavItem icon={UserIcon} label="Profil" onClick={onProfile} />
-      </nav>
     </div>
   );
 }

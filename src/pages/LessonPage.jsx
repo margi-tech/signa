@@ -68,7 +68,7 @@ function ResultsScreen({ lesson, skipped, xpGained, stars, leveledUp, nextLesson
         })}
       </div>
       {skipped.length > 0 && (
-        <p className="text-ink-500 text-xs -mt-7 mb-8">
+        <p className="hidden lg:block text-ink-500 text-xs -mt-7 mb-8">
           {skipped.join(', ')} — de repetat
         </p>
       )}
@@ -80,14 +80,16 @@ function ResultsScreen({ lesson, skipped, xpGained, stars, leveledUp, nextLesson
           className="w-full py-4 bg-signa-500 text-white font-bold rounded-2xl
             shadow-button active:scale-[0.97] transition-transform"
         >
-          {continueLabel}
+          <span className="lg:hidden">Continuă</span>
+          <span className="hidden lg:inline">{continueLabel}</span>
         </button>
         <button
           type="button"
           onClick={onRetry}
           className="w-full py-3 text-ink-500 hover:text-ink-700 font-medium text-sm transition-colors"
         >
-          Repetă lecția
+          <span className="lg:hidden">Repetă</span>
+          <span className="hidden lg:inline">Repetă lecția</span>
         </button>
         <button
           type="button"
@@ -95,7 +97,8 @@ function ResultsScreen({ lesson, skipped, xpGained, stars, leveledUp, nextLesson
           className="w-full py-3 rounded-2xl border border-ink-900/10 text-ink-700 font-semibold text-sm
             hover:bg-cream-100 transition-colors"
         >
-          Ieși afară
+          <span className="lg:hidden">Ieși</span>
+          <span className="hidden lg:inline">Ieși afară</span>
         </button>
       </div>
     </div>
@@ -332,9 +335,6 @@ function LessonSession({ lesson, onExit, onContinue }) {
         )}
 
         <div className="lg:hidden absolute top-[4.35rem] right-3 z-20 w-[min(52vw,220px)]">
-          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/75 mb-1.5 text-right drop-shadow">
-            De reprodus
-          </p>
           <SignWell
             target={target}
             pose={pose}
