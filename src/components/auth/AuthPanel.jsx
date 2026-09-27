@@ -12,11 +12,7 @@ import {
   PasswordStrength,
   PrimaryButton,
   SecondaryButton,
-  SocialButtons,
 } from './AuthUi';
-
-/** OAuth e opțional — se afișează doar dacă providerii sunt configurați în Supabase. */
-const OAUTH_ENABLED = import.meta.env.VITE_ENABLE_OAUTH === 'true';
 
 const HEADINGS = {
   login: {
@@ -75,7 +71,7 @@ export default function AuthPanel({
     username, setUsername,
     passwordConfirm, setPasswordConfirm,
     fieldErrors, setFieldErrors,
-    run, submitLogin, submitSignup, signInWithProvider,
+    run, submitLogin, submitSignup,
   } = useAuthForm({ onBusy, onMessage, afterAuth });
 
   if (mode === 'forgot') {
@@ -326,18 +322,9 @@ export default function AuthPanel({
         </PrimaryButton>
       )}
 
-      {OAUTH_ENABLED && (
-        <div className="space-y-4">
-          <OrSeparator />
-          <SocialButtons onProvider={signInWithProvider} disabled={busy} />
-        </div>
-      )}
-
-      {/* Separatorul e al blocului social când OAuth e pornit — două „SAU"
-          unul sub altul ar rupe ecranul. */}
       {onGuest && (
         <div className="space-y-3">
-          {!OAUTH_ENABLED && <OrSeparator />}
+          <OrSeparator />
           <SecondaryButton disabled={busy} onClick={onGuest}>
             Continuă ca invitat
           </SecondaryButton>
