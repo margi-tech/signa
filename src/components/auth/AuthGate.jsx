@@ -294,8 +294,12 @@ export default function AuthGate({ initialMode = 'login', onRecoveryComplete, on
       <div className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-[1.05fr_1fr]">
         <BrandColumn />
 
-        <div className="flex flex-col justify-center overflow-y-auto scrollbar-hide bg-cream px-5 py-8 md:px-10">
-          <div className="w-full max-w-[390px] mx-auto space-y-5">
+        {/* Centrarea o face `my-auto` pe conținut, nu `justify-center` pe
+            container: cu `justify-center`, un formular mai înalt decât ecranul
+            (signup, sau un telefon scurt) își pierde partea de sus — depășirea
+            dinspre început nu e accesibilă prin scroll. */}
+        <div className="flex flex-col overflow-y-auto scrollbar-hide bg-cream px-5 py-8 md:px-10">
+          <div className="w-full max-w-[390px] mx-auto my-auto space-y-5">
             <MobileAuthHero mode={mode} />
 
             {banner && <MessageBanner tone={banner.tone}>{banner.text}</MessageBanner>}
