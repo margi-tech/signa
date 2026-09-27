@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState } from 'react';
 import { useHolisticLandmarker } from '../../hooks/useHolisticLandmarker';
 import { assessFaceFrame } from '../../utils/faceFrame';
+import { aspectCorrectionFactor, applyAspectCorrection } from '../../utils/frameGeometry';
 import HandCanvas from './HandCanvas';
 
 // 3 modele (mâini + față + trunchi) pe cadru sunt costisitoare — limităm
@@ -35,6 +36,9 @@ export default function HandTracker({
   const onTrackingRef  = useRef(onTracking);
   const requireFrameRef = useRef(requireFaceFrame);
   const framedRef      = useRef(false);
+  // TEMPORAR — indicator de diagnostic pentru recunoașterea pe telefon.
+  const diagRef        = useRef({ frames: 0, since: 0 });
+  const [diag, setDiag] = useState(null);
 
   const [subject,      setSubject]      = useState(null);
   const [cameraError,  setCameraError]  = useState(null);
@@ -82,17 +86,37 @@ export default function HandTracker({
 
       if (video && video.readyState >= 2 && now - lastTickRef.current >= DETECT_INTERVAL_MS) {
         lastTickRef.current = now;
-        const result = detect(video, performance.now());
+        const raw = detect(video, performance.now());
+        // Landmark-urile care merg spre model sunt remapate la raportul de
+        // aspect de referință; cele desenate rămân brute, ca overlay-ul să
+        // stea în continuare fix peste imagine.
+        const factor = aspectCorrectionFactor(video.videoWidth, video.videoHeight);
+        const result = applyAspectCorrection(raw, factor);
         const hasHand = result?.hands?.length > 0;
+
+        // TEMPORAR — fps real + dimensiunile fluxului, pentru proba pe telefon.
+        const d = diagRef.current;
+        d.frames += 1;
+        if (!d.since) d.since = now;
+        if (now - d.since >= 500) {
+          setDiag({
+            w: video.videoWidth,
+            h: video.videoHeight,
+            fps: Math.round((d.frames * 1000) / (now - d.since)),
+            factor,
+          });
+          d.frames = 0;
+          d.since = now;
+        }
         const faceFrameNow = assessFaceFrame(result?.faceLandmarks, { wasOk: framedRef.current });
         framedRef.current = faceFrameNow.ok;
         setFaceFrame(faceFrameNow);
 
         // Canvas: arată față/corp chiar și fără mână; callback-ul de colectare/predicție
         // rămâne null fără mână (semnul LSR cere cel puțin o mână).
-        const forDraw = result && (
-          hasHand || result.faceLandmarks || result.pose
-        ) ? result : null;
+        const forDraw = raw && (
+          hasHand || raw.faceLandmarks || raw.pose
+        ) ? raw : null;
         setSubject(forDraw);
 
         const usable = hasHand && (!requireFrameRef.current || faceFrameNow.ok);
@@ -142,6 +166,15 @@ export default function HandTracker({
 
   return (
     <div className="relative w-full h-full overflow-hidden bg-slate-900">
+
+      {/* TEMPORAR — de scos după ce se stabilește cauza pe telefon. */}
+      {diag && (
+        <div className="absolute bottom-2 left-2 z-30 pointer-events-none rounded-lg
+          bg-black/65 px-2 py-1 font-mono text-[10px] leading-tight text-white/90">
+          {diag.w}×{diag.h} · {(diag.w / diag.h).toFixed(2)} · {diag.fps}fps
+          {diag.factor !== 1 && ` · corecție ×${diag.factor.toFixed(2)}`}
+        </div>
+      )}
 
       {/*
         Div oglindă: aplică scaleX(-1) pe video + canvas împreună.
