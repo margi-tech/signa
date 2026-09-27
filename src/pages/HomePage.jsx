@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { LESSONS } from '../data/lessons';
 import { useProgress } from '../hooks/useProgress';
 import {
-  ArrowIcon, BarsIcon, CamIcon, FlameIcon, LinesIcon, RepeatIcon, SoundIcon,
+  ArrowIcon, BarsIcon, FlameIcon, LinesIcon, RepeatIcon, SoundIcon,
 } from '../components/icons.jsx';
 
 const EASE = 'cubic-bezier(.22,1,.36,1)';
@@ -88,7 +88,7 @@ const TILE_TONES = {
 };
 
 /** Tile de acțiune — pastilă icon colorată + titlu + subtitlu. */
-function Tile({ icon: Icon, tone, title, subtitle, onClick, spin = false, delay = 0 }) {
+function Tile({ icon: Icon, tone, title, subtitle, onClick, spin = false, delay = 0, className = '' }) {
   const t = TILE_TONES[tone];
   return (
     <button
@@ -99,7 +99,7 @@ function Tile({ icon: Icon, tone, title, subtitle, onClick, spin = false, delay 
         shadow-[0_6px_20px_rgba(46,42,36,.05)]
         transition-[transform,box-shadow,border-color] duration-[220ms] ease-out
         hover:-translate-y-[5px] hover:shadow-[0_18px_36px_rgba(46,42,36,.10)] ${t.border}
-        active:-translate-y-px active:scale-[.99]`}
+        active:-translate-y-px active:scale-[.99] ${className}`}
     >
       <span
         className={`flex items-center justify-center w-[34px] h-[34px] lg:w-11 lg:h-11 rounded-xl lg:rounded-[13px] ${t.chip}
@@ -126,7 +126,7 @@ function todayKey() {
 }
 
 export default function HomePage({
-  onLessons, onStart, onSpell, onReview, onLeaderboard, onOpenLesson,
+  onLessons, onSpell, onReview, onLeaderboard, onOpenLesson,
   firstName = '', rank = null,
 }) {
   const {
@@ -216,12 +216,14 @@ export default function HomePage({
   const tiles = (
     <>
       <Tile icon={LinesIcon} tone="signa" title="Scrie cuvântul" subtitle="Literă cu literă" onClick={onSpell} delay={0.62} />
-      <Tile icon={CamIcon} tone="blue" title="Antrenament" subtitle="Camera liberă" onClick={onStart} delay={0.7} />
       <Tile
         icon={RepeatIcon} tone="amber" title="Repetiție" spin
-        subtitle={`${reviewLetters.length} litere de revăzut`} onClick={onReview} delay={0.78}
+        subtitle={`${reviewLetters.length} litere de revăzut`} onClick={onReview} delay={0.7}
       />
-      <Tile icon={BarsIcon} tone="violet" title="Clasament" subtitle={rankLabel} onClick={onLeaderboard} delay={0.86} />
+      <Tile
+        icon={BarsIcon} tone="violet" title="Clasament" subtitle={rankLabel}
+        onClick={onLeaderboard} delay={0.78} className="col-span-2 lg:col-span-1"
+      />
     </>
   );
 
@@ -575,7 +577,7 @@ export default function HomePage({
             <div className="lg:hidden mb-[11px]">
               <h3 className="text-[14.5px] font-black text-ink-900">Exersează</h3>
             </div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 lg:gap-[18px]">{tiles}</div>
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 lg:gap-[18px]">{tiles}</div>
           </div>
 
           {/* De revăzut azi */}

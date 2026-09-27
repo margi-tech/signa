@@ -1,22 +1,21 @@
-import { BookIcon, CamIcon, ChartIcon, HomeIcon, UserIcon } from './icons.jsx';
+import { BookIcon, ChartIcon, HomeIcon, UserIcon } from './icons.jsx';
 
 const EASE = 'cubic-bezier(.22,1,.36,1)';
 
 const TABS = [
   { icon: HomeIcon, label: 'Acasă', page: 'home' },
   { icon: BookIcon, label: 'Lecții', page: 'lessons' },
-  { icon: CamIcon, label: 'Cameră', page: 'camera' },
   { icon: ChartIcon, label: 'Clasament', page: 'leaderboard' },
   { icon: UserIcon, label: 'Profil', page: 'profile' },
 ];
 
 const PAGE_INDEX = {
-  home: 0, lessons: 1, camera: 2, leaderboard: 3, profile: 4,
+  home: 0, lessons: 1, leaderboard: 2, profile: 3,
 };
 
 /**
- * Bara de jos cu 5 taburi — înlocuiește sidebar-ul sub `lg`. Trăiește în
- * `AppShell`, o singură dată pentru toate cele 5 ecrane.
+ * Bara de jos cu taburile shell-ului — înlocuiește sidebar-ul sub `lg`.
+ * Trăiește în `AppShell`, o singură dată pentru toate ecranele.
  */
 export default function MobileTabBar({
   page, onNavigate, totalLessonsCount, rank, isGuest = false,
@@ -28,12 +27,12 @@ export default function MobileTabBar({
       className="lg:hidden flex-none relative z-30 bg-cream/90 backdrop-blur-[14px]
         border-t border-ink-900/[.07] pt-2 px-2.5 pb-[max(26px,env(safe-area-inset-bottom))]"
     >
-      <div className="relative grid grid-cols-5">
-        {/* Pilula stă în grilă, nu în `nav`: `w-1/5` trebuie să fie o coloană,
+      <div className="relative grid grid-cols-4">
+        {/* Pilula stă în grilă, nu în `nav`: lățimea ei trebuie să fie o coloană,
             altfel padding-ul barei o face mai lată și se decalează tab cu tab. */}
         <span
           aria-hidden
-          className="absolute left-0 top-0 w-1/5 h-[50px] pointer-events-none"
+          className="absolute left-0 top-0 w-1/4 h-[50px] pointer-events-none"
           style={{ transform: `translateX(${activeIndex * 100}%)`, transition: `transform .42s ${EASE}` }}
         >
           <span
@@ -60,12 +59,6 @@ export default function MobileTabBar({
                     bg-white border border-ink-900/[.08] rounded-full px-[5px] tabular-nums"
                 >
                   {totalLessonsCount}
-                </span>
-              )}
-              {target === 'camera' && (
-                <span aria-hidden className="absolute top-[7px] left-1/2 ml-[11px] w-[7px] h-[7px]">
-                  <span className="absolute inset-0 rounded-full bg-signa-500" />
-                  <span className="absolute -inset-1 rounded-full border-[1.5px] border-signa-500/55 sg-dot-ring" />
                 </span>
               )}
               {target === 'leaderboard' && rank && !isGuest && (
