@@ -432,7 +432,9 @@ export default function HomePage({
                 )}
               </div>
 
-              <div className="relative flex gap-3">
+              {/* `mt-4` pe mobil: spațiul față de cipuri venea doar din
+                  `lg:mb-[26px]`, deci butonul stătea lipit de ele. */}
+              <div className="relative flex gap-3 mt-4 lg:mt-0">
                 <button
                   type="button"
                   onClick={openLesson}
