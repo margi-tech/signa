@@ -1,12 +1,16 @@
 import { useRef, useEffect, useState } from 'react';
 import { useHolisticLandmarker } from '../../hooks/useHolisticLandmarker';
 import { assessFaceFrame } from '../../utils/faceFrame';
+import { aspectCorrectionFactor, applyAspectCorrection } from '../../utils/frameGeometry';
 import HandCanvas from './HandCanvas';
 import { BrandLoader } from '../SplashScreen';
 
 // 3 modele (mâini + față + trunchi) pe cadru sunt costisitoare — limităm
 // detecția reală la ~15fps; desenarea rămâne fluidă prin rAF.
 const DETECT_INTERVAL_MS = 66;
+
+/** Marcaj intern: camera cere HTTPS sau localhost, nu e o eroare de permisiune. */
+const INSECURE_CONTEXT = 'sg-insecure-context';
 
 /**
  * HandTracker — componentă principală de urmărire holistică (mâini + față + trunchi).
@@ -53,6 +57,13 @@ export default function HandTracker({
     let stream = null;
 
     async function startCamera() {
+      // Pe origine nesigură (ex. http://192.168.x.x de pe telefon) browserul nu
+      // expune deloc `mediaDevices`, iar apelul ar arunca un TypeError crud.
+      // Îl prindem înainte, ca mesajul să spună ce e de făcut.
+      if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+        setCameraError(INSECURE_CONTEXT);
+        return;
+      }
       try {
         stream = await navigator.mediaDevices.getUserMedia({
           video: {
@@ -83,7 +94,12 @@ export default function HandTracker({
 
       if (video && video.readyState >= 2 && now - lastTickRef.current >= DETECT_INTERVAL_MS) {
         lastTickRef.current = now;
-        const result = detect(video, performance.now());
+        const raw = detect(video, performance.now());
+        // Landmark-urile care merg spre model sunt remapate la raportul de
+        // aspect de referință; cele desenate rămân brute, ca overlay-ul să
+        // stea în continuare fix peste imagine.
+        const factor = aspectCorrectionFactor(video.videoWidth, video.videoHeight);
+        const result = applyAspectCorrection(raw, factor);
         const hasHand = result?.hands?.length > 0;
         const faceFrameNow = assessFaceFrame(result?.faceLandmarks, { wasOk: framedRef.current });
         framedRef.current = faceFrameNow.ok;
@@ -91,9 +107,9 @@ export default function HandTracker({
 
         // Canvas: arată față/corp chiar și fără mână; callback-ul de colectare/predicție
         // rămâne null fără mână (semnul LSR cere cel puțin o mână).
-        const forDraw = result && (
-          hasHand || result.faceLandmarks || result.pose
-        ) ? result : null;
+        const forDraw = raw && (
+          hasHand || raw.faceLandmarks || raw.pose
+        ) ? raw : null;
         setSubject(forDraw);
 
         const usable = hasHand && (!requireFrameRef.current || faceFrameNow.ok);
@@ -112,30 +128,46 @@ export default function HandTracker({
 
   // — Stare de eroare (cameră sau MediaPipe) —
   if (cameraError || landmarkerError) {
+    const isInsecure = cameraError === INSECURE_CONTEXT;
     const isDenied = /NotAllowed|Permission|denied/i.test(cameraError || '');
     const isOffline = /Failed to fetch|NetworkError|Load failed|CDN/i.test(landmarkerError || '');
     return (
       <div className="flex h-full items-center justify-center bg-cream px-8">
         <div className="rounded-2xl bg-white shadow-card p-6 text-center max-w-xs">
           <p className="text-red-500 text-sm leading-relaxed font-semibold mb-2">
-            {isDenied ? 'Camera a fost refuzată' : isOffline ? 'Nu pot încărca MediaPipe' : 'Eroare'}
+            {isInsecure
+              ? 'Camera are nevoie de HTTPS'
+              : isDenied ? 'Camera a fost refuzată' : isOffline ? 'Nu pot încărca MediaPipe' : 'Eroare'}
           </p>
           <p className="text-ink-600 text-sm leading-relaxed">
-            {cameraError || landmarkerError}
+            {isInsecure
+              ? 'Browserul dă acces la cameră doar pe o adresă https:// sau pe localhost. Pe o adresă http din rețea nu o poate porni deloc.'
+              : (cameraError || landmarkerError)}
           </p>
           <p className="mt-3 text-ink-400 text-xs leading-relaxed">
-            {isDenied
-              ? 'Permite camera din setările browserului, apoi reîncarcă pagina.'
-              : isOffline
-                ? 'Prima încărcare are nevoie de internet (CDN MediaPipe). Apoi funcționează offline.'
-                : 'Reîncearcă după ce verifici conexiunea și permisiunile.'}
+            {isInsecure
+              ? 'Deschide aplicația pe signa-lsr.online, sau pe acest dispozitiv la localhost.'
+              : isDenied
+                ? 'Permite camera din setările browserului, apoi reîncarcă pagina.'
+                : isOffline
+                  ? 'Prima încărcare are nevoie de internet (CDN MediaPipe). Apoi funcționează offline.'
+                  : 'Reîncearcă după ce verifici conexiunea și permisiunile.'}
           </p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-4 w-full py-3 bg-signa-500 text-white font-bold text-sm rounded-xl"
-          >
-            Reîncarcă
-          </button>
+          {isInsecure ? (
+            <a
+              href="https://signa-lsr.online"
+              className="mt-4 block w-full py-3 bg-signa-500 text-white font-bold text-sm rounded-xl"
+            >
+              Deschide pe HTTPS
+            </a>
+          ) : (
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 w-full py-3 bg-signa-500 text-white font-bold text-sm rounded-xl"
+            >
+              Reîncarcă
+            </button>
+          )}
         </div>
       </div>
     );
