@@ -19,7 +19,8 @@ src/
 │   ├── Sidebar.jsx            # meniu, capitole, unelte, card nivel, rând profil
 │   ├── icons.jsx              # SVG-uri partajate (nav, unelte, conținut, setări)
 │   ├── BrandMark.jsx          # sigla (public/logo.png) pe plăcuță
-│   ├── SplashScreen.jsx       # ecranul verde de încărcare + BrandLoader compact
+│   ├── SplashScreen.jsx       # LogoOrb: ecran de încărcare, BrandLoader, WelcomeIntro
+│   ├── WelcomeGate.jsx        # animația de bun venit pentru un cont nou
 │   ├── settings/              # SettingsSheet (roata din Profil) — temă, text, sunet, cont
 │   ├── hand-tracker/          # Camera + canvas overlay
 │   ├── collect/               # LetterSelector
@@ -117,7 +118,7 @@ direct din `App.jsx`.
 ```bash
 npm install
 npm run dev
-npm test          # vitest — 122 de teste, 21 de fișiere
+npm test          # vitest — 125 de teste, 22 de fișiere
 npx vite build
 ```
 **Nu există `npm run lint` și nici `tsc`** — proiectul e JS curat. Dacă o cerință

@@ -64,7 +64,11 @@ fundal sidebar, `#C4BAA9` eyebrow, `#FBF7F0` card de nivel) — sunt intenționa
 - Overlay-urile pe tot ecranul se randează prin portal în `<body>`: `<main>`-ul
   shell-ului are `transform`, care ar prinde `position: fixed` (vezi `SettingsSheet`).
 - Încărcările folosesc `SplashScreen` (pe tot ecranul) sau `BrandLoader` (compact) —
-  nu spinnere noi. `index.html` are o copie statică (`.sg-boot`) pentru pornire.
+  nu spinnere noi. Ambele sunt `LogoOrb`: discul verde cu sigla și inelul din
+  cadrul final al clipului de prezentare (arc care se rotește). `index.html` are o
+  copie statică (`.sg-boot`) pentru pornire — ține-le identice.
+- După crearea unui cont rulează `WelcomeIntro` (inelul se desenează, apoi
+  „SIGNA | signa-lsr.online”), o dată per cont nou (`src/lib/welcome.js`).
 
 ## Catalogul de animații
 
