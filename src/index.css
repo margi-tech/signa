@@ -20,6 +20,21 @@ body {
   height: 100%;
 }
 
+/* Tema întunecată: culorile se inversează automat din postcss/signa-theme.js
+   (inclusiv `background-color`-ul de mai sus). Aici rămâne doar ce nu e culoare:
+   scrollbar-uri și controale native pe întunecat. */
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+/* Comutarea temei — o tranziție scurtă de culoare, doar cât ține schimbarea
+   (clasa o pune SettingsSheet), ca să nu încetinească hover-urile obișnuite. */
+html.sg-theme-switching *,
+html.sg-theme-switching *::before,
+html.sg-theme-switching *::after {
+  transition: background-color .32s ease, border-color .32s ease, color .32s ease, fill .32s ease !important;
+}
+
 /* ── Animații custom ─────────────────────────────────────────────── */
 @keyframes float {
   0%, 100% { transform: translateY(0px) rotate(0deg); }

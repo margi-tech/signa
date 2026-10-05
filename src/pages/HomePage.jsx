@@ -443,6 +443,7 @@ export default function HomePage({
                   style={anim('sg-fade-up', 0.6, 1)}
                   className="relative overflow-hidden w-full lg:w-auto py-4 lg:py-[17px] lg:px-7
                     rounded-2xl lg:rounded-[15px] bg-cream lg:bg-white text-signa-900 lg:text-[#0b6446]
+                    dark:bg-[#FFFBF3] lg:dark:bg-[#FFFFFF] dark:text-signa-900
                     font-extrabold text-[15px] shadow-[0_8px_20px_rgba(0,0,0,.16)] lg:shadow-[0_10px_24px_rgba(4,44,32,.22)]
                     flex items-center justify-center lg:gap-2.5
                     transition-[transform,box-shadow] duration-[160ms] ease-out

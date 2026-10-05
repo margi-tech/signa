@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import BrandMark from './BrandMark.jsx';
 import {
   BookIcon, ChartIcon, DownloadIcon, HandIcon, HomeIcon,
   PulseIcon, TrendIcon, UserIcon,
@@ -170,13 +171,13 @@ export default function Sidebar({
       className="hidden lg:flex flex-col bg-[#FFFDF9] border-r border-ink-900/[.07] px-5 pt-[26px] pb-6 overflow-y-auto scrollbar-hide"
     >
       <div className="flex items-center gap-3 px-2 pb-[30px]">
-        <span className="relative w-[38px] h-[38px] flex-none">
+        <span className="relative w-[42px] h-[42px] flex-none">
           <span
             aria-hidden
-            className="absolute inset-0 rounded-[11px] border-2 border-signa-500/55"
+            className="absolute inset-0 rounded-[12px] border-2 border-signa-500/55"
             style={{ animation: `sg-pulse-ring 3.6s ${EASE} infinite` }}
           />
-          <img src="/icon.svg" alt="" className="w-[38px] h-[38px] rounded-[11px] block" />
+          <BrandMark className="w-[42px] h-[42px] rounded-[12px]" />
         </span>
         <span className="font-black text-[17px] tracking-[.17em] text-ink-900">SIGNA</span>
       </div>

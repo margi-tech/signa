@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import AuthPanel from './AuthPanel';
 import { MessageBanner } from './AuthUi';
+import BrandMark from '../BrandMark';
 
 const LEARNERS = [
   { initials: 'MP', bg: 'bg-signa-500', text: 'text-white' },
@@ -104,12 +105,12 @@ function BrandColumn() {
       </div>
 
       <div className="relative flex items-center gap-3 sg-fade-right">
-        <div className="relative w-10 h-10 flex-shrink-0">
+        <div className="relative w-11 h-11 flex-shrink-0">
           <span
             aria-hidden
             className="absolute inset-0 rounded-xl border-2 border-signa-400/70 sg-pulse-ring"
           />
-          <img src="/icon.svg" alt="" className="w-10 h-10 rounded-xl" />
+          <BrandMark className="w-11 h-11 rounded-xl" />
         </div>
         <span className="text-white font-black text-[17px] tracking-[.16em]">SIGNA</span>
       </div>
@@ -245,13 +246,13 @@ function MobileAuthHero({ mode }) {
       </div>
 
       <div className="absolute top-5 left-5 flex items-center gap-2.5 sg-fade-right">
-        <span className="relative w-9 h-9 flex-none">
+        <span className="relative w-10 h-10 flex-none">
           <span
             aria-hidden
             className="absolute inset-0 rounded-[11px] border-2 border-signa-400/70"
             style={{ animation: 'sg-pulse-ring 3.4s cubic-bezier(.22,1,.36,1) infinite' }}
           />
-          <img src="/icon.svg" alt="" className="relative w-9 h-9 rounded-[11px] block" />
+          <BrandMark className="relative w-10 h-10 rounded-[11px]" />
         </span>
         <span className="text-white font-black text-[16px] tracking-[.16em]">SIGNA</span>
       </div>

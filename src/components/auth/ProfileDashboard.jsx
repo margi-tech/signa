@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   deleteOwnAccount,
   isUsernameTaken,
@@ -10,10 +10,10 @@ import {
   validateUsername,
 } from '../../utils/username';
 import { useCountUp } from '../../hooks/useCountUp';
-import { useProgress } from '../../hooks/useProgress';
 import { LESSONS } from '../../data/lessons';
-import { FlameIcon, HandIcon } from '../icons';
+import { ChevronIcon, FlameIcon, GearIcon, HandIcon } from '../icons';
 import FriendsSection from '../FriendsSection';
+import SettingsSheet, { SettingsButton } from '../settings/SettingsSheet';
 import {
   AuthField,
   AuthInput,
@@ -126,7 +126,13 @@ export default function ProfileDashboard({
   onSync,
   onSignOut,
 }) {
-  const { soundEnabled, setSoundEnabled } = useProgress();
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  // Banner-ul paginii stă sub foaia de setări cât e deschisă — îl dublăm în foaie.
+  const [sheetMessage, setSheetMessage] = useState(null);
+  const closeSettings = useCallback(() => {
+    setSettingsOpen(false);
+    setSheetMessage(null);
+  }, []);
   const [lastSynced, setLastSynced] = useState(null);
   const [syncing, setSyncing] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -159,13 +165,18 @@ export default function ProfileDashboard({
   }, [letterMastery]);
   const masteredCount = ALPHABET.filter((ch) => mastered.has(ch)).length;
 
+  const say = (m) => {
+    onMessage(m);
+    setSheetMessage(m);
+  };
+
   const run = async (fn) => {
     onBusy(true);
-    onMessage(null);
+    say(null);
     try {
       await fn();
     } catch (err) {
-      onMessage({ tone: 'error', text: err.message || 'Eroare' });
+      say({ tone: 'error', text: err.message || 'Eroare' });
     } finally {
       onBusy(false);
     }
@@ -192,7 +203,7 @@ export default function ProfileDashboard({
       username: username.trim(),
       visibility,
     });
-    onMessage({ tone: 'success', text: 'Profil salvat.' });
+    say({ tone: 'success', text: 'Profil salvat.' });
   });
 
   const sync = () => {
@@ -212,12 +223,13 @@ export default function ProfileDashboard({
   // următorul login al aceluiași cont. Coada se golește doar la ștergerea contului.
   const signOut = () => run(async () => {
     await supabase.auth.signOut();
+    setSettingsOpen(false);
     onMessage({ tone: 'info', text: 'Te-ai deconectat.' });
     onSignOut();
   });
 
-  const deleteAccount = () => run(async () => {
-    if (deleteConfirm.trim() !== username) {
+  const deleteAccount = (confirmText = deleteConfirm) => run(async () => {
+    if (confirmText.trim() !== username) {
       throw new Error('Scrie username-ul exact pentru a confirma ștergerea.');
     }
     await deleteOwnAccount();
@@ -230,7 +242,7 @@ export default function ProfileDashboard({
     if (!file || !onAvatarChange) return;
     run(async () => {
       await onAvatarChange(file);
-      onMessage({ tone: 'success', text: 'Poză de profil actualizată.' });
+      say({ tone: 'success', text: 'Poză de profil actualizată.' });
     });
   };
 
@@ -266,19 +278,40 @@ export default function ProfileDashboard({
           </p>
         </div>
 
-        {streak > 0 && (
-          <span
-            style={motion('sg-scale-in', 0.5, 0.24, 'backwards')}
-            className="self-start lg:self-auto flex items-center gap-[7px] bg-[#FFF7E8] border border-amber-500/[.18]
-              text-amber-700 rounded-full px-[15px] py-[9px] text-[13px] font-extrabold tabular-nums"
-          >
-            <FlameIcon
-              className="w-[13px] h-[13px]"
-              style={{ animation: 'sg-flame 1.9s ease-in-out infinite' }}
-            />
-            {streak} {streak === 1 ? 'zi la rând' : 'zile la rând'}
-          </span>
-        )}
+        <div className="flex items-center gap-2.5 flex-none">
+          {streak > 0 && (
+            <span
+              style={motion('sg-scale-in', 0.5, 0.24, 'backwards')}
+              className="self-start lg:self-auto flex items-center gap-[7px] bg-[#FFF7E8] border border-amber-500/[.18]
+                text-amber-700 rounded-full px-[15px] py-[9px] text-[13px] font-extrabold tabular-nums"
+            >
+              <FlameIcon
+                className="w-[13px] h-[13px]"
+                style={{ animation: 'sg-flame 1.9s ease-in-out infinite' }}
+              />
+              {streak} {streak === 1 ? 'zi la rând' : 'zile la rând'}
+            </span>
+          )}
+          <SettingsButton
+            onClick={() => setSettingsOpen(true)}
+            style={motion('sg-scale-in', 0.5, 0.3, 'backwards')}
+          />
+        </div>
+      </div>
+
+      {/* Mobil: antet scurt cu roata de setări deasupra bannerului. */}
+      <div className="lg:hidden flex items-center justify-between gap-3 -mb-1.5">
+        <p
+          style={motion('sg-fade-right', 0.6, 0.06)}
+          className="text-[10.5px] font-extrabold uppercase tracking-[.14em] text-ink-400 truncate"
+        >
+          Profil · Nivelul {level}
+        </p>
+        <SettingsButton
+          onClick={() => setSettingsOpen(true)}
+          className="w-[38px] h-[38px]"
+          style={motion('sg-scale-in', 0.5, 0.2, 'backwards')}
+        />
       </div>
 
       {/* Banner verde — mobil: un singur rând, fără badge-ul de vizibilitate. */}
@@ -713,49 +746,54 @@ export default function ProfileDashboard({
 
       <FriendsSection userId={user.id} />
 
-      {/* Setări — mobil: listă compactă, fără descrieri. Atelierul (nume/username)
-          și ștergerea contului rămân doar pe desktop, într-un ecran mai larg. */}
-      <div
+      {/* Mobil: un singur rând spre foaia de setări — acolo sunt tema, textul,
+          sunetul, profilul, sincronizarea și deconectarea. */}
+      <button
+        type="button"
+        onClick={() => setSettingsOpen(true)}
         style={motion('sg-fade-up', 0.7, 0.6)}
-        className="lg:hidden rounded-[22px] bg-white border border-ink-900/[0.06] overflow-hidden
-          shadow-[0_1px_2px_rgba(46,42,36,.04),0_8px_24px_rgba(46,42,36,.045)]"
+        className="lg:hidden w-full flex items-center gap-3 rounded-[22px] bg-white border border-ink-900/[0.06]
+          px-5 py-4 text-left shadow-[0_1px_2px_rgba(46,42,36,.04),0_8px_24px_rgba(46,42,36,.045)]
+          active:scale-[.985] transition-transform duration-150"
       >
-        <p className="px-5 pt-[18px] pb-1 text-[10.5px] font-extrabold uppercase tracking-[.14em] text-ink-400">
-          Setări
-        </p>
-        <div className="px-5">
-          <SettingsSwitch
-            label="Profil public"
-            checked={isPublic}
-            onChange={(on) => onVisibility(on ? 'public' : 'private')}
-            disabled={busy}
-          />
-        </div>
-        <div className="px-5 border-t border-ink-900/[.05]">
-          <SettingsSwitch label="Sunete" checked={soundEnabled} onChange={setSoundEnabled} />
-        </div>
-        <button
-          type="button"
-          onClick={sync}
-          disabled={busy}
-          className="w-full flex items-center gap-3 px-5 py-3.5 text-left border-t border-ink-900/[.05] disabled:opacity-50"
-        >
-          <span className="w-9 h-9 rounded-xl bg-signa-50 text-signa-600 flex items-center justify-center flex-none">
-            <CloudIcon />
+        <span className="w-9 h-9 rounded-xl bg-signa-50 text-signa-600 flex items-center justify-center flex-none">
+          <GearIcon className="w-[18px] h-[18px]" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[14px] font-extrabold text-ink-900">Setări</span>
+          <span className="block text-[12px] font-semibold text-ink-400 truncate">
+            Temă, mărime text, sunet, profil, cont
           </span>
-          <span className="text-[14px] font-extrabold text-ink-900">
-            {syncing ? 'Se sincronizează…' : 'Sincronizează'}
-          </span>
-        </button>
-        <button
-          type="button"
-          onClick={signOut}
-          disabled={busy}
-          className="w-full px-5 py-4 text-left border-t border-ink-900/[.05] text-[14px] font-extrabold text-red-600 disabled:opacity-50"
-        >
-          Deconectare
-        </button>
-      </div>
+        </span>
+        <ChevronIcon className="w-4 h-4 text-ink-400 flex-none" />
+      </button>
+
+      <SettingsSheet
+        open={settingsOpen}
+        onClose={closeSettings}
+        account={{
+          user,
+          username,
+          firstName,
+          lastName,
+          initials,
+          avatarUrl,
+          isPublic,
+          busy,
+          syncing,
+          lastSynced,
+          message: sheetMessage,
+          onPickAvatar: pickAvatar,
+          onFirstName,
+          onLastName,
+          onUsername,
+          onVisibility,
+          onSave: save,
+          onSync: sync,
+          onSignOut: signOut,
+          onDelete: deleteAccount,
+        }}
+      />
 
       <div className="hidden lg:grid gap-[18px] items-start lg:grid-cols-[1.55fr_1fr]">
         <div
@@ -959,7 +997,7 @@ export default function ProfileDashboard({
                     <RippleButton
                       type="button"
                       disabled={busy || deleteConfirm.trim() !== username}
-                      onClick={deleteAccount}
+                      onClick={() => deleteAccount()}
                       className="rounded-xl bg-red-600 px-4 py-2 text-[12.5px] font-bold text-white
                         disabled:opacity-40"
                     >
