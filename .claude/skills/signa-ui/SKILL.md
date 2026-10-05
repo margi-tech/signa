@@ -49,6 +49,23 @@ Font: Nunito (deja global). Easing standard: `cubic-bezier(.22,1,.36,1)`.
 Culorile din afara paletei apar doar unde designul le cere explicit (ex. `#FFFDF9`
 fundal sidebar, `#C4BAA9` eyebrow, `#FBF7F0` card de nivel) — sunt intenționate.
 
+## Tema întunecată și mărimea textului
+
+- Preferințele (`src/lib/preferences.js`, hook `usePreferences`) pun `data-theme` și
+  `--sg-text-scale` pe `<html>`; `public/theme-init.js` face același lucru înainte
+  de primul paint (CSP-ul nu permite script inline). Țin-le sincron.
+- Nu scrie clase `dark:` peste tot: `postcss/signa-theme.js` generează varianta
+  întunecată din culorile existente. Albul/cremul ca **text** și albul translucid nu
+  se inversează (stau pe bannere verzi). `ink-900` plin ca fundal devine gri cald.
+- Excepții de mână cu `dark:` (ex. `dark:bg-[#FFFBF3] dark:text-signa-900` pe CTA-ul
+  alb din hero). Pluginul sare regulile care conțin deja `data-theme`.
+- Mărimea textului scalează doar `font-size`/`line-height` în px/rem din clase —
+  spațierile nu. `fontSize` inline nu se scalează (intenționat: litere decorative mari).
+- Overlay-urile pe tot ecranul se randează prin portal în `<body>`: `<main>`-ul
+  shell-ului are `transform`, care ar prinde `position: fixed` (vezi `SettingsSheet`).
+- Încărcările folosesc `SplashScreen` (pe tot ecranul) sau `BrandLoader` (compact) —
+  nu spinnere noi. `index.html` are o copie statică (`.sg-boot`) pentru pornire.
+
 ## Catalogul de animații
 
 Toate stau în `src/index.css`. **Refolosește-le. Nu inventa keyframes noi dacă

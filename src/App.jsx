@@ -8,6 +8,7 @@ import ReviewPage from './pages/ReviewPage.jsx';
 import DiagnosticPage from './pages/DiagnosticPage.jsx';
 import ReferinteCatalogPage from './pages/ReferinteCatalogPage.jsx';
 import Onboarding from './components/Onboarding.jsx';
+import SplashScreen from './components/SplashScreen.jsx';
 import AuthGate from './components/auth/AuthGate.jsx';
 import { LESSONS } from './data/lessons.js';
 import { useProgress } from './hooks/useProgress.js';
@@ -75,11 +76,7 @@ export default function App() {
   }
 
   if (user === undefined) {
-    return (
-      <div className="h-full bg-cream flex items-center justify-center">
-        <div className="w-7 h-7 rounded-full border-2 border-ink-900/10 border-t-signa-500 animate-spin" />
-      </div>
-    );
+    return <SplashScreen />;
   }
 
   if (passwordRecovery) {
@@ -120,11 +117,7 @@ export default function App() {
     || (page === 'diagnostic' && canDiagnostic)
   );
   if (internalTool && (profileSummary.loading || (needsDatasetAccess && datasetAccess.loading))) {
-    return (
-      <div className="h-full bg-cream flex items-center justify-center">
-        <div className="w-7 h-7 rounded-full border-2 border-ink-900/10 border-t-signa-500 animate-spin" />
-      </div>
-    );
+    return <SplashScreen label="Se verifică accesul…" />;
   }
   if (internalTool && !allowedTool) {
     const copy = page === 'train'

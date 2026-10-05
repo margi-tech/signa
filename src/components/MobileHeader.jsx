@@ -1,4 +1,5 @@
 import { FlameIcon, SoundIcon, UserIcon } from './icons.jsx';
+import BrandMark from './BrandMark.jsx';
 
 const EASE = 'cubic-bezier(.22,1,.36,1)';
 
@@ -15,15 +16,15 @@ export default function MobileHeader({
         px-5 py-2 bg-cream/[.82] backdrop-blur-[14px]"
     >
       <div className="flex items-center gap-2.5">
-        <span className="relative w-[30px] h-[30px] flex-none">
+        <span className="relative w-[34px] h-[34px] flex-none">
           <span
             aria-hidden
-            className="absolute inset-0 rounded-[9px] border-2 border-signa-500/55"
+            className="absolute inset-0 rounded-[10px] border-2 border-signa-500/55"
             style={{ animation: `sg-pulse-ring 3.6s ${EASE} infinite` }}
           />
-          <img src="/icon.svg" alt="" className="relative w-[30px] h-[30px] rounded-[9px] block" />
+          <BrandMark className="relative w-[34px] h-[34px] rounded-[10px]" />
         </span>
-        <span className="font-black text-[15px] tracking-[.16em] text-ink-900">SIGNA</span>
+        <span className="font-black text-[16px] tracking-[.16em] text-ink-900">SIGNA</span>
       </div>
       <div className="flex items-center gap-2">
         {streak > 0 && (

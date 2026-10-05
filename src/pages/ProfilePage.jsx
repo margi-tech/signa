@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   getOwnProfile,
   isSupabaseConfigured,
@@ -11,6 +11,8 @@ import AuthPanel from '../components/auth/AuthPanel';
 import ProfileDashboard from '../components/auth/ProfileDashboard';
 import { MessageBanner, SectionCard } from '../components/auth/AuthUi';
 import GuestConversionCard from '../components/auth/GuestConversionCard';
+import SettingsSheet, { SettingsButton } from '../components/settings/SettingsSheet';
+import { BrandLoader } from '../components/SplashScreen';
 
 /**
  * Profil / autentificare — funcțional doar cu VITE_SUPABASE_* setate.
@@ -34,6 +36,10 @@ export default function ProfilePage({ onProfileUpdated, isGuest = false, onExitG
   const [banner, setBanner] = useState(null);
   const [busy, setBusy] = useState(false);
   const [authLoading, setAuthLoading] = useState(isSupabaseConfigured);
+  // Setările dispozitivului (temă, text, sunet) pentru invitat / fără cont.
+  // Cu cont, foaia o deschide ProfileDashboard, care are și partea de profil.
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const closeSettings = useCallback(() => setSettingsOpen(false), []);
   const scrollRef = useRef(null);
   const stickyRef = useRef(null);
 
@@ -188,9 +194,12 @@ export default function ProfilePage({ onProfileUpdated, isGuest = false, onExitG
         {/* Invitatul are propriul antet, în cardul de conversie. */}
         {!user && !isGuest && (
           <div className="mb-5">
-            <p className="text-[10.5px] lg:text-xs font-extrabold uppercase tracking-[.14em] lg:tracking-[.22em] text-ink-400">
-              Profil · Pe dispozitiv
-            </p>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[10.5px] lg:text-xs font-extrabold uppercase tracking-[.14em] lg:tracking-[.22em] text-ink-400">
+                Profil · Pe dispozitiv
+              </p>
+              <SettingsButton onClick={() => setSettingsOpen(true)} />
+            </div>
             <h1 className="mt-1.5 text-[29px] lg:text-[2.4rem] font-black text-ink-900 tracking-[-.02em] leading-tight text-pretty">
               Identitatea ta în Signa.
             </h1>
@@ -229,10 +238,11 @@ export default function ProfilePage({ onProfileUpdated, isGuest = false, onExitG
             lessonsCount={completedLessonsCount}
             totalLessons={totalLessonsCount}
             onExitGuest={onExitGuest}
+            headerAction={<SettingsButton onClick={() => setSettingsOpen(true)} />}
           />
         ) : authLoading ? (
           <div className="flex justify-center py-12">
-            <div className="w-7 h-7 rounded-full border-2 border-ink-900/10 border-t-signa-500 animate-spin" />
+            <BrandLoader label="Se încarcă profilul…" />
           </div>
         ) : user ? (
           <ProfileDashboard
@@ -298,6 +308,8 @@ export default function ProfilePage({ onProfileUpdated, isGuest = false, onExitG
         </div>
         </div>
       </div>
+
+      {!user && <SettingsSheet open={settingsOpen} onClose={closeSettings} />}
     </div>
   );
 }

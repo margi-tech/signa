@@ -69,7 +69,7 @@ function Perk({ icon: Icon, label, delay }) {
  * salva progresul contului în slate-ul de invitat (vezi docs/guest-mode.md §6.1).
  */
 export default function GuestConversionCard({
-  xp, level, xpIntoLevel, xpNeeded, lessonsCount, totalLessons, onExitGuest,
+  xp, level, xpIntoLevel, xpNeeded, lessonsCount, totalLessons, onExitGuest, headerAction = null,
 }) {
   const [mode, setMode] = useState('signup');
   const [showPassword, setShowPassword] = useState(false);
@@ -167,6 +167,7 @@ export default function GuestConversionCard({
           >
             Nv. {level} · {xp} XP
           </span>
+          {headerAction}
         </div>
       </div>
 

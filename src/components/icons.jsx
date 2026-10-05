@@ -81,3 +81,27 @@ export const UsersIcon = (p) => (
     <path d="M18.5 14.6c1.6.7 2.7 1.9 3.4 3.6" />
   </svg>
 );
+
+/* Setări */
+export const GearIcon = (p) => (
+  <svg {...stroke} {...p}>
+    <circle cx="12" cy="12" r="3" />
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" />
+  </svg>
+);
+export const CloseIcon = (p) => <svg {...stroke} strokeWidth="2.4" {...p}><path d="M6 6l12 12" /><path d="M18 6 6 18" /></svg>;
+export const SunIcon = (p) => (
+  <svg {...stroke} {...p}>
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4" />
+  </svg>
+);
+export const MoonIcon = (p) => <svg {...stroke} {...p}><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" /></svg>;
+export const AutoThemeIcon = (p) => (
+  <svg {...stroke} {...p}>
+    <rect x="3" y="4.5" width="18" height="12" rx="2.5" />
+    <path d="M8.5 20h7" />
+    <path d="M12 4.5v12" />
+  </svg>
+);
+export const TextSizeIcon = (p) => <svg {...stroke} {...p}><path d="M3.5 19 8 7l4.5 12" /><path d="M5 15h6" /><path d="M14.5 19l3-8 3 8" /><path d="M15.5 16.5h4" /></svg>;

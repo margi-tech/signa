@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 import { useHolisticLandmarker } from '../../hooks/useHolisticLandmarker';
 import { assessFaceFrame } from '../../utils/faceFrame';
 import HandCanvas from './HandCanvas';
+import { BrandLoader } from '../SplashScreen';
 
 // 3 modele (mâini + față + trunchi) pe cadru sunt costisitoare — limităm
 // detecția reală la ~15fps; desenarea rămâne fluidă prin rAF.
@@ -173,8 +174,7 @@ export default function HandTracker({
       {/* Loading overlay — poziționat DEASUPRA div-ului oglindă, deci text e drept */}
       {!isReady && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/70">
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-signa-400 border-t-transparent" />
-          <p className="text-white/70 text-sm">Se încarcă detectoarele…</p>
+          <BrandLoader tone="dark" label="Se încarcă detectoarele…" />
         </div>
       )}
 

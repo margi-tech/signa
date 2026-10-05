@@ -17,7 +17,10 @@ src/
 ├── components/
 │   ├── AppShell.jsx           # shell persistent: sidebar + tranziții între ecrane
 │   ├── Sidebar.jsx            # meniu, capitole, unelte, card nivel, rând profil
-│   ├── icons.jsx              # SVG-uri partajate (nav, unelte, conținut)
+│   ├── icons.jsx              # SVG-uri partajate (nav, unelte, conținut, setări)
+│   ├── BrandMark.jsx          # sigla (public/logo.png) pe plăcuță
+│   ├── SplashScreen.jsx       # ecranul verde de încărcare + BrandLoader compact
+│   ├── settings/              # SettingsSheet (roata din Profil) — temă, text, sunet, cont
 │   ├── hand-tracker/          # Camera + canvas overlay
 │   ├── collect/               # LetterSelector
 │   ├── lesson/                # ReferenceHand (static + animat) + ReferenceHand3D
@@ -38,6 +41,7 @@ src/
 │   ├── useProgress.js         # XP, stele, streak, nivel, mastery
 │   ├── useProgressSync.js     # progres server-authoritative + coadă offline per user
 │   ├── useProfileSummary.js   # nume, avatar, rang, rol admin — chemat o dată din shell
+│   ├── usePreferences.js      # temă (light/dark/system) + mărimea textului
 │   └── useCountUp.js          # contoare animate
 ├── pages/                     # Home, Camera, Collect, Train, Lessons, Lesson, Spell,
 │                              # Review, Diagnostic, Profile, Leaderboard, ReferinteCatalog
@@ -46,6 +50,7 @@ src/
 │   ├── supabase.js            # client + profil, avatar, social
 │   ├── dataset.js             # dataset colaborativ: coadă, loturi, RPC-uri
 │   ├── guest.js               # modul invitat: flag, marcaj de conversie, slate
+│   ├── preferences.js         # preferințe de aspect, cheia signa-prefs-v1 (doar local)
 │   └── authErrors.js          # erori Supabase → mesaje în română
 └── utils/
     ├── normalize.js           # ⚠ CRITICĂ — VECTOR_SIZE 199
@@ -102,11 +107,17 @@ direct din `App.jsx`.
     re-emite la conversie. Invitatul n-are `user_id`, deci nici profil, social,
     sincronizare, unelte de dataset sau serie de zile. Vezi `signa-guest`.
 
+15. Tema întunecată e **automată**: `postcss/signa-theme.js` dublează fiecare regulă
+    cu o culoare deschisă din paletă sub `[data-theme="dark"]` și scalează
+    `font-size`/`line-height` cu `--sg-text-scale`. Culoare nouă deschisă → adaug-o
+    în `SURFACE_MAP`/`TEXT_MAP`. Excepțiile (ex. buton alb pe banner verde) se scriu
+    cu `dark:`. Culorile din `style={{}}` inline **nu** se inversează.
+
 ## Verificare
 ```bash
 npm install
 npm run dev
-npm test          # vitest — 106 de teste, 19 fișiere
+npm test          # vitest — 122 de teste, 21 de fișiere
 npx vite build
 ```
 **Nu există `npm run lint` și nici `tsc`** — proiectul e JS curat. Dacă o cerință

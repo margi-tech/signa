@@ -1,6 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,jsx}'],
+  // Tema întunecată e în mare parte automată (postcss/signa-theme.js); `dark:`
+  // rămâne pentru excepțiile scrise de mână.
+  darkMode: ['selector', '[data-theme="dark"]'],
   theme: {
     extend: {
       colors: {
