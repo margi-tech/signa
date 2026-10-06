@@ -3,6 +3,8 @@
 **Duolingo pentru Limba Semnelor Române (LSR).**  
 Aplicație web PWA care recunoaște semnele **pe dispozitiv** — fără cloud, fără costuri pe imagine.
 
+🌐 **Live:** [signa-lsr.online](https://signa-lsr.online/)
+
 <p align="center">
   <img src="public/icon-512.png" alt="Signa" width="96" />
 </p>
@@ -12,6 +14,7 @@ Aplicație web PWA care recunoaște semnele **pe dispozitiv** — fără cloud, 
 - **Tracking holistic** — mâini, față și trunchi (MediaPipe), nu doar o mână
 - **Predicție live** — litere statice (MLP) + semne cu mișcare (GRU), în browser
 - **Lecții + XP** — progres, stele, streak, nivel
+- **Mod invitat** — înveți fără cont; la crearea contului, lecțiile se mută pe el
 - **Colectare & antrenare** — cameră holistică, inventar permanent, serii automate
   (300 foto / 50 video) și antrenare TensorFlow.js în browser
 - **Dataset colaborativ** — echipa colectează în același set din cloud (doar
@@ -43,6 +46,7 @@ npm run dev
 ```
 
 Deschide URL-ul din terminal (de obicei `http://localhost:5173`).
+Versiunea publică rulează pe [`https://signa-lsr.online`](https://signa-lsr.online/).
 
 ```bash
 npm test      # teste
@@ -117,6 +121,9 @@ Profil. Lecția, Colectarea, Train, Diagnostic și Referințe rămân full-scree
 | [`docs/tutorial-antrenare-echipa.md`](docs/tutorial-antrenare-echipa.md) | Tutorial detaliat |
 | [`docs/colectare-echipa.md`](docs/colectare-echipa.md) | Colectare pe teren |
 | [`docs/retrain.md`](docs/retrain.md) | Checklist reantrenare |
+| [`docs/guest-mode.md`](docs/guest-mode.md) | Modul invitat și mutarea progresului pe cont |
+| [`docs/strategie-cuvinte.md`](docs/strategie-cuvinte.md) | Strategia pentru semnele-cuvânt |
+| [`docs/impartirea-muncii.md`](docs/impartirea-muncii.md) | Împărțirea muncii în echipă |
 | [`docs/mvp-baza-de-date.md`](docs/mvp-baza-de-date.md) | Plan MVP Supabase + Vercel (US #22) |
 | [`docs/supabase-setup.md`](docs/supabase-setup.md) | Setup proiect Supabase + chei + Vercel |
 | [`FRIENDS.md`](FRIENDS.md) | Modelul follow/prietenie și integrarea socială în Profil |
@@ -135,6 +142,7 @@ Profil. Lecția, Colectarea, Train, Diagnostic și Referințe rămân full-scree
 | `signa-collect` | Cameră holistică, serii automate, dataset local + cloud |
 | `signa-train` | MLP/GRU, split pe sesiuni, export în `public/models/` |
 | `signa-auth` | Login/signup, resetare parolă, login cu Google |
+| `signa-guest` | Mod invitat, slate separat, conversia în cont |
 | `signa-social` | Follow reciproc, prieteni în Profil, Supabase/RLS |
 
 ## Git (echipă)
@@ -163,4 +171,4 @@ Nu injecta totuși date de test în cheile `signa-progress-*` ale unei sesiuni r
 
 ## Licență
 
-Proiect privat — `margi-tech/signa`.
+Proiect privat — `margi-tech/signa` · [signa-lsr.online](https://signa-lsr.online/).

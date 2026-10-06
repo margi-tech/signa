@@ -8,7 +8,7 @@ Ghidul de produs: [`docs/mvp-baza-de-date.md`](./mvp-baza-de-date.md). Schema: `
 
 **Proiect live:** `signa` · `https://sdwbgooayrtjlnhqxcja.supabase.co` · regiune EU (Ireland).
 
-Deploy-ul public (Vercel) poate fi blocat pe planul Hobby când autorul commitului nu este owner al proiectului Vercel pentru repo privat. Demo-ul local rămâne pe `http://localhost:5173`.
+**Aplicația publică:** [`https://signa-lsr.online`](https://signa-lsr.online/) (Vercel). Local: `http://localhost:5173`.
 
 ---
 
@@ -124,7 +124,7 @@ Project Settings → **Team** / **Members** → Invite pe email (rol Developer e
 
 Fiecare își face `.env.local` din `.env.example` + URL + **anon** key. Fără `service_role`.
 
-## 7. Vercel (pauză — nu e blocker pentru US #22)
+## 7. Vercel (live pe `https://signa-lsr.online`)
 
 1. Importă `margi-tech/signa` pe [vercel.com](https://vercel.com)
 2. Environment Variables (Production **și** Preview):
