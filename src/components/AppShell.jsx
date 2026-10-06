@@ -5,6 +5,7 @@ import MobileTabBar from './MobileTabBar.jsx';
 import HomePage from '../pages/HomePage.jsx';
 import LessonsPage from '../pages/LessonsPage.jsx';
 import ProfilePage from '../pages/ProfilePage.jsx';
+import CameraPage from '../pages/CameraPage.jsx';
 import LeaderboardPage from '../pages/LeaderboardPage.jsx';
 import { buildChaptersWithLessons } from '../data/lessons.js';
 import { useProgress } from '../hooks/useProgress.js';
@@ -13,7 +14,7 @@ const EASE = 'cubic-bezier(.22,1,.36,1)';
 
 /** Ecranele care trăiesc în shell (au sidebar și se tranziționează între ele). */
 export const SHELL_PAGES = [
-  'home', 'lessons', 'leaderboard', 'profile',
+  'home', 'lessons', 'camera', 'leaderboard', 'profile',
 ];
 
 /**
@@ -165,6 +166,7 @@ export default function AppShell({
                   rank={rank}
                   onLessons={() => go('lessons')}
                   onOpenLesson={onOpenLesson}
+                  onStart={() => go('camera')}
                   onLeaderboard={() => go('leaderboard')}
                   onSpell={onSpell}
                   onReview={onReview}
@@ -181,6 +183,12 @@ export default function AppShell({
                   rank={rank}
                   onOpenLesson={onOpenLesson}
                 />
+              </main>
+            )}
+
+            {shows('camera') && (
+              <main className={mainClass} style={layer('camera')} onAnimationEnd={onLayerAnimEnd}>
+                <CameraPage />
               </main>
             )}
 
