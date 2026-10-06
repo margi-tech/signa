@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import BrandMark from './BrandMark.jsx';
 import {
-  BookIcon, ChartIcon, DownloadIcon, HandIcon, HomeIcon,
+  BookIcon, CamIcon, ChartIcon, DownloadIcon, HandIcon, HomeIcon,
   PulseIcon, TrendIcon, UserIcon,
 } from './icons.jsx';
 
@@ -9,7 +9,7 @@ const EASE = 'cubic-bezier(.22,1,.36,1)';
 
 /** Poziția fiecărui ecran în meniu — dă și direcția tranziției. */
 export const PAGE_ORDER = {
-  home: 0, lessons: 1, leaderboard: 2, profile: 3,
+  home: 0, lessons: 1, camera: 2, leaderboard: 3, profile: 4,
 };
 
 const NAV_STEP = 52; // 48px înălțime item + 4px gap
@@ -143,6 +143,17 @@ export default function Sidebar({
       badge: (
         <span className="text-[11px] font-extrabold text-ink-500 bg-ink-900/[.05] rounded-full px-[9px] py-[3px] tabular-nums">
           {totalLessonsCount}
+        </span>
+      ),
+    },
+    {
+      icon: CamIcon,
+      label: 'Cameră',
+      page: 'camera',
+      badge: (
+        <span aria-hidden className="relative w-[7px] h-[7px] flex-none" title="Camera disponibilă">
+          <span className="absolute inset-0 rounded-full bg-signa-500" />
+          <span className="absolute -inset-1 rounded-full border-[1.5px] border-signa-500/55 sg-dot-ring" />
         </span>
       ),
     },
