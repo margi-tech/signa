@@ -18,7 +18,7 @@ JSON export/import rămâne ca backup, dacă ești offline.
 3. Acasă → **Colectare date** → acceptă consimțământul (doar numere, fără cameră)
 4. Colectezi. Inventarul arată totalul echipei. Statusul din header spune dacă s-a trimis.
 
-Local (`npm run dev`) e util pentru UI; datele de echipă se strâng pe site-ul live.
+Local (`npm run dev`) e util pentru UI; datele de echipă se strâng pe site-ul live, [`signa-lsr.online`](https://signa-lsr.online/).
 
 ## Cum colectezi
 

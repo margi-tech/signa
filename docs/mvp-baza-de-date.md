@@ -31,7 +31,7 @@ Auth MVP: **doar email + parolă**. Google OAuth rămâne după MVP.
 
 1. [x] Creează proiectul Supabase (regiune EU) și pune cheile în `.env.local` — vezi [`docs/supabase-setup.md`](./supabase-setup.md)
 2. [x] Extinde schema: `profiles` (nume, prenume, username, rol, vizibilitate) + RLS + trigger
-3. [x] Leagă signup/login de câmpurile noi — [ ] deploy pe Vercel (blocat de permisiuni Vercel Hobby pe repo privat)
+3. [x] Leagă signup/login de câmpurile noi — [x] deploy pe Vercel, live pe `https://signa-lsr.online`
 
 ---
 
@@ -77,7 +77,7 @@ Ordinea e obligatorie: fără proiect live, schema nu poate fi testată; fără 
 Închide ambiguitățile din ticket înainte de SQL. Owner: David + cine are acces la org-ul GitHub/Supabase.
 
 - [x] Arhitectură: `auth.users` + `profiles`, nu tabel `users` cu coloană parolă
-- [x] Hosting: Vercel (SPA Vite), nu Railway — deploy public amânat (Hobby)
+- [x] Hosting: Vercel (SPA Vite), nu Railway — deploy public pe `https://signa-lsr.online`
 - [x] MVP: doar email + parolă. Google OAuth rămâne după MVP
 - [x] Org Supabase: `margi-tech's Org`, proiect `signa`, owner David
 - [ ] Confirm email OFF până la demo (Authentication → Providers → Email)
@@ -134,8 +134,8 @@ Fișier: `vercel.json` (deja gata).
 
 - [x] Proiect Vercel legat de GitHub `margi-tech/signa`
 - [x] Environment Variables: `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` (Production și Preview)
-- [ ] Supabase Auth: Redirect URLs = domeniul Vercel + localhost
-- [ ] Deploy neblocat pe URL public (în prezent blocat de Vercel Hobby când autorul commitului nu e owner de proiect)
+- [x] Supabase Auth: Redirect URLs = `https://signa-lsr.online/**`, preview-urile Vercel + localhost
+- [x] Deploy pe URL public: [`https://signa-lsr.online`](https://signa-lsr.online/)
 
 ### Faza 5 — Acceptare US #22
 

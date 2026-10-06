@@ -99,7 +99,7 @@ imagini sau landmarks.
 - [x] RLS pe `profiles`, `progress`, `follows` și view-uri sociale
 - [x] Profil bogat: avatar, nivel, statistici și secțiune Prieteni
 - [x] Follow reciproc, căutare publică și cereri derivate
-- [ ] Deblochează deploy-ul Vercel al echipei
+- [x] Deblochează deploy-ul Vercel al echipei — live pe `https://signa-lsr.online`
 
 ---
 
@@ -112,7 +112,7 @@ imagini sau landmarks.
 ### To do
 - [ ] Testare pe dispozitive reale: iPhone (Safari), Android (Chrome) — cameră, predicție, lecții
 - [ ] Verifică instalarea PWA (add to home screen, splash, icoane, funcționare offline)
-- [ ] Configurează deploy automat (Vercel/Netlify/Cloudflare Pages) cu preview per branch
+- [x] Configurează deploy automat (Vercel) cu preview per branch — producție pe `https://signa-lsr.online`
 - [x] Teste automate pentru `normalize`, dataset și niveluri (34 teste)
 - [x] Pagină de diagnostic (versiune model, FPS, stare cameră)
 - [ ] Gestionarea versiunilor de model (cum ajunge un model nou la utilizatori fără cache vechi)
